@@ -1,0 +1,223 @@
+@if (gardien) {
+  <div class="space-y-6 pb-10">
+
+    <!-- Fil d'ariane / retour -->
+    <button
+      (click)="goBack()"
+      class="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-black transition"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6" />
+      </svg>
+      Retour aux gardiens
+    </button>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+      <!-- Colonne profil -->
+      <div class="lg:col-span-1 space-y-6">
+      <div class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col items-center text-center">
+        <img
+          [src]="gardien.photoUrl"
+          [alt]="gardien.nom + ' ' + gardien.postnom"
+          class="h-28 w-28 rounded-full object-cover border border-neutral-200"
+        />
+        <span class="mt-4 inline-block text-[11px] font-mono font-medium text-neutral-500 bg-neutral-100 rounded px-2 py-0.5">
+          {{ gardien.matricule }}
+        </span>
+        <h1 class="mt-2 text-lg font-semibold text-black">{{ gardien.nom }} {{ gardien.postnom }}</h1>
+        <p class="text-sm text-neutral-500">{{ gardien.prenom }}</p>
+        <p class="text-sm text-neutral-500">alias « {{ gardien.pseudo }} »</p>
+
+        <span class="mt-3 text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap" [ngClass]="statutBadgeClass(gardien.statut)">
+          {{ gardien.statut }}
+        </span>
+
+        <div class="w-full mt-6 pt-6 border-t border-neutral-200 space-y-3 text-left">
+          <p class="text-xs text-neutral-500 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 11.5 12 4l9 7.5M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" />
+            </svg>
+            <span>{{ gardien.zone }}</span>
+          </p>
+          <p class="text-xs text-neutral-500 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8 9.9a16 16 0 0 0 6 6l1.4-1.4a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z" />
+            </svg>
+            <span>{{ gardien.telephone }}</span>
+          </p>
+          <p class="text-xs text-neutral-500 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V9.5z" />
+            </svg>
+            <span>{{ gardien.adresse }}</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Commentaires des propriétaires -->
+      <div class="bg-white rounded-2xl border border-neutral-200 p-6 overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold text-black">Commentaires</h2>
+          <span class="text-xs text-neutral-500">{{ filteredCommentaires.length }} avis</span>
+        </div>
+
+        <div class="relative mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="commentSearchTerm"
+            placeholder="Rechercher un commentaire (propriétaire, mot-clé...)"
+            class="w-full rounded-lg border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+          />
+        </div>
+
+        @if (filteredCommentaires.length > 0) {
+          <div class="space-y-4 max-h-80 overflow-y-auto pr-1">
+            @for (commentaire of filteredCommentaires; track commentaire.id) {
+              <div class="pb-4 border-b border-neutral-100 last:border-b-0 last:pb-0">
+                <div class="flex items-center justify-between gap-2">
+                  <p class="text-sm font-medium text-black truncate">{{ commentaire.proprietaire }}</p>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap shrink-0" [ngClass]="commentaireBadgeClass(commentaire.type)">
+                    {{ commentaire.type === 'positif' ? 'Positif' : 'Négatif' }}
+                  </span>
+                </div>
+                <p class="text-sm text-neutral-600 mt-1.5">{{ commentaire.message }}</p>
+                <p class="text-xs text-neutral-400 mt-1.5">{{ commentaire.date }}</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-sm text-neutral-500">Aucun commentaire ne correspond à votre recherche.</p>
+        }
+      </div>
+      </div>
+
+      <!-- Colonne détails -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Informations personnelles -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <h2 class="text-sm font-semibold text-black mb-4">Informations personnelles</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-neutral-400">Date de naissance</p>
+              <p class="text-sm text-black mt-0.5">{{ gardien.dateNaissance }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-neutral-400">Lieu de naissance</p>
+              <p class="text-sm text-black mt-0.5">{{ gardien.lieuNaissance }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-neutral-400">Date d'embauche</p>
+              <p class="text-sm text-black mt-0.5">{{ gardien.dateEmbauche }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-neutral-400">N° pièce d'identité</p>
+              <p class="text-sm text-black mt-0.5">{{ gardien.numeroCni }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-neutral-400">Groupe sanguin</p>
+              <p class="text-sm text-black mt-0.5">{{ gardien.groupeSanguin }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-wide text-neutral-400">Contact d'urgence</p>
+              <p class="text-sm text-black mt-0.5">{{ gardien.contactUrgenceNom }} — {{ gardien.contactUrgenceTelephone }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Maisons affectées -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-black">
+              {{ gardien.maisons.length > 1 ? 'Maisons affectées' : 'Maison affectée' }}
+            </h2>
+            <span class="text-xs text-neutral-500">{{ gardien.maisons.length }} site(s)</span>
+          </div>
+
+          @if (gardien.maisons.length > 0) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              @for (maison of gardien.maisons; track maison.id) {
+                <div class="rounded-xl border border-neutral-200 overflow-hidden flex flex-col">
+                  <img [src]="maison.photoUrl" [alt]="maison.nom" class="h-28 w-full object-cover" />
+                  <div class="p-3.5">
+                    <h3 class="text-sm font-medium text-black">{{ maison.nom }}</h3>
+                    <p class="text-xs text-neutral-500 mt-1">{{ maison.adresse }}</p>
+                    <p class="text-xs text-neutral-500 mt-1">Propriétaire : {{ maison.proprietaire }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="text-sm text-neutral-500">Aucune maison affectée pour le moment.</p>
+          }
+        </div>
+
+        <!-- Carte de service -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-sm font-semibold text-black">Carte de service</h2>
+              <p class="text-xs text-neutral-500 mt-0.5">Aperçu de la carte officielle du gardien.</p>
+            </div>
+            <button
+              (click)="genererCarteService()"
+              [disabled]="isGeneratingCarte"
+              class="inline-flex items-center gap-2 bg-black text-white text-sm font-medium rounded-lg px-4 py-2.5 hover:bg-neutral-800 active:bg-neutral-900 transition shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              @if (!isGeneratingCarte) {
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+                </svg>
+                Télécharger la carte (PDF)
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" />
+                </svg>
+                Génération...
+              }
+            </button>
+          </div>
+
+          <!-- Aperçu visuel de la carte (format badge, ratio CR80 85.6x54mm) -->
+          <div class="aspect-[85.6/54] max-w-md w-full rounded-xl overflow-hidden border border-neutral-200 shadow-sm flex flex-col">
+            <div class="bg-black text-white px-3 py-2 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <!-- Emplacement du logo : déposer public/logo-entreprise.png -->
+                <div class="h-6 w-6 rounded border border-dashed border-white/40 bg-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                  <img
+                    src="/logo-entreprise.png"
+                    alt="Logo"
+                    class="h-full w-full object-contain"
+                    (error)="onLogoError($event)"
+                  />
+                </div>
+                <span class="text-xs font-bold tracking-wide truncate">GARDINNAGE</span>
+              </div>
+              <span class="text-[9px] text-neutral-300 tracking-wide shrink-0">CARTE DE SERVICE</span>
+            </div>
+            <div class="h-[3px] w-full shrink-0" style="background: linear-gradient(90deg, #c5a059, #f1e2b8, #c5a059);"></div>
+            <div class="carte-preview-body flex-1 px-4 py-3 flex gap-3">
+              <img [src]="gardien.photoUrl" [alt]="gardien.nom" class="h-20 w-20 rounded-md object-cover border border-neutral-200 shrink-0" />
+              <div class="min-w-0 space-y-0.5">
+                <p class="text-sm font-semibold text-black truncate">{{ gardien.nom.toUpperCase() }} {{ gardien.postnom }}</p>
+                <p class="text-[11px] text-neutral-600 truncate">Prénom : {{ gardien.prenom }}</p>
+                <p class="text-[11px] text-neutral-500 italic truncate">alias « {{ gardien.pseudo }} »</p>
+                <p class="text-[11px] text-black truncate">Matricule : {{ gardien.matricule }}</p>
+                <p class="text-[11px] text-black truncate">Né(e) le : {{ gardien.dateNaissance }}</p>
+                <p class="text-[11px] text-black truncate">Zone : {{ gardien.zone }}</p>
+              </div>
+            </div>
+            <div class="bg-neutral-100 px-4 py-1.5 flex items-center justify-between">
+              <span class="text-[9px] text-neutral-500">Émise le {{ dateEmission }}</span>
+              <span class="text-[9px] text-neutral-500">Valable avec pièce d'identité</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

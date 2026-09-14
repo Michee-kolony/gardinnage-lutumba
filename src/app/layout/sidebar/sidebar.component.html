@@ -1,0 +1,108 @@
+<aside class="h-full w-full bg-gradient-to-b from-neutral-900 via-black to-neutral-950 text-white flex flex-col">
+
+  <div class="flex items-center gap-3 px-4 min-h-[4.5rem] py-3 border-b border-white/10 shrink-0" [ngClass]="collapsed ? 'justify-center px-0' : 'justify-between'">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="h-9 w-9 rounded-lg bg-white flex items-center justify-center shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l8 4v5c0 4.5-3.2 8.5-8 9.5-4.8-1-8-5-8-9.5V7l8-4z" />
+        </svg>
+      </div>
+      @if (!collapsed) {
+        <div class="leading-snug min-w-0">
+          <p class="font-semibold text-sm truncate">Gardinnage</p>
+          <p class="text-neutral-400 text-xs truncate mt-0.5">Espace admin</p>
+        </div>
+      }
+    </div>
+
+    <!-- Fermeture (mobile uniquement) -->
+    @if (!collapsed) {
+      <button
+        (click)="layout.closeSidebar()"
+        class="md:hidden h-8 w-8 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-white/10 hover:text-white transition shrink-0"
+        aria-label="Fermer le menu"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    }
+  </div>
+
+  <nav class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-1">
+    @for (item of navItems; track item.route) {
+      <a
+        [routerLink]="item.route"
+        (click)="onNavClick()"
+        routerLinkActive="bg-white text-black"
+        [title]="item.label"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-300 no-underline hover:bg-white/10 hover:text-white transition"
+        [ngClass]="collapsed ? 'justify-center' : ''"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          @switch (item.icon) {
+            @case ('grid') {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
+            }
+            @case ('shield') {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v5c0 4.2-3 8-7 9-4-1-7-4.8-7-9V6l7-3z" />
+            }
+            @case ('users') {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-1a4 4 0 0 0-4-4h-1M9 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 0a4 4 0 0 1 4 4v1H2v-1a4 4 0 0 1 4-4h3zm8-4a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+            }
+            @case ('home') {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 11.5 12 4l9 7.5M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" />
+            }
+            @case ('file') {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 3h6l4 4v13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm6 0v4h4M9 12h6M9 16h6" />
+            }
+            @case ('alert') {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.3A1.5 1.5 0 0 0 4 19.5h16a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z" />
+            }
+            @case ('card') {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7zM3 10h18M7 15h4" />
+            }
+            @case ('settings') {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm9-3a9.05 9.05 0 0 0-.2-1.9l2-1.6-2-3.4-2.4 1a7.2 7.2 0 0 0-1.6-1L16.4 2h-4l-.4 2.6a7.2 7.2 0 0 0-1.6 1l-2.4-1-2 3.4 2 1.6a9.4 9.4 0 0 0 0 3.8l-2 1.6 2 3.4 2.4-1a7.2 7.2 0 0 0 1.6 1l.4 2.6h4l.4-2.6a7.2 7.2 0 0 0 1.6-1l2.4 1 2-3.4-2-1.6c.13-.62.2-1.26.2-1.9z" />
+            }
+          }
+        </svg>
+        @if (!collapsed) {
+          <span class="truncate">{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <div class="p-3 border-t border-white/10 shrink-0 space-y-1">
+    <!-- Collapse / expand (desktop uniquement) -->
+    <button
+      (click)="layout.toggleSidebar()"
+      class="hidden md:flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-300 hover:bg-white/10 hover:text-white transition"
+      [ngClass]="collapsed ? 'justify-center' : ''"
+      [attr.aria-label]="collapsed ? 'Ouvrir le menu' : 'Réduire le menu'"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0 transition-transform" style="width:18px;height:18px" [ngClass]="collapsed ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6" />
+      </svg>
+      @if (!collapsed) {
+        <span>Réduire le menu</span>
+      }
+    </button>
+
+    <button
+      (click)="logout()"
+      [title]="'Déconnexion'"
+      class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-300 hover:bg-white/10 hover:text-white transition"
+      [ngClass]="collapsed ? 'justify-center' : ''"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m6 14 5-5-5-5m5 5H9" />
+      </svg>
+      @if (!collapsed) {
+        <span>Déconnexion</span>
+      }
+    </button>
+  </div>
+
+</aside>

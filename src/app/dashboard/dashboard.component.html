@@ -1,0 +1,260 @@
+<div class="space-y-8 pb-8">
+
+  <!-- Section Gardiens -->
+  <section>
+    <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Effectif des gardiens</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      @for (stat of gardiensStats; track stat.label) {
+        <app-stat-card
+          [label]="stat.label"
+          [value]="stat.value"
+          [hint]="stat.hint"
+          [icon]="stat.icon"
+          [emphasis]="stat.emphasis"
+          [trend]="stat.trend"
+          [trendValue]="stat.trendValue"
+        ></app-stat-card>
+      }
+    </div>
+  </section>
+
+  <!-- Gardiens actifs -->
+  <section>
+    <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Gardiens actifs maintenant</h2>
+    <div class="bg-white rounded-2xl border border-neutral-200 p-4">
+      <div class="flex gap-4 overflow-x-auto hide-scrollbar">
+        @for (agent of agentsActifs; track agent.nom) {
+          <div class="flex flex-col items-center gap-1.5 shrink-0 w-16">
+            <div class="relative">
+              <img
+                [src]="agent.photoUrl"
+                [alt]="agent.nom"
+                class="h-14 w-14 rounded-full object-cover border-2 border-white shadow ring-2 ring-green-500"
+              />
+              <span class="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-green-500 border-2 border-white"></span>
+            </div>
+            <span class="text-[11px] text-neutral-600 text-center truncate w-full">{{ agent.nom.split(' ')[0] }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Carte des gardiens actifs -->
+  <section>
+    <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Localisation des gardiens actifs</h2>
+    <div class="bg-white rounded-2xl border border-neutral-200 p-4">
+      <div #gardiensMap class="h-[28rem] sm:h-[36rem] w-full rounded-xl overflow-hidden"></div>
+    </div>
+  </section>
+
+  <!-- Section Activité -->
+  <section>
+    <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Activité générale</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      @for (stat of activiteStats; track stat.label) {
+        <app-stat-card
+          [label]="stat.label"
+          [value]="stat.value"
+          [hint]="stat.hint"
+          [icon]="stat.icon"
+          [emphasis]="stat.emphasis"
+          [trend]="stat.trend"
+          [trendValue]="stat.trendValue"
+        ></app-stat-card>
+      }
+    </div>
+  </section>
+
+  <!-- Section Finance / incidents -->
+  <section>
+    <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Incidents &amp; paiements</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      @for (stat of financeStats; track stat.label) {
+        <app-stat-card
+          [label]="stat.label"
+          [value]="stat.value"
+          [hint]="stat.hint"
+          [icon]="stat.icon"
+          [emphasis]="stat.emphasis"
+          [trend]="stat.trend"
+          [trendValue]="stat.trendValue"
+        ></app-stat-card>
+      }
+    </div>
+  </section>
+
+  <!-- Statistiques -->
+  <section>
+    <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Statistiques</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <app-bar-chart
+        title="Présences de la semaine"
+        subtitle="Nombre de gardiens en service par jour"
+        [data]="presenceData"
+      ></app-bar-chart>
+
+      <app-bar-chart
+        title="Incidents par mois"
+        subtitle="Évolution sur les 6 derniers mois"
+        [data]="incidentsData"
+      ></app-bar-chart>
+
+      <app-donut-chart
+        title="Répartition des prestations"
+        subtitle="Par type de mission"
+        [segments]="prestationsSegments"
+      ></app-donut-chart>
+
+      <app-donut-chart
+        title="Statut des incidents"
+        subtitle="Suivi de traitement"
+        [segments]="incidentsSegments"
+      ></app-donut-chart>
+    </div>
+  </section>
+
+  <!-- Contrats arrivant à expiration -->
+  <section>
+    <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Contrats arrivant à expiration</h2>
+
+    <!-- Desktop / tablette : tableau -->
+    <div class="hidden sm:block bg-white rounded-2xl border border-neutral-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-neutral-200 text-left text-neutral-500">
+            <th class="px-5 py-3 font-medium">Propriétaire</th>
+            <th class="px-5 py-3 font-medium">Maison</th>
+            <th class="px-5 py-3 font-medium">Fin de contrat</th>
+            <th class="px-5 py-3 font-medium text-right">Jours restants</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (contrat of contratsExpirants; track contrat.maison) {
+            <tr class="border-b border-neutral-100 last:border-0 hover:bg-neutral-50 transition">
+              <td class="px-5 py-3 text-black font-medium">
+                <div class="flex items-center justify-between gap-3">
+                  <span class="truncate">{{ contrat.proprietaire }}</span>
+                  <img
+                    [src]="contrat.photoUrl"
+                    [alt]="contrat.proprietaire"
+                    class="h-8 w-8 rounded-full object-cover border border-neutral-200 shrink-0"
+                  />
+                </div>
+              </td>
+              <td class="px-5 py-3 text-neutral-600">{{ contrat.maison }}</td>
+              <td class="px-5 py-3 text-neutral-600">{{ contrat.finContrat }}</td>
+              <td class="px-5 py-3 text-right">
+                <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium" [ngClass]="joursBadgeClass(contrat.joursRestants)">
+                  {{ contrat.joursRestants }} j
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile : cartes empilées -->
+    <div class="sm:hidden flex flex-col gap-3">
+      @for (contrat of contratsExpirants; track contrat.maison) {
+        <div class="bg-white rounded-2xl border border-neutral-200 p-4 flex items-center gap-3">
+          <img
+            [src]="contrat.photoUrl"
+            [alt]="contrat.proprietaire"
+            class="h-12 w-12 rounded-full object-cover border border-neutral-200 shrink-0"
+          />
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-black truncate">{{ contrat.proprietaire }}</p>
+            <p class="text-xs text-neutral-500 truncate">{{ contrat.maison }}</p>
+            <p class="text-xs text-neutral-400 mt-0.5">Fin de contrat : {{ contrat.finContrat }}</p>
+          </div>
+          <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium shrink-0" [ngClass]="joursBadgeClass(contrat.joursRestants)">
+            {{ contrat.joursRestants }} j
+          </span>
+        </div>
+      }
+    </div>
+  </section>
+
+</div>
+
+<!-- Bouton flottant : rapports des gardiens -->
+<button
+  (click)="openRapportsModal()"
+  class="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full bg-black text-white shadow-xl flex items-center justify-center hover:bg-neutral-800 active:bg-neutral-900 transition"
+  aria-label="Voir les rapports des gardiens"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a9 9 0 1 1-4.06-7.52L21 3l-1.06 4.94A8.96 8.96 0 0 1 21 12Z" />
+  </svg>
+</button>
+
+<!-- Popover : rapports des gardiens (ancré au bouton) -->
+@if (isRapportsModalOpen) {
+  <div class="fixed inset-0 z-[1100]" (click)="closeRapportsModal()"></div>
+
+  <div
+    class="fixed z-[1101] top-6 bottom-24 right-4 left-4 sm:left-auto sm:right-6 sm:w-full sm:max-w-md bg-white/75 backdrop-blur-xl border border-white/60 rounded-2xl shadow-2xl flex flex-col overflow-hidden origin-bottom-right animate-[popover-pop_0.2s_ease-out]"
+  >
+    <div class="flex items-center justify-between px-6 py-5 border-b border-neutral-200/60 shrink-0">
+      <div>
+        <h2 class="text-lg font-semibold text-black">Rapports des gardiens</h2>
+        <p class="text-xs text-neutral-500 mt-0.5">Derniers comptes-rendus envoyés par les gardiens</p>
+      </div>
+      <button
+        (click)="closeRapportsModal()"
+        class="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-black transition shrink-0"
+        aria-label="Fermer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="px-6 pt-4 shrink-0 flex gap-2">
+      <div class="relative flex-1 min-w-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
+        </svg>
+        <input
+          type="text"
+          [(ngModel)]="rapportsSearchTerm"
+          placeholder="Rechercher un gardien ou un mot-clé..."
+          class="w-full rounded-lg border border-neutral-300/70 bg-white/70 pl-9 pr-3 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+        />
+      </div>
+
+      <select
+        [(ngModel)]="rapportsDateFilter"
+        class="shrink-0 rounded-lg border border-neutral-300/70 bg-white/70 px-2.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+      >
+        <option value="toutes">Toutes les dates</option>
+        <option value="aujourdhui">Aujourd'hui</option>
+        <option value="hier">Hier</option>
+      </select>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      @for (rapport of filteredRapports; track $index) {
+        <div class="flex items-start gap-3">
+          <img
+            [src]="rapport.photoUrl"
+            [alt]="rapport.nom"
+            class="h-10 w-10 rounded-full object-cover border border-neutral-200 shrink-0"
+          />
+          <div class="flex-1 min-w-0 bg-neutral-100/60 rounded-xl px-4 py-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-sm font-semibold text-black truncate">{{ rapport.nom }}</p>
+              <span class="text-[11px] text-neutral-400 shrink-0">{{ rapport.date }}</span>
+            </div>
+            <p class="text-sm text-neutral-600 mt-1">{{ rapport.message }}</p>
+          </div>
+        </div>
+      } @empty {
+        <p class="text-sm text-neutral-400 text-center py-6">Aucun rapport ne correspond à votre recherche.</p>
+      }
+    </div>
+  </div>
+}

@@ -1,0 +1,54 @@
+<div class="min-h-screen w-full flex items-center justify-center bg-black px-4">
+  <div class="w-full max-w-md">
+
+    <div class="flex flex-col items-center mb-8">
+      <div class="h-14 w-14 rounded-xl bg-white flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l8 4v5c0 4.5-3.2 8.5-8 9.5-4.8-1-8-5-8-9.5V7l8-4z" />
+        </svg>
+      </div>
+      <h1 class="text-white text-2xl font-semibold tracking-tight">Gardinnage Admin</h1>
+      <p class="text-neutral-400 text-sm mt-1">Espace d'administration sécurisé</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" novalidate class="bg-white rounded-2xl shadow-2xl p-8 border border-neutral-200">
+      <h2 class="text-lg font-semibold text-black mb-1">Connexion</h2>
+      <p class="text-sm text-neutral-500 mb-6">Connectez-vous pour accéder au tableau de bord.</p>
+
+      <label class="block text-sm font-medium text-black mb-1.5" for="username">Identifiant</label>
+      <input
+        id="username"
+        name="username"
+        type="text"
+        autocomplete="username"
+        [(ngModel)]="username"
+        placeholder="admin"
+        class="w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-black placeholder-neutral-400 mb-4 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+      />
+
+      <label class="block text-sm font-medium text-black mb-1.5" for="password">Mot de passe</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        [(ngModel)]="password"
+        placeholder="••••••••"
+        class="w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-black placeholder-neutral-400 mb-6 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+      />
+
+      <button
+        type="submit"
+        class="w-full bg-black text-white font-medium rounded-lg py-2.5 hover:bg-neutral-800 active:bg-neutral-900 transition"
+      >
+        Se connecter
+      </button>
+
+      <p class="text-xs text-neutral-400 text-center mt-6">
+        Mode démo — aucun identifiant requis pour le moment
+      </p>
+    </form>
+
+    <p class="text-center text-neutral-500 text-xs mt-6">© 2026 Gardinnage — Tous droits réservés</p>
+  </div>
+</div>

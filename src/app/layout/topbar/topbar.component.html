@@ -1,0 +1,35 @@
+<header class="min-h-[4.5rem] w-full bg-white border-b border-neutral-200 flex items-center justify-between px-4 sm:px-6 py-3 shrink-0 gap-3">
+  <div class="flex items-center gap-3 min-w-0">
+    <button
+      (click)="layout.toggleSidebar()"
+      class="md:hidden h-9 w-9 shrink-0 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 transition"
+      [attr.aria-label]="layout.sidebarOpen() ? 'Fermer le menu' : 'Ouvrir le menu'"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <div class="min-w-0 leading-snug">
+      <h1 class="text-lg font-semibold text-black truncate">{{ pageTitle }}</h1>
+      <p class="text-xs text-neutral-500 hidden sm:block mt-0.5">Vue d'ensemble de l'activité</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-4 shrink-0">
+    <button class="h-9 w-9 rounded-full border border-neutral-200 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
+      </svg>
+    </button>
+
+    <div class="flex items-center gap-3 pl-4 border-l border-neutral-200">
+      <div class="h-9 w-9 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold uppercase">
+        {{ username.charAt(0) }}
+      </div>
+      <div class="leading-tight hidden sm:block">
+        <p class="text-sm font-medium text-black">{{ username }}</p>
+        <p class="text-xs text-neutral-500">Administrateur</p>
+      </div>
+    </div>
+  </div>
+</header>

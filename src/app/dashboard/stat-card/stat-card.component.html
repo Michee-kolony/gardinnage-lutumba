@@ -1,0 +1,70 @@
+<div
+  class="rounded-xl border p-3.5 flex flex-col gap-2.5 transition hover:shadow-md"
+  [ngClass]="emphasis === 'dark' ? 'bg-black border-black text-white' : 'bg-white border-neutral-200 text-black'"
+>
+  <div class="flex items-start justify-between">
+    <div
+      class="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
+      [ngClass]="emphasis === 'dark' ? 'bg-white text-black' : 'bg-neutral-100 text-black'"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        @switch (icon) {
+          @case ('shield') {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v5c0 4.2-3 8-7 9-4-1-7-4.8-7-9V6l7-3z" />
+          }
+          @case ('check') {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          }
+          @case ('clock') {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+          }
+          @case ('user-x') {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm9-3-4 4m0-4 4 4" />
+          }
+          @case ('users') {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-1a4 4 0 0 0-4-4h-1M9 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 0a4 4 0 0 1 4 4v1H2v-1a4 4 0 0 1 4-4h3zm8-4a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+          }
+          @case ('home') {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 11.5 12 4l9 7.5M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" />
+          }
+          @case ('file') {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 3h6l4 4v13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm6 0v4h4M9 12h6M9 16h6" />
+          }
+          @case ('alert') {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.3A1.5 1.5 0 0 0 4 19.5h16a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z" />
+          }
+          @case ('cash') {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m-3-8v8m6-8v8M4 6h16v12H4z" />
+          }
+          @case ('card') {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7zM3 10h18M7 15h4" />
+          }
+          @default {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
+          }
+        }
+      </svg>
+    </div>
+
+    @if (trendValue) {
+      <span
+        class="text-[11px] font-medium px-1.5 py-0.5 rounded-full"
+        [ngClass]="{
+          'bg-neutral-100 text-black': trend === 'up' && emphasis !== 'dark',
+          'bg-neutral-800 text-white': trend === 'up' && emphasis === 'dark',
+          'bg-neutral-200 text-neutral-600': trend !== 'up'
+        }"
+      >
+        {{ trendValue }}
+      </span>
+    }
+  </div>
+
+  <div>
+    <p class="text-lg font-semibold tracking-tight">{{ value }}</p>
+    <p class="text-xs mt-0.5" [ngClass]="emphasis === 'dark' ? 'text-neutral-300' : 'text-neutral-500'">{{ label }}</p>
+    @if (hint) {
+      <p class="text-[11px] mt-1" [ngClass]="emphasis === 'dark' ? 'text-neutral-400' : 'text-neutral-400'">{{ hint }}</p>
+    }
+  </div>
+</div>

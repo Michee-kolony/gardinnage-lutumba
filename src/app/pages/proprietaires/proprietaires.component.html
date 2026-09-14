@@ -1,0 +1,217 @@
+<div class="space-y-6 pb-8">
+
+  <!-- Barre d'actions -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="relative w-full sm:max-w-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Rechercher un propriétaire (nom, email, téléphone...)"
+        class="w-full rounded-lg border border-neutral-300 bg-white pl-10 pr-4 py-2.5 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+      />
+    </div>
+
+    <div class="flex items-center justify-between sm:justify-end gap-4">
+      <div class="flex items-center gap-2 text-sm text-neutral-500">
+        <span class="font-medium text-black">{{ filteredProprietaires.length }}</span>
+        <span>propriétaire(s) {{ searchTerm ? 'trouvé(s)' : 'au total' }}</span>
+      </div>
+
+      <button
+        (click)="openModal()"
+        class="inline-flex items-center gap-2 bg-black text-white text-sm font-medium rounded-lg px-4 py-2.5 hover:bg-neutral-800 active:bg-neutral-900 transition shrink-0"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
+        </svg>
+        Ajouter un propriétaire
+      </button>
+    </div>
+  </div>
+
+  <!-- Liste des propriétaires -->
+  @if (filteredProprietaires.length > 0) {
+    <div class="flex flex-col gap-3">
+      @for (proprietaire of filteredProprietaires; track proprietaire.id) {
+        <div class="bg-white rounded-2xl border border-neutral-200 p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-md transition">
+
+          <!-- Photo -->
+          <img
+            [src]="proprietaire.photoUrl"
+            [alt]="proprietaire.nom + ' ' + proprietaire.prenom"
+            class="h-16 w-16 rounded-full object-cover border border-neutral-200 shrink-0 mx-auto sm:mx-0"
+          />
+
+          <!-- Identité -->
+          <div class="flex-1 min-w-0 text-center sm:text-left">
+            <h3 class="text-sm font-semibold text-black truncate">{{ proprietaire.civilite }} {{ proprietaire.prenom }} {{ proprietaire.nom }}</h3>
+            <p class="text-xs text-neutral-500 truncate">{{ proprietaire.email }}</p>
+          </div>
+
+          <!-- Contact -->
+          <div class="flex-1 min-w-0 space-y-1.5 text-center sm:text-left">
+            <p class="text-xs text-neutral-500 flex items-center justify-center sm:justify-start gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8 9.9a16 16 0 0 0 6 6l1.4-1.4a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z" />
+              </svg>
+              <span class="truncate">{{ proprietaire.telephone }}</span>
+            </p>
+          </div>
+
+          <!-- Nombre de maisons -->
+          <div class="shrink-0 flex justify-center sm:justify-end">
+            <span class="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap bg-neutral-100 text-black border border-neutral-300">
+              {{ proprietaire.nombreMaisons }} maison(s)
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="bg-white rounded-2xl border border-neutral-200 p-10 flex flex-col items-center justify-center text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="text-neutral-300 mb-3" style="width:40px;height:40px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
+      </svg>
+      <p class="text-sm text-neutral-500">Aucun propriétaire ne correspond à "{{ searchTerm }}".</p>
+    </div>
+  }
+</div>
+
+<!-- Modal : ajouter un propriétaire -->
+@if (isModalOpen) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 animate-[fade-in_0.15s_ease-out]" (click)="closeModal()"></div>
+
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-[modal-pop_0.2s_ease-out]">
+      <div class="flex items-center justify-between px-6 py-5 border-b border-neutral-200 sticky top-0 bg-white rounded-t-2xl">
+        <div>
+          <h2 class="text-lg font-semibold text-black">Ajouter un propriétaire</h2>
+          <p class="text-xs text-neutral-500 mt-0.5">Renseignez les informations du nouveau propriétaire.</p>
+        </div>
+        <button
+          (click)="closeModal()"
+          class="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-black transition"
+          aria-label="Fermer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="onSubmitProprietaire()" novalidate class="px-6 py-5 space-y-4">
+
+        <div class="flex items-center gap-4">
+          <img
+            [src]="formModel.photoUrl || 'https://ui-avatars.com/api/?background=e5e5e5&color=737373&name=%3F'"
+            alt="Aperçu photo"
+            class="h-16 w-16 rounded-full object-cover border border-neutral-200 shrink-0"
+          />
+          <div class="flex-1 min-w-0">
+            <label class="block text-sm font-medium text-black mb-1.5">Photo</label>
+            <label
+              for="photoFile"
+              class="inline-flex items-center gap-2 border border-neutral-300 rounded-lg px-3.5 py-2 text-sm text-black cursor-pointer hover:bg-neutral-50 transition"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+              </svg>
+              Choisir une photo
+            </label>
+            <input
+              id="photoFile" name="photoFile" type="file" accept="image/*"
+              (change)="onPhotoSelected($event)"
+              class="hidden"
+            />
+            <p class="text-xs text-neutral-400 mt-1 truncate">
+              {{ selectedFileName || 'Aucun fichier choisi — une photo par défaut sera utilisée.' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-black mb-1.5" for="civilite">Civilité</label>
+            <select
+              id="civilite" name="civilite"
+              [(ngModel)]="formModel.civilite"
+              class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+            >
+              @for (civilite of civilitesDisponibles; track civilite) {
+                <option [value]="civilite">{{ civilite }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-black mb-1.5" for="nom">Nom</label>
+            <input
+              id="nom" name="nom" type="text" required
+              [(ngModel)]="formModel.nom"
+              placeholder="Dubois"
+              class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-black mb-1.5" for="prenom">Prénom</label>
+          <input
+            id="prenom" name="prenom" type="text" required
+            [(ngModel)]="formModel.prenom"
+            placeholder="Bernard"
+            class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-black mb-1.5" for="email">Email</label>
+          <input
+            id="email" name="email" type="email"
+            [(ngModel)]="formModel.email"
+            placeholder="bernard.dubois@email.fr"
+            class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-black mb-1.5" for="telephone">Téléphone</label>
+            <input
+              id="telephone" name="telephone" type="tel"
+              [(ngModel)]="formModel.telephone"
+              placeholder="06 12 34 56 78"
+              class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-black mb-1.5" for="nombreMaisons">Nombre de maisons</label>
+            <input
+              id="nombreMaisons" name="nombreMaisons" type="number" min="0"
+              [(ngModel)]="formModel.nombreMaisons"
+              class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button
+            type="button"
+            (click)="closeModal()"
+            class="px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2.5 rounded-lg text-sm font-medium bg-black text-white hover:bg-neutral-800 active:bg-neutral-900 transition"
+          >
+            Ajouter le propriétaire
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

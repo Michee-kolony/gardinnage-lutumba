@@ -1,0 +1,24 @@
+<div class="bg-white rounded-2xl border border-neutral-200 p-5 h-full flex flex-col">
+  <div class="mb-6">
+    <h3 class="text-sm font-semibold text-black">{{ title }}</h3>
+    @if (subtitle) {
+      <p class="text-xs text-neutral-500 mt-0.5">{{ subtitle }}</p>
+    }
+  </div>
+
+  <div class="flex-1 flex items-end gap-3 min-h-[160px]">
+    @for (point of data; track point.label) {
+      <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+        <span class="text-xs font-medium text-neutral-600">{{ point.value }}</span>
+        <div class="w-full h-full flex items-end">
+          <div
+            class="w-full rounded-md bg-black hover:bg-neutral-700 transition-all duration-300"
+            [style.height.%]="heightPercent(point.value)"
+            style="min-height: 4px;"
+          ></div>
+        </div>
+        <span class="text-xs text-neutral-500">{{ point.label }}</span>
+      </div>
+    }
+  </div>
+</div>

@@ -1,1 +1,66 @@
 /* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-pop {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes popover-pop {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Couleur de secours pendant le chargement des tuiles de la carte Leaflet. */
+.leaflet-container {
+  background: #171717;
+}
+
+/* Rendu sombre des tuiles OpenStreetMap (inversion + rotation de teinte) : évite
+   de dépendre d'un fournisseur de tuiles sombres nécessitant une clé API. Le
+   filtre ne s'applique qu'aux tuiles, pas aux marqueurs/popups des gardiens. */
+.leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+
+/* Étiquette de zone affichée en permanence sous chaque marqueur gardien */
+.leaflet-tooltip.zone-label {
+  background: rgba(23, 23, 23, 0.85);
+  color: #e5e5e5;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 7px;
+  box-shadow: none;
+}
+
+.leaflet-tooltip.zone-label::before {
+  display: none;
+}
+
+.leaflet-control-zoom a {
+  background-color: #1f1f1f !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #2e2e2e !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.6) !important;
+  color: #d4d4d4 !important;
+}
+
+.leaflet-control-attribution a {
+  color: #f5f5f5 !important;
+}

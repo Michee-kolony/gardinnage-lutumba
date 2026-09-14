@@ -1,0 +1,12 @@
+/* Carte de service : texture décorative (fines diagonales + filigrane), posée
+   en tant que véritable arrière-plan CSS (background-image) — jamais un calque
+   superposé — pour ne jamais pouvoir masquer la photo ou le texte au-dessus. */
+.carte-preview-body {
+  background-color: #ffffff;
+  background-image:
+    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 7px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='150' viewBox='0 0 320 150'%3E%3Ctext x='160' y='80' font-family='Arial, Helvetica, sans-serif' font-size='34' font-weight='800' letter-spacing='2' fill='rgba(0,0,0,0.045)' text-anchor='middle' transform='rotate(-18 160 80)'%3EGARDINNAGE%3C/text%3E%3C/svg%3E");
+  background-repeat: repeat, no-repeat;
+  background-position: 0 0, center;
+  background-size: auto, 80% auto;
+}
