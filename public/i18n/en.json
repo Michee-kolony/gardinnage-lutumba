@@ -1,0 +1,121 @@
+{
+  "topbar": {
+    "availability": "Available 24/7"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "quote": "Quote",
+    "contact": "Contact",
+    "callUs": "Call us",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "lang": {
+    "choose": "Choose language",
+    "fr": "French",
+    "en": "English",
+    "ln": "Lingala"
+  },
+  "hero": {
+    "slide1": {
+      "welcome": "Welcome to",
+      "brand": "Empire Security",
+      "point1": "24/7 surveillance",
+      "point2": "Trained guards",
+      "point3": "Rapid response",
+      "cta": "Learn more"
+    },
+    "slide2": {
+      "eyebrow": "ROUNDS & PATROLS",
+      "titleStart": "A",
+      "titleAccent": "constant presence",
+      "titleEnd": "around your property",
+      "text": "Regular patrols and a responsive mobile team ready to step in at any time, whenever needed."
+    },
+    "quoteCta": "Request a quote",
+    "servicesCta": "Our services"
+  },
+  "about": {
+    "eyebrow": "ABOUT EMPIRE SECURITY",
+    "title": "Always watchful for your family and your property",
+    "text": "Empire Security supports homeowners in protecting their homes and belongings. Our guards are carefully selected, trained and monitored daily to give you complete peace of mind.",
+    "point1": "Selected and trained guards",
+    "point2": "24/7 surveillance rounds",
+    "point3": "Regular follow-up and reports to homeowners",
+    "cta": "Learn more"
+  },
+  "stats": {
+    "agents": "Trained agents",
+    "properties": "Properties protected",
+    "experience": "Years of experience",
+    "satisfaction": "Satisfied clients"
+  },
+  "services": {
+    "sectionEyebrow": "OUR SERVICES",
+    "sectionTitle": "Solutions that protect your everyday life",
+    "sectionSubtitle": "Keeping your family and your business safe is essential. Discover our services.",
+    "homeGuard": {
+      "title": "Home guarding",
+      "description": "Daily surveillance of your property by dedicated, trained and reliable guards."
+    },
+    "patrols": {
+      "title": "Surveillance rounds",
+      "description": "Regular passes and scheduled checks to deter any intrusion."
+    },
+    "residential": {
+      "title": "Residential security",
+      "description": "Protecting your home while you're away, with the same rigor as every day."
+    },
+    "consulting": {
+      "title": "Security consulting",
+      "description": "A personalized assessment of your needs and recommendations tailored to your situation."
+    },
+    "corporate": {
+      "title": "Corporate security",
+      "description": "Protection of premises, staff and business assets, tailored to your needs."
+    },
+    "ownerPortal": {
+      "title": "Online owner portal",
+      "description": "Track your contracts, payments and guard reports from your personal space."
+    }
+  },
+  "quote": {
+    "eyebrow": "REQUEST A QUOTE",
+    "title": "Get a personalized quote",
+    "subtitle": "Fill out this form and our team will get back to you quickly to assess your security needs.",
+    "cta": "Request a quote",
+    "name": "Full name",
+    "namePlaceholder": "Your name",
+    "phone": "Phone",
+    "phonePlaceholder": "+243 000 000 000",
+    "email": "Email",
+    "emailPlaceholder": "you@email.com",
+    "service": "Desired service",
+    "serviceChoose": "Choose a service",
+    "address": "Address / Neighborhood",
+    "addressPlaceholder": "District, neighborhood...",
+    "message": "Message (optional)",
+    "messagePlaceholder": "Describe your needs...",
+    "submit": "Send my request",
+    "successTitle": "Thank you! Your request has been sent.",
+    "successText": "Our team will contact you very soon.",
+    "close": "Close"
+  },
+  "cta": {
+    "title": "Ready to secure your home or business?",
+    "text": "Contact Empire Security today for personalized support.",
+    "button": "Request a quote"
+  },
+  "footer": {
+    "description": "Your security, our commitment. Guarding, surveillance and protection for your homes and businesses.",
+    "navigation": "Navigation",
+    "services": "Services",
+    "contact": "Contact",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "availability": "Available 24/7",
+    "copyright": "Empire Security — All rights reserved"
+  }
+}

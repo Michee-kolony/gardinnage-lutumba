@@ -1,0 +1,121 @@
+{
+  "topbar": {
+    "availability": "Disponible 24h/24 - 7j/7"
+  },
+  "nav": {
+    "home": "Accueil",
+    "about": "À propos",
+    "services": "Services",
+    "quote": "Devis",
+    "contact": "Contact",
+    "callUs": "Appelez-nous",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu"
+  },
+  "lang": {
+    "choose": "Choisir la langue",
+    "fr": "Français",
+    "en": "Anglais",
+    "ln": "Lingala"
+  },
+  "hero": {
+    "slide1": {
+      "welcome": "Bienvenue chez",
+      "brand": "Empire Security",
+      "point1": "Surveillance 24h/24",
+      "point2": "Gardiens formés",
+      "point3": "Intervention rapide",
+      "cta": "Voir plus"
+    },
+    "slide2": {
+      "eyebrow": "RONDES & PATROUILLES",
+      "titleStart": "Une",
+      "titleAccent": "présence constante",
+      "titleEnd": "autour de votre propriété",
+      "text": "Des patrouilles régulières et une équipe mobile réactive pour intervenir à tout moment, en cas de besoin."
+    },
+    "quoteCta": "Demander un devis",
+    "servicesCta": "Nos services"
+  },
+  "about": {
+    "eyebrow": "À PROPOS D'EMPIRE SECURITY",
+    "title": "Toujours vigilants pour votre famille et vos biens",
+    "text": "Empire Security accompagne les propriétaires dans la protection de leurs maisons et de leurs biens. Nos gardiens sont sélectionnés, formés et suivis au quotidien pour vous garantir une tranquillité d'esprit totale.",
+    "point1": "Gardiens sélectionnés et formés",
+    "point2": "Rondes de surveillance 24h/24 et 7j/7",
+    "point3": "Suivi et rapports réguliers aux propriétaires",
+    "cta": "En savoir plus"
+  },
+  "stats": {
+    "agents": "Agents formés",
+    "properties": "Propriétés protégées",
+    "experience": "Années d'expérience",
+    "satisfaction": "Clients satisfaits"
+  },
+  "services": {
+    "sectionEyebrow": "NOS SERVICES",
+    "sectionTitle": "Des solutions qui protègent votre quotidien",
+    "sectionSubtitle": "Il est essentiel de garantir la sécurité de votre famille comme de votre entreprise. Découvrez nos services.",
+    "homeGuard": {
+      "title": "Gardiennage de maison",
+      "description": "Surveillance quotidienne de votre propriété par des gardiens dédiés, formés et fiables."
+    },
+    "patrols": {
+      "title": "Rondes de surveillance",
+      "description": "Passages réguliers et vérifications programmées pour dissuader toute intrusion."
+    },
+    "residential": {
+      "title": "Sécurité résidentielle",
+      "description": "Protection de votre domicile pendant votre absence, avec la même exigence qu'au quotidien."
+    },
+    "consulting": {
+      "title": "Conseil en sécurité",
+      "description": "Une évaluation personnalisée de vos besoins et des recommandations adaptées à votre situation."
+    },
+    "corporate": {
+      "title": "Sécurité pour entreprises",
+      "description": "Protection des locaux, du personnel et des biens professionnels, sur mesure."
+    },
+    "ownerPortal": {
+      "title": "Espace propriétaire en ligne",
+      "description": "Suivez vos contrats, vos paiements et les rapports de vos gardiens depuis votre espace personnel."
+    }
+  },
+  "quote": {
+    "eyebrow": "DEMANDE DE DEVIS",
+    "title": "Obtenez un devis personnalisé",
+    "subtitle": "Remplissez notre formulaire en quelques secondes et notre équipe vous recontactera rapidement pour évaluer vos besoins en sécurité.",
+    "cta": "Demander un devis",
+    "name": "Nom complet",
+    "namePlaceholder": "Votre nom",
+    "phone": "Téléphone",
+    "phonePlaceholder": "+243 000 000 000",
+    "email": "Email",
+    "emailPlaceholder": "vous@email.com",
+    "service": "Service souhaité",
+    "serviceChoose": "Choisissez un service",
+    "address": "Adresse / Quartier",
+    "addressPlaceholder": "Commune, quartier...",
+    "message": "Message (optionnel)",
+    "messagePlaceholder": "Décrivez votre besoin...",
+    "submit": "Envoyer ma demande",
+    "successTitle": "Merci ! Votre demande a bien été envoyée.",
+    "successText": "Notre équipe vous recontactera très prochainement.",
+    "close": "Fermer"
+  },
+  "cta": {
+    "title": "Prêt à sécuriser votre maison ou votre entreprise ?",
+    "text": "Contactez Empire Security dès aujourd'hui pour un accompagnement personnalisé.",
+    "button": "Demander un devis"
+  },
+  "footer": {
+    "description": "Votre sécurité, notre engagement. Gardiennage, surveillance et protection pour vos maisons et vos entreprises.",
+    "navigation": "Navigation",
+    "services": "Services",
+    "contact": "Contact",
+    "emailLabel": "Email",
+    "phoneLabel": "Téléphone",
+    "availability": "Disponible 24h/24 - 7j/7",
+    "copyright": "Empire Security — Tous droits réservés"
+  }
+}

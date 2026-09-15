@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -7,24 +8,29 @@ gsap.registerPlugin(ScrollTrigger);
 
 interface ServiceCard {
   icon: 'shield' | 'route' | 'home' | 'chat' | 'building' | 'lock';
-  title: string;
-  description: string;
+  key: string;
 }
 
 interface Stat {
   value: number;
   suffix: string;
-  label: string;
+  key: string;
 }
 
 interface HeroSlide {
   image: string;
-  caption: string;
-  eyebrow: string;
-  titleStart: string;
-  titleAccent: string;
-  titleEnd: string;
-  text: string;
+  key: string;
+}
+
+interface NavLink {
+  key: string;
+  href: string;
+}
+
+interface AppLanguage {
+  code: string;
+  flag: string;
+  labelKey: string;
 }
 
 @Component({
@@ -43,81 +49,45 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private lastScrollY = 0;
   private scrollTicking = false;
 
+  languages: AppLanguage[] = [
+    { code: 'fr', flag: '🇫🇷', labelKey: 'lang.fr' },
+    { code: 'en', flag: '🇬🇧', labelKey: 'lang.en' },
+    { code: 'ln', flag: '🇨🇩', labelKey: 'lang.ln' }
+  ];
+  currentLang = 'fr';
+  langMenuOpen = false;
+
   @ViewChildren('statValue') statValues!: QueryList<ElementRef<HTMLElement>>;
 
   stats: Stat[] = [
-    { value: 400, suffix: '+', label: 'Agents formés' },
-    { value: 200, suffix: '+', label: 'Propriétés protégées' },
-    { value: 15, suffix: '+', label: "Années d'expérience" },
-    { value: 98, suffix: '%', label: 'Clients satisfaits' }
+    { value: 400, suffix: '+', key: 'agents' },
+    { value: 200, suffix: '+', key: 'properties' },
+    { value: 15, suffix: '+', key: 'experience' },
+    { value: 98, suffix: '%', key: 'satisfaction' }
   ];
 
   heroSlides: HeroSlide[] = [
-    {
-      image: '/images/Gemini_Generated_Image_3mb2oz3mb2oz3mb2.jpg',
-      caption: 'Agents sur le terrain',
-      eyebrow: 'EMPIRE SECURITY',
-      titleStart: 'La',
-      titleAccent: 'sécurité',
-      titleEnd: 'au service de votre tranquillité',
-      text: "Gardiennage de maisons, surveillance et protection rapprochée : nos agents veillent sur vos biens et vos proches, jour et nuit."
-    },
-    {
-      image: '/images/Gemini_Generated_Image_kat1owkat1owkat1.jpg',
-      caption: 'Patrouille mobile',
-      eyebrow: 'RONDES & PATROUILLES',
-      titleStart: 'Une',
-      titleAccent: 'présence constante',
-      titleEnd: 'autour de votre propriété',
-      text: "Des patrouilles régulières et une équipe mobile réactive pour intervenir à tout moment, en cas de besoin."
-    }
+    { image: '/images/Gemini_Generated_Image_3mb2oz3mb2oz3mb2.jpg', key: 'slide1' },
+    { image: '/images/Gemini_Generated_Image_kat1owkat1owkat1.jpg', key: 'slide2' }
   ];
 
-  aboutPoints = [
-    'Gardiens sélectionnés et formés',
-    'Rondes de surveillance 24h/24 et 7j/7',
-    'Suivi et rapports réguliers aux propriétaires'
-  ];
+  aboutPoints = ['about.point1', 'about.point2', 'about.point3'];
 
   services: ServiceCard[] = [
-    {
-      icon: 'home',
-      title: 'Gardiennage de maison',
-      description: "Surveillance quotidienne de votre propriété par des gardiens dédiés, formés et fiables."
-    },
-    {
-      icon: 'route',
-      title: 'Rondes de surveillance',
-      description: "Passages réguliers et vérifications programmées pour dissuader toute intrusion."
-    },
-    {
-      icon: 'shield',
-      title: 'Sécurité résidentielle',
-      description: "Protection de votre domicile pendant votre absence, avec la même exigence qu'au quotidien."
-    },
-    {
-      icon: 'chat',
-      title: 'Conseil en sécurité',
-      description: "Une évaluation personnalisée de vos besoins et des recommandations adaptées à votre situation."
-    },
-    {
-      icon: 'building',
-      title: 'Sécurité pour entreprises',
-      description: "Protection des locaux, du personnel et des biens professionnels, sur mesure."
-    },
-    {
-      icon: 'lock',
-      title: 'Espace propriétaire en ligne',
-      description: "Suivez vos contrats, vos paiements et les rapports de vos gardiens depuis votre espace personnel."
-    }
+    { icon: 'home', key: 'homeGuard' },
+    { icon: 'route', key: 'patrols' },
+    { icon: 'shield', key: 'residential' },
+    { icon: 'chat', key: 'consulting' },
+    { icon: 'building', key: 'corporate' },
+    { icon: 'lock', key: 'ownerPortal' }
   ];
 
-  navLinks = [
-    { label: 'Accueil', href: '#accueil' },
-    { label: 'À propos', href: '#apropos' },
-    { label: 'Services', href: '#services' },
-    { label: 'Devis', href: '#devis' },
-    { label: 'Contact', href: '#contact' }
+  navLinks: NavLink[] = [
+    { key: 'home', href: '#accueil' },
+    { key: 'about', href: '#apropos' },
+    { key: 'services', href: '#services' },
+    { key: 'quote', href: '#devis' },
+    { key: 'contact', href: '#contact' }
   ];
 
   quoteForm = {
@@ -130,6 +100,36 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   };
   quoteSubmitted = false;
   quoteModalOpen = false;
+
+  constructor(private translate: TranslateService) {
+    const supportedLangs = this.languages.map((lang) => lang.code);
+    this.translate.addLangs(supportedLangs);
+
+    const savedLang = localStorage.getItem('lang');
+    this.currentLang = savedLang && supportedLangs.includes(savedLang) ? savedLang : 'fr';
+    this.translate.use(this.currentLang);
+  }
+
+  get currentLanguage(): AppLanguage {
+    return this.languages.find((lang) => lang.code === this.currentLang) ?? this.languages[0];
+  }
+
+  toggleLangMenu(event: Event): void {
+    event.stopPropagation();
+    this.langMenuOpen = !this.langMenuOpen;
+  }
+
+  selectLang(code: string): void {
+    this.currentLang = code;
+    this.translate.use(code);
+    localStorage.setItem('lang', code);
+    this.langMenuOpen = false;
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.langMenuOpen = false;
+  }
 
   ngOnInit(): void {
     this.startAutoplay();
@@ -261,5 +261,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.quoteModalOpen) {
       this.closeQuoteModal();
     }
+    this.langMenuOpen = false;
   }
 }

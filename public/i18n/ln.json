@@ -1,0 +1,121 @@
+{
+  "topbar": {
+    "availability": "Tozali polele ngonga 24 na mikolo 7"
+  },
+  "nav": {
+    "home": "Boyambi",
+    "about": "Mpo na biso",
+    "services": "Misala",
+    "quote": "Talo",
+    "contact": "Boyokani",
+    "callUs": "Benga biso",
+    "openMenu": "Fungola meni",
+    "closeMenu": "Kanga meni"
+  },
+  "lang": {
+    "choose": "Pona monɔkɔ",
+    "fr": "Falansɛ",
+    "en": "Lingelesi",
+    "ln": "Lingala"
+  },
+  "hero": {
+    "slide1": {
+      "welcome": "Boyei malamu na",
+      "brand": "Empire Security",
+      "point1": "Bokengeli ngonga 24 na mikolo 7",
+      "point2": "Bakengeli balakisami",
+      "point3": "Lisungi na lombangu",
+      "cta": "Talá mingi"
+    },
+    "slide2": {
+      "eyebrow": "MIBEMBO YA BOKENGELI",
+      "titleStart": "Bozali ya solo mpe ya ntango nyonso",
+      "titleAccent": "pene na ndako na yo",
+      "titleEnd": "ntango nyonso",
+      "text": "Mibembo ya mbala na mbala mpe ekipe oyo ezali pene mpo na kosunga na ngonga nyonso, soki esengeli."
+    },
+    "quoteCta": "Sɛnga talo",
+    "servicesCta": "Misala na biso"
+  },
+  "about": {
+    "eyebrow": "MPO NA EMPIRE SECURITY",
+    "title": "Tozali ntango nyonso na bokebi mpo na libota na bino mpe biloko na bino",
+    "text": "Empire Security esungaka bankolo-bandako na kobatela bandako na bango mpe biloko na bango. Bakengeli na biso baponami, balakisami mpe balandelami mokolo na mokolo mpo na kopesa bino kimia ya solo.",
+    "point1": "Bakengeli baponami mpe balakisami",
+    "point2": "Bokengeli ngonga 24 na mikolo 7",
+    "point3": "Bolandeli mpe balapolo ya mbala na mbala epai ya bankolo-bandako",
+    "cta": "Yeba mingi"
+  },
+  "stats": {
+    "agents": "Bakengeli balakisami",
+    "properties": "Bandako ebatelami",
+    "experience": "Mibu ya mosala",
+    "satisfaction": "Baklients basepeli"
+  },
+  "services": {
+    "sectionEyebrow": "MISALA NA BISO",
+    "sectionTitle": "Biyano oyo ebatelaka bomoi na bino ya mokolo na mokolo",
+    "sectionSubtitle": "Ezali na ntina mingi kobatela libota na bino mpe kompani na bino. Yeba misala na biso.",
+    "homeGuard": {
+      "title": "Bokengeli ya ndako",
+      "description": "Bokengeli ya mokolo na mokolo ya biloko na bino, na bakengeli baponami mpe ya solo."
+    },
+    "patrols": {
+      "title": "Mibembo ya bokengeli",
+      "description": "Koleka mbala na mbala mpe kotala mpo na kopekisa moto nyonso ya mabe."
+    },
+    "residential": {
+      "title": "Bobateli ya ndako na bino",
+      "description": "Kobatela ndako na bino ntango bozali te, na molende moko lokola mokolo na mokolo."
+    },
+    "consulting": {
+      "title": "Toli ya bokengeli",
+      "description": "Botali ya moto na moto ya bosenga na bino mpe batoli oyo ekokani na bomoi na bino."
+    },
+    "corporate": {
+      "title": "Bokengeli mpo na ba kompani",
+      "description": "Bobateli ya bisika ya mosala, basali mpe biloko ya kompani, na ndenge oyo ekokani na bino."
+    },
+    "ownerPortal": {
+      "title": "Esika ya bankolo-bandako na Internet",
+      "description": "Landelá bikuwa na bino, bafuti na bino mpe balapolo ya bakengeli na bino uta na esika na bino moko."
+    }
+  },
+  "quote": {
+    "eyebrow": "SƐNGA TALO",
+    "title": "Zwa talo oyo ekokani na bino",
+    "subtitle": "Tondisa fomulɛr oyo mpe ekipe na biso ekozongela bino noki mpo na kotala bosenga na bino ya bokengeli.",
+    "cta": "Sɛnga talo",
+    "name": "Nkombo mobimba",
+    "namePlaceholder": "Nkombo na yo",
+    "phone": "Telefone",
+    "phonePlaceholder": "+243 000 000 000",
+    "email": "Email",
+    "emailPlaceholder": "yo@email.com",
+    "service": "Mosala oyo olingi",
+    "serviceChoose": "Pona mosala",
+    "address": "Adrɛsi / Kartye",
+    "addressPlaceholder": "Komini, kartye...",
+    "message": "Nsango (esengeli te)",
+    "messagePlaceholder": "Limbolá bosenga na yo...",
+    "submit": "Tinda bosenga na ngai",
+    "successTitle": "Melesi! Bosenga na yo ekei malamu.",
+    "successText": "Ekipe na biso ekozongela yo noki.",
+    "close": "Kanga"
+  },
+  "cta": {
+    "title": "Olingi kobatela ndako to kompani na yo?",
+    "text": "Benga Empire Security lelo mpo na lisungi oyo ekokani na yo.",
+    "button": "Sɛnga talo"
+  },
+  "footer": {
+    "description": "Bokengeli na yo, elaka na biso. Bokengeli ya ndako, botali mpe bobateli mpo na bandako na bino mpe ba kompani na bino.",
+    "navigation": "Ba lien",
+    "services": "Misala",
+    "contact": "Boyokani",
+    "emailLabel": "Email",
+    "phoneLabel": "Telefone",
+    "availability": "Ezali polele ngonga 24 na mikolo 7",
+    "copyright": "Empire Security — Makoki nyonso ebombami"
+  }
+}
