@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -38,6 +38,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   currentSlide = 0;
   private slideTimer?: ReturnType<typeof setInterval>;
   private statTweens: gsap.core.Tween[] = [];
+
+  topBarVisible = true;
+  private lastScrollY = 0;
+  private scrollTicking = false;
 
   @ViewChildren('statValue') statValues!: QueryList<ElementRef<HTMLElement>>;
 
@@ -125,6 +129,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     message: ''
   };
   quoteSubmitted = false;
+  quoteModalOpen = false;
 
   ngOnInit(): void {
     this.startAutoplay();
@@ -160,6 +165,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       tween.scrollTrigger?.kill();
       tween.kill();
     });
+    document.body.classList.remove('overflow-hidden');
   }
 
   private startAutoplay(): void {
@@ -200,6 +206,29 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.restartAutoplay();
   }
 
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (this.scrollTicking) {
+      return;
+    }
+    this.scrollTicking = true;
+
+    requestAnimationFrame(() => {
+      const currentY = window.scrollY;
+
+      if (currentY < 60) {
+        this.topBarVisible = true;
+      } else if (currentY > this.lastScrollY) {
+        this.topBarVisible = false;
+      } else {
+        this.topBarVisible = true;
+      }
+
+      this.lastScrollY = currentY;
+      this.scrollTicking = false;
+    });
+  }
+
   toggleMobileMenu(): void {
     this.mobileMenuOpen = !this.mobileMenuOpen;
   }
@@ -214,5 +243,23 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.quoteSubmitted = true;
     form.resetForm();
+  }
+
+  openQuoteModal(): void {
+    this.quoteModalOpen = true;
+    document.body.classList.add('overflow-hidden');
+  }
+
+  closeQuoteModal(): void {
+    this.quoteModalOpen = false;
+    this.quoteSubmitted = false;
+    document.body.classList.remove('overflow-hidden');
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.quoteModalOpen) {
+      this.closeQuoteModal();
+    }
   }
 }
