@@ -1,10 +1,20 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface ServiceCard {
   icon: 'shield' | 'route' | 'home' | 'chat' | 'building' | 'lock';
   title: string;
   description: string;
+}
+
+interface Stat {
+  value: number;
+  suffix: string;
+  label: string;
 }
 
 interface HeroSlide {
@@ -22,11 +32,21 @@ interface HeroSlide {
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   currentYear = new Date().getFullYear();
   mobileMenuOpen = false;
   currentSlide = 0;
   private slideTimer?: ReturnType<typeof setInterval>;
+  private statTweens: gsap.core.Tween[] = [];
+
+  @ViewChildren('statValue') statValues!: QueryList<ElementRef<HTMLElement>>;
+
+  stats: Stat[] = [
+    { value: 400, suffix: '+', label: 'Agents formés' },
+    { value: 200, suffix: '+', label: 'Propriétés protégées' },
+    { value: 15, suffix: '+', label: "Années d'expérience" },
+    { value: 98, suffix: '%', label: 'Clients satisfaits' }
+  ];
 
   heroSlides: HeroSlide[] = [
     {
@@ -110,8 +130,36 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.startAutoplay();
   }
 
+  ngAfterViewInit(): void {
+    this.statValues.forEach((elRef, i) => {
+      const stat = this.stats[i];
+      const target = elRef.nativeElement;
+      const counter = { val: 0 };
+
+      const tween = gsap.to(counter, {
+        val: stat.value,
+        duration: 2,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: target,
+          start: 'top 85%',
+          toggleActions: 'play none none none'
+        },
+        onUpdate: () => {
+          target.textContent = Math.floor(counter.val).toString();
+        }
+      });
+
+      this.statTweens.push(tween);
+    });
+  }
+
   ngOnDestroy(): void {
     this.stopAutoplay();
+    this.statTweens.forEach((tween) => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    });
   }
 
   private startAutoplay(): void {
