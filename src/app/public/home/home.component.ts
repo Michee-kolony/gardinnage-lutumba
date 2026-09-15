@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { NgForm } from '@angular/forms';
 
 interface ServiceCard {
   icon: 'shield' | 'route' | 'home' | 'chat' | 'building' | 'lock';
@@ -91,8 +92,19 @@ export class HomeComponent implements OnInit, OnDestroy {
     { label: 'Accueil', href: '#accueil' },
     { label: 'À propos', href: '#apropos' },
     { label: 'Services', href: '#services' },
+    { label: 'Devis', href: '#devis' },
     { label: 'Contact', href: '#contact' }
   ];
+
+  quoteForm = {
+    name: '',
+    phone: '',
+    email: '',
+    service: '',
+    address: '',
+    message: ''
+  };
+  quoteSubmitted = false;
 
   ngOnInit(): void {
     this.startAutoplay();
@@ -146,5 +158,13 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   closeMobileMenu(): void {
     this.mobileMenuOpen = false;
+  }
+
+  submitQuote(form: NgForm): void {
+    if (form.invalid) {
+      return;
+    }
+    this.quoteSubmitted = true;
+    form.resetForm();
   }
 }
