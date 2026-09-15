@@ -2,10 +2,8 @@
 
   <div class="flex items-center gap-3 px-4 min-h-[4.5rem] py-3 border-b border-white/10 shrink-0" [ngClass]="collapsed ? 'justify-center px-0' : 'justify-between'">
     <div class="flex items-center gap-3 min-w-0">
-      <div class="h-9 w-9 rounded-lg bg-white flex items-center justify-center shrink-0">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l8 4v5c0 4.5-3.2 8.5-8 9.5-4.8-1-8-5-8-9.5V7l8-4z" />
-        </svg>
+      <div class="h-9 w-9 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden">
+        <img src="/images/logo.png" alt="Logo Gardinnage" class="h-full w-full object-contain" />
       </div>
       @if (!collapsed) {
         <div class="leading-snug min-w-0">

@@ -1,0 +1,286 @@
+<div class="bg-white text-neutral-900">
+
+  <!-- Barre d'info -->
+  <div class="hidden md:block bg-black text-neutral-300 text-xs">
+    <div class="max-w-7xl mx-auto px-4 flex items-center justify-between py-2">
+      <div class="flex items-center gap-6">
+        <span class="flex items-center gap-2">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4V4zm0 0 8 8 8-8" /></svg>
+          contact&#64;empire-security.cd
+        </span>
+        <span class="flex items-center gap-2">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3" /></svg>
+          Disponible 24h/24 - 7j/7
+        </span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="#" aria-label="Facebook" class="hover:text-accent transition-colors">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M13.5 21v-7.6h2.6l.4-3h-3V8.4c0-.9.2-1.5 1.5-1.5h1.6V4.2C15.9 4.1 15 4 13.9 4c-2.4 0-4 1.5-4 4.1v2.3H7.3v3h2.6V21h3.6z" /></svg>
+        </a>
+        <a href="#" aria-label="Instagram" class="hover:text-accent transition-colors">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>
+        </a>
+        <a href="#" aria-label="WhatsApp" class="hover:text-accent transition-colors">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.2.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.2.2-.4.1-.1 0-.3 0-.4 0-.1-.6-1.5-.8-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2s1 2.5 1.1 2.7c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z" /></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="sticky top-0 z-40 bg-black">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex items-center justify-between h-20">
+        <a href="#accueil" class="flex items-center gap-2 shrink-0">
+          <img src="/images/logo.png" alt="Empire Security" class="h-11 w-11 object-contain" />
+          <span class="hidden sm:inline text-white text-base tracking-wide">Empire <strong class="font-bold">Security</strong></span>
+        </a>
+
+        <ul class="hidden lg:flex items-center gap-1">
+          @for (link of navLinks; track link.href) {
+            <li>
+              <a [attr.href]="link.href" class="px-3 py-2 text-sm font-medium text-neutral-200 hover:text-accent transition-colors">{{ link.label }}</a>
+            </li>
+          }
+        </ul>
+
+        <div class="hidden lg:flex items-center gap-4">
+          <div class="flex items-center gap-2 border-l border-white/15 pl-4">
+            <span class="flex items-center justify-center h-9 w-9 rounded-full bg-accent text-black shrink-0">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8.1 9.7a16 16 0 0 0 6.2 6.2l1.2-1.2a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z" /></svg>
+            </span>
+            <div class="leading-tight">
+              <div class="text-[10px] uppercase tracking-wide text-neutral-400">Appelez-nous</div>
+              <div class="text-sm font-semibold text-white">+243 000 000 000</div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" (click)="toggleMobileMenu()" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg text-white hover:bg-white/10 transition" aria-label="Ouvrir le menu">
+          @if (!mobileMenuOpen) {
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" /></svg>
+          } @else {
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+          }
+        </button>
+      </div>
+
+      @if (mobileMenuOpen) {
+        <div class="lg:hidden border-t border-white/10 py-4 space-y-3">
+          @for (link of navLinks; track link.href) {
+            <a [attr.href]="link.href" (click)="closeMobileMenu()" class="block px-2 py-2 text-sm font-medium text-neutral-200 hover:text-accent transition-colors">{{ link.label }}</a>
+          }
+        </div>
+      }
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="relative isolate overflow-hidden" id="accueil">
+    <div class="relative h-[560px] sm:h-[620px] lg:h-[720px]">
+      @for (slide of heroSlides; track slide.image; let i = $index) {
+        <div
+          class="absolute inset-0 transition-opacity duration-700 ease-in-out"
+          [class.opacity-100]="i === currentSlide"
+          [class.opacity-0]="i !== currentSlide"
+          [class.pointer-events-none]="i !== currentSlide"
+        >
+          <img [src]="slide.image" alt="Empire Security" class="h-full w-full object-cover object-[center_20%]" />
+          <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/30"></div>
+          <div class="relative z-10 h-full max-w-7xl mx-auto px-4 flex flex-col justify-center">
+            <div class="max-w-xl">
+              @if (i === 0) {
+                <h1 class="text-white font-extrabold leading-tight text-4xl sm:text-5xl lg:text-6xl mb-4">
+                  Bienvenue chez <span class="text-accent">Empire Security</span>
+                </h1>
+                <p class="text-neutral-200 text-sm sm:text-base mb-8 max-w-lg">
+                  Surveillance 24h/24 &middot; Gardiens formés &middot; Intervention rapide
+                </p>
+                <div class="flex flex-wrap gap-3">
+                  <a href="#services" class="rounded-lg bg-gradient-to-r from-accent to-accent-dark px-6 py-3 text-sm sm:text-base font-semibold text-black shadow-lg shadow-accent/25 hover:brightness-105 transition">Voir plus</a>
+                </div>
+              } @else {
+                <p class="text-accent font-bold tracking-widest text-xs sm:text-sm mb-3">{{ slide.eyebrow }}</p>
+                <h1 class="text-white font-bold leading-tight text-3xl sm:text-4xl lg:text-5xl mb-5">
+                  {{ slide.titleStart }} <span class="text-accent">{{ slide.titleAccent }}</span> {{ slide.titleEnd }}
+                </h1>
+                <p class="text-neutral-200 text-base sm:text-lg mb-8 max-w-lg">{{ slide.text }}</p>
+                <div class="flex flex-wrap gap-3">
+                  <a routerLink="/login" class="rounded-lg bg-gradient-to-r from-accent to-accent-dark px-6 py-3 text-sm sm:text-base font-semibold text-black shadow-lg shadow-accent/25 hover:brightness-105 transition">Demander un devis</a>
+                  <a href="#services" class="rounded-lg border border-white/70 px-6 py-3 text-sm sm:text-base font-semibold text-white hover:bg-white hover:text-black transition">Nos services</a>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Contrôles -->
+      <button type="button" (click)="onPrev()" aria-label="Précédent" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6" /></svg>
+      </button>
+      <button type="button" (click)="onNext()" aria-label="Suivant" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6" /></svg>
+      </button>
+
+      <!-- Indicateurs -->
+      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+        @for (slide of heroSlides; track slide.image; let i = $index) {
+          <button
+            type="button"
+            (click)="goTo(i)"
+            [attr.aria-label]="'Aller à la diapositive ' + (i + 1)"
+            class="h-2.5 rounded-full transition-all"
+            [class.w-6]="i === currentSlide"
+            [class.bg-accent]="i === currentSlide"
+            [class.w-2.5]="i !== currentSlide"
+            [ngStyle]="i !== currentSlide ? {'background-color':'rgba(255,255,255,.5)'} : {}"
+          ></button>
+        }
+      </div>
+    </div>
+
+    <svg class="absolute -bottom-1 left-0 w-full h-16 sm:h-20 text-white" viewBox="0 0 1440 100" preserveAspectRatio="none">
+      <path d="M0,100 C480,0 960,0 1440,100 L1440,100 L0,100 Z" fill="currentColor" />
+    </svg>
+  </header>
+
+  <!-- À propos -->
+  <section class="py-16 sm:py-24 bg-white" id="apropos">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+        <div class="relative">
+          <div class="absolute inset-0 border-4 border-accent rounded-2xl translate-x-4 translate-y-4 -z-10"></div>
+          <img src="/images/Gemini_Generated_Image_kat1owkat1owkat1.jpg" class="w-full rounded-2xl shadow-xl object-cover" alt="Patrouille Empire Security" />
+        </div>
+        <div>
+          <p class="text-accent-dark font-bold tracking-widest text-xs sm:text-sm mb-3">À PROPOS D'EMPIRE SECURITY</p>
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Toujours vigilants pour votre famille et vos biens</h2>
+          <p class="text-neutral-600 mb-6">
+            Empire Security accompagne les propriétaires dans la protection de leurs maisons et de leurs biens.
+            Nos gardiens sont sélectionnés, formés et suivis au quotidien pour vous garantir une tranquillité d'esprit totale.
+          </p>
+          <ul class="space-y-3 mb-8">
+            @for (point of aboutPoints; track point) {
+              <li class="flex items-center gap-3 font-medium">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" class="text-accent-dark shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                {{ point }}
+              </li>
+            }
+          </ul>
+          <a href="#services" class="inline-block rounded-lg border-2 border-black px-6 py-3 text-sm font-semibold hover:bg-black hover:text-white transition">En savoir plus</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="py-16 sm:py-24 bg-neutral-100" id="services">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+      <p class="text-accent-dark font-bold tracking-widest text-xs sm:text-sm mb-3">NOS SERVICES</p>
+      <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Des solutions qui protègent votre quotidien</h2>
+      <p class="text-neutral-600 max-w-2xl mx-auto mb-12">
+        Il est essentiel de garantir la sécurité de votre famille comme de votre entreprise. Découvrez nos services.
+      </p>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+        @for (service of services; track service.title) {
+          <div class="bg-black text-neutral-300 rounded-2xl p-8 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200">
+            <div class="h-14 w-14 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-5">
+              @switch (service.icon) {
+                @case ('shield') {
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v5c0 4.2-3 8-7 9-4-1-7-4.8-7-9V6l7-3z" /></svg>
+                }
+                @case ('route') {
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="19" r="2" /><circle cx="18" cy="5" r="2" /><path stroke-linecap="round" d="M8 19h6a4 4 0 0 0 4-4V9a4 4 0 0 0-4-4h-.5" /></svg>
+                }
+                @case ('home') {
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 11.5 12 4l9 7.5M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" /></svg>
+                }
+                @case ('chat') {
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a8 8 0 1 1-3.5-6.6L21 4l-1 3.6A7.96 7.96 0 0 1 21 12z" /></svg>
+                }
+                @case ('building') {
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 21V6a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v15M12 21h8V11a1 1 0 0 0-1-1h-6M8 9h0M8 13h0M8 17h0" /></svg>
+                }
+                @case ('lock') {
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="11" width="16" height="9" rx="2" /><path stroke-linecap="round" d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+                }
+              }
+            </div>
+            <h3 class="text-white text-lg font-bold mb-2">{{ service.title }}</h3>
+            <p class="text-sm text-neutral-400">{{ service.description }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bg-gradient-to-r from-neutral-950 to-neutral-800 text-white py-12 sm:py-14">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col lg:flex-row items-center justify-between gap-6 text-center lg:text-left">
+      <div>
+        <h2 class="text-xl sm:text-2xl font-bold mb-1">Prêt à sécuriser votre maison ou votre entreprise ?</h2>
+        <p class="text-neutral-300">Contactez Empire Security dès aujourd'hui pour un accompagnement personnalisé.</p>
+      </div>
+      <a routerLink="/login" class="shrink-0 rounded-lg bg-gradient-to-r from-accent to-accent-dark px-6 py-3 text-sm sm:text-base font-semibold text-black shadow-lg hover:brightness-105 transition">Demander un devis</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-neutral-950 text-neutral-400" id="contact">
+    <div class="max-w-7xl mx-auto px-4 py-14 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div class="sm:col-span-2 lg:col-span-1">
+        <a href="#accueil" class="flex items-center gap-2 mb-4">
+          <img src="/images/logo.png" alt="Empire Security" class="h-10 w-10 object-contain" />
+          <span class="text-white">Empire <strong class="font-bold">Security</strong></span>
+        </a>
+        <p class="text-sm mb-4">
+          Votre sécurité, notre engagement. Gardiennage, surveillance et protection pour vos maisons et vos entreprises.
+        </p>
+        <div class="flex items-center gap-4">
+          <a href="#" aria-label="Facebook" class="hover:text-accent transition-colors">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M13.5 21v-7.6h2.6l.4-3h-3V8.4c0-.9.2-1.5 1.5-1.5h1.6V4.2C15.9 4.1 15 4 13.9 4c-2.4 0-4 1.5-4 4.1v2.3H7.3v3h2.6V21h3.6z" /></svg>
+          </a>
+          <a href="#" aria-label="Instagram" class="hover:text-accent transition-colors">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>
+          </a>
+          <a href="#" aria-label="WhatsApp" class="hover:text-accent transition-colors">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.2.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.2.2-.4.1-.1 0-.3 0-.4 0-.1-.6-1.5-.8-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2s1 2.5 1.1 2.7c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z" /></svg>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h6 class="text-white font-bold uppercase text-xs tracking-wide mb-4">Navigation</h6>
+        <ul class="space-y-2 text-sm">
+          @for (link of navLinks; track link.href) {
+            <li><a [attr.href]="link.href" class="hover:text-accent transition-colors">{{ link.label }}</a></li>
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h6 class="text-white font-bold uppercase text-xs tracking-wide mb-4">Services</h6>
+        <ul class="space-y-2 text-sm">
+          @for (service of services; track service.title) {
+            <li><a href="#services" class="hover:text-accent transition-colors">{{ service.title }}</a></li>
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h6 class="text-white font-bold uppercase text-xs tracking-wide mb-4">Contact</h6>
+        <ul class="space-y-2 text-sm">
+          <li>Email&nbsp;: contact&#64;empire-security.cd</li>
+          <li>Téléphone&nbsp;: +243 000 000 000</li>
+          <li>Disponible 24h/24 - 7j/7</li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/10 py-4 text-center text-xs">
+      &copy; {{ currentYear }} Empire Security — Tous droits réservés
+    </div>
+  </footer>
+
+</div>

@@ -3,10 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { jsPDF } from 'jspdf';
 import { CommentaireGardien, Gardien, GardiensService, StatutGardien, TypeCommentaire } from '../../../core/gardiens.service';
 
-// Emplacement attendu du logo de l'entreprise : déposer le fichier dans le
-// dossier public/ du projet (ex. public/logo-entreprise.png) pour qu'il soit
-// servi à cette URL, sur la carte à l'écran comme sur le PDF généré.
-const LOGO_URL = '/logo-entreprise.png';
+const LOGO_URL = '/images/logo.png';
 
 @Component({
   selector: 'app-gardien-detail',

@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
+import { HomeComponent } from './public/home/home.component';
 import { LoginComponent } from './auth/login/login.component';
 import { LayoutComponent } from './layout/layout.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
@@ -15,7 +16,7 @@ import { ParametresComponent } from './pages/parametres/parametres.component';
 import { authGuard } from './core/auth.guard';
 
 const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'login' },
+  { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   {
     path: 'admin',
@@ -34,7 +35,7 @@ const routes: Routes = [
       { path: 'parametres', component: ParametresComponent },
     ]
   },
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: '' }
 ];
 
 @NgModule({

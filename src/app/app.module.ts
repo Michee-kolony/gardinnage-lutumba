@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { HomeComponent } from './public/home/home.component';
 import { LoginComponent } from './auth/login/login.component';
 import { LayoutComponent } from './layout/layout.component';
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
@@ -24,6 +25,7 @@ import { ParametresComponent } from './pages/parametres/parametres.component';
 @NgModule({
   declarations: [
     AppComponent,
+    HomeComponent,
     LoginComponent,
     LayoutComponent,
     SidebarComponent,
