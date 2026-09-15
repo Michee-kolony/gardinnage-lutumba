@@ -108,6 +108,91 @@
     "text": "Contactez Empire Security dès aujourd'hui pour un accompagnement personnalisé.",
     "button": "Demander un devis"
   },
+  "faq": {
+    "sectionEyebrow": "QUESTIONS FRÉQUENTES",
+    "sectionTitle": "Vous avez des questions ?",
+    "sectionSubtitle": "Retrouvez les réponses aux questions les plus posées sur nos services de gardiennage et de sécurité.",
+    "q1": {
+      "question": "Dans quelles zones intervenez-vous ?",
+      "answer": "Nous intervenons principalement en RDC, avec des équipes mobiles capables de couvrir rapidement les communes et quartiers avoisinants. Contactez-nous pour vérifier la disponibilité dans votre zone."
+    },
+    "q2": {
+      "question": "Comment se déroule la mise en place d'un contrat ?",
+      "answer": "Après votre demande de devis, notre équipe évalue vos besoins, vous propose une offre adaptée et met en place le service sous 48 à 72 heures selon la complexité de la mission."
+    },
+    "q3": {
+      "question": "Vos gardiens sont-ils formés et vérifiés ?",
+      "answer": "Oui. Chaque gardien est sélectionné avec rigueur, suit une formation avant sa prise de poste et fait l'objet d'un suivi régulier tout au long de sa mission."
+    },
+    "q4": {
+      "question": "Que se passe-t-il en cas d'incident ?",
+      "answer": "Nos gardiens sont formés pour réagir immédiatement et alerter notre centrale. Une équipe mobile peut être dépêchée sur place et vous êtes informé en temps réel."
+    },
+    "q5": {
+      "question": "Proposez-vous des services pour les entreprises ?",
+      "answer": "Oui, nous protégeons aussi bien les résidences privées que les locaux professionnels, avec des solutions sur mesure adaptées à la taille et aux besoins de votre structure."
+    },
+    "q6": {
+      "question": "Combien de temps faut-il pour recevoir un devis ?",
+      "answer": "Notre équipe vous recontacte généralement sous 24 heures après votre demande pour affiner vos besoins et vous transmettre une proposition personnalisée."
+    },
+    "q7": {
+      "question": "Quels moyens de paiement acceptez-vous ?",
+      "answer": "Nous acceptons les paiements en espèces, par virement bancaire et par Mobile Money, avec des modalités mensuelles ou selon la durée de votre contrat."
+    },
+    "q8": {
+      "question": "Puis-je modifier ou résilier mon contrat ?",
+      "answer": "Oui, vous pouvez ajuster le niveau de service ou mettre fin au contrat en nous contactant à l'avance, selon les conditions convenues lors de la signature."
+    },
+    "q9": {
+      "question": "Vos gardiens sont-ils armés ?",
+      "answer": "Nos gardiens sont formés à la dissuasion et à l'intervention rapide. Le recours à des agents armés dépend du niveau de risque évalué et de la réglementation en vigueur."
+    },
+    "q10": {
+      "question": "Puis-je suivre les rapports de mes gardiens en ligne ?",
+      "answer": "Oui, notre espace propriétaire en ligne vous permet de consulter vos contrats, vos paiements et les rapports de vos gardiens à tout moment."
+    }
+  },
+  "gallery": {
+    "sectionEyebrow": "NOTRE GALERIE",
+    "sectionTitle": "Empire Security en action",
+    "sectionSubtitle": "Un aperçu de nos agents et de nos dispositifs de sécurité sur le terrain.",
+    "photo1": "Sécurité des locaux",
+    "photo2": "Agents de sécurité professionnels",
+    "photo3": "Surveillance commerciale",
+    "photo4": "Protection rapprochée",
+    "photo5": "Sécurité VIP",
+    "photo6": "Rondes de surveillance",
+    "photo7": "Présence dissuasive",
+    "photo8": "Vidéosurveillance 24h/24"
+  },
+  "chatbot": {
+    "online": "En ligne",
+    "open": "Ouvrir le chat",
+    "close": "Fermer le chat",
+    "send": "Envoyer",
+    "suggestions": "Questions fréquentes",
+    "inputPlaceholder": "Écrivez votre message...",
+    "greeting": "Bonjour 👋 Je suis l'assistant virtuel d'Empire Security. Posez-moi une question ou choisissez-en une ci-dessous.",
+    "fallback": "Je n'ai pas encore de réponse précise à cette question. Contactez-nous directement ou demandez un devis, notre équipe vous répondra rapidement.",
+    "intents": {
+      "greeting": {
+        "answer": "Bonjour 😊 Comment puis-je vous aider aujourd'hui ? Posez-moi une question ou choisissez un sujet ci-dessous."
+      },
+      "thanks": {
+        "answer": "Avec plaisir ! N'hésitez pas si vous avez d'autres questions 🙏"
+      },
+      "goodbye": {
+        "answer": "Au revoir et à bientôt ! Notre équipe reste disponible 24h/24 si besoin."
+      },
+      "human": {
+        "answer": "Bien sûr, un membre de notre équipe peut vous répondre directement. Contactez-nous par téléphone ou WhatsApp, ou demandez un devis et nous vous recontacterons rapidement."
+      },
+      "pricing": {
+        "answer": "Nos tarifs dépendent du type de service, de la durée et du niveau de sécurité souhaité. Le plus simple est de demander un devis gratuit et personnalisé."
+      }
+    }
+  },
   "footer": {
     "description": "Votre sécurité, notre engagement. Gardiennage, surveillance et protection pour vos maisons et vos entreprises.",
     "navigation": "Navigation",

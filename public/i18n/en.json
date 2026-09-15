@@ -108,6 +108,91 @@
     "text": "Contact Empire Security today for personalized support.",
     "button": "Request a quote"
   },
+  "faq": {
+    "sectionEyebrow": "FREQUENTLY ASKED QUESTIONS",
+    "sectionTitle": "Got questions?",
+    "sectionSubtitle": "Find answers to the most common questions about our guarding and security services.",
+    "q1": {
+      "question": "Which areas do you cover?",
+      "answer": "We mainly operate across the DRC, with mobile teams able to quickly reach surrounding communes and neighborhoods. Contact us to check availability in your area."
+    },
+    "q2": {
+      "question": "How does setting up a contract work?",
+      "answer": "After your quote request, our team assesses your needs, proposes a tailored offer, and sets up the service within 48 to 72 hours depending on the mission's complexity."
+    },
+    "q3": {
+      "question": "Are your guards trained and vetted?",
+      "answer": "Yes. Every guard is carefully selected, trained before taking up their post, and monitored regularly throughout their assignment."
+    },
+    "q4": {
+      "question": "What happens in case of an incident?",
+      "answer": "Our guards are trained to react immediately and alert our control center. A mobile team can be dispatched on site and you are informed in real time."
+    },
+    "q5": {
+      "question": "Do you offer services for businesses?",
+      "answer": "Yes, we protect private homes as well as business premises, with tailored solutions adapted to the size and needs of your organization."
+    },
+    "q6": {
+      "question": "How long does it take to receive a quote?",
+      "answer": "Our team usually gets back to you within 24 hours of your request to refine your needs and send you a personalized proposal."
+    },
+    "q7": {
+      "question": "What payment methods do you accept?",
+      "answer": "We accept cash, bank transfer and Mobile Money payments, with monthly terms or terms based on your contract duration."
+    },
+    "q8": {
+      "question": "Can I modify or cancel my contract?",
+      "answer": "Yes, you can adjust your service level or end the contract by contacting us in advance, according to the terms agreed at signing."
+    },
+    "q9": {
+      "question": "Are your guards armed?",
+      "answer": "Our guards are trained in deterrence and rapid response. The use of armed agents depends on the assessed risk level and current regulations."
+    },
+    "q10": {
+      "question": "Can I track my guards' reports online?",
+      "answer": "Yes, our online owner portal lets you view your contracts, payments and guard reports at any time."
+    }
+  },
+  "gallery": {
+    "sectionEyebrow": "OUR GALLERY",
+    "sectionTitle": "Empire Security in action",
+    "sectionSubtitle": "A glimpse of our agents and security equipment in the field.",
+    "photo1": "Facility security",
+    "photo2": "Professional security officers",
+    "photo3": "Retail surveillance",
+    "photo4": "Close protection",
+    "photo5": "VIP security",
+    "photo6": "Security patrols",
+    "photo7": "Deterrent presence",
+    "photo8": "24/7 video surveillance"
+  },
+  "chatbot": {
+    "online": "Online",
+    "open": "Open chat",
+    "close": "Close chat",
+    "send": "Send",
+    "suggestions": "Frequently asked",
+    "inputPlaceholder": "Type your message...",
+    "greeting": "Hello 👋 I'm the Empire Security virtual assistant. Ask me a question or pick one below.",
+    "fallback": "I don't have a precise answer to that yet. Contact us directly or request a quote, our team will get back to you quickly.",
+    "intents": {
+      "greeting": {
+        "answer": "Hello 😊 How can I help you today? Ask me a question or pick a topic below."
+      },
+      "thanks": {
+        "answer": "You're welcome! Feel free to ask if you have more questions 🙏"
+      },
+      "goodbye": {
+        "answer": "Goodbye, see you soon! Our team stays available 24/7 if you need anything."
+      },
+      "human": {
+        "answer": "Of course, a member of our team can help you directly. Contact us by phone or WhatsApp, or request a quote and we'll get back to you quickly."
+      },
+      "pricing": {
+        "answer": "Our rates depend on the type of service, duration and security level needed. The easiest way is to request a free, personalized quote."
+      }
+    }
+  },
   "footer": {
     "description": "Your security, our commitment. Guarding, surveillance and protection for your homes and businesses.",
     "navigation": "Navigation",

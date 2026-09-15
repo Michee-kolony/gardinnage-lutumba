@@ -108,6 +108,91 @@
     "text": "Benga Empire Security lelo mpo na lisungi oyo ekokani na yo.",
     "button": "Sɛnga talo"
   },
+  "faq": {
+    "sectionEyebrow": "MITUNA OYO ETUNAMAKA MINGI",
+    "sectionTitle": "Ozali na mituna?",
+    "sectionSubtitle": "Zwa biyano ya mituna oyo etunamaka mingi mpo na misala na biso ya bokengeli mpe sécurité.",
+    "q1": {
+      "question": "Bosaleli na bisika nini?",
+      "answer": "Tosalaka mingi na RDC, na ba ekipe oyo ekoki kokoma noki na bakomini mpe bakartye ya pembeni. Benga biso mpo na koyeba soki tosali na esika na yo."
+    },
+    "q2": {
+      "question": "Ndenge nini kontra esalemaka?",
+      "answer": "Sima ya bosenga na yo ya talo, ekipe na biso etalaka bosenga na yo, epesaka yo oyo ekokani na yo, mpe ebandaka mosala na ntango ya ngonga 48 tii 72 engebene na bozindo ya mosala."
+    },
+    "q3": {
+      "question": "Bakengeli na bino balakisami mpe batalami malamu?",
+      "answer": "Iyo. Gardien nyonso aponami na bokebi, alakisami liboso ya kobanda mosala, mpe alandelami mbala na mbala na boumeli ya mosala na ye."
+    },
+    "q4": {
+      "question": "Nini esalemaka soki likambo ebimi?",
+      "answer": "Bakengeli na biso balakisami mpo na kosala noki mpe kokebisa santrali na biso. Ekipe moko ekoki kotindama na esika mpe bakoyebisa yo na ntango wana moko."
+    },
+    "q5": {
+      "question": "Bosalaka mpo na ba kompani?",
+      "answer": "Iyo, tobatelaka bandako ya bato mpe bisika ya mosala ya ba kompani, na biyano oyo ekokani na bonene mpe bosenga ya kompani na yo."
+    },
+    "q6": {
+      "question": "Ntango boni esengeli mpo na kozwa talo?",
+      "answer": "Ekipe na biso ezongelaka bino mbala mingi na kati ya ngonga 24 sima ya bosenga na bino mpo na kobongisa bosenga na bino mpe kotindela bino talo oyo ekokani na bino."
+    },
+    "q7": {
+      "question": "Bondimaka lifuta na ndenge nini?",
+      "answer": "Tondimaka lifuta na mbongo ya loboko, na banki mpe na Mobile Money, na ndenge ya sanza to engebene na boumeli ya kontra na yo."
+    },
+    "q8": {
+      "question": "Nakoki kobongola to kokata kontra na ngai?",
+      "answer": "Iyo, okoki kobongola nivo ya mosala to kosukisa kontra na kobenga biso liboso, engebene na makanisi oyo bondimanaki na ntango ya kosigner."
+    },
+    "q9": {
+      "question": "Bakengeli na bino bazali na mindoki?",
+      "answer": "Bakengeli na biso balakisami mpo na kopekisa mpe kosala noki. Kosalela bakengeli oyo bazali na mindoki etali nivo ya likama oyo etalami mpe mibeko oyo ezali."
+    },
+    "q10": {
+      "question": "Nakoki kolanda balapolo ya bakengeli na ngai na Internet?",
+      "answer": "Iyo, esika na biso ya bankolo-bandako na Internet epesaka nzela ya kotala bikuwa na bino, bafuti na bino mpe balapolo ya bakengeli na bino na ntango nyonso."
+    }
+  },
+  "gallery": {
+    "sectionEyebrow": "BILOKI NA BISO",
+    "sectionTitle": "Empire Security na mosala",
+    "sectionSubtitle": "Talá bakengeli na biso mpe bisaleli ya bokengeli na mosala.",
+    "photo1": "Bokengeli ya bisika",
+    "photo2": "Bakengeli ya solo",
+    "photo3": "Bokengeli ya magazini",
+    "photo4": "Bobateli ya pene",
+    "photo5": "Bokengeli ya VIP",
+    "photo6": "Mibembo ya bokengeli",
+    "photo7": "Komonana mpo na kopekisa",
+    "photo8": "Bokengeli na kamera ngonga 24"
+  },
+  "chatbot": {
+    "online": "Azali na ligne",
+    "open": "Fungola chat",
+    "close": "Kanga chat",
+    "send": "Tinda",
+    "suggestions": "Mituna oyo etunamaka mingi",
+    "inputPlaceholder": "Koma nsango na yo...",
+    "greeting": "Mbote 👋 Nazali assistant ya Empire Security. Tuna ngai motuna to pona moko na se.",
+    "fallback": "Nazali naino na eyano ya solo te mpo na motuna wana. Benga biso mbala moko to sɛnga talo, ekipe na biso ekozongela yo noki.",
+    "intents": {
+      "greeting": {
+        "answer": "Mbote 😊 Nakoki kosunga yo na nini lelo? Tuna ngai motuna to pona sujet na se."
+      },
+      "thanks": {
+        "answer": "Na esengo! Tuna ngai soki ozali na mituna mosusu 🙏"
+      },
+      "goodbye": {
+        "answer": "Tikala malamu, tokomonana! Ekipe na biso ezali ntango nyonso mpo na kosunga bino."
+      },
+      "human": {
+        "answer": "Solo, moto ya ekipe na biso akoki koyanola yo mbala moko. Benga biso na telefone to WhatsApp, to sɛnga talo mpe tokozongela yo noki."
+      },
+      "pricing": {
+        "answer": "Talo na biso etali lolenge ya mosala, boumeli mpe nivo ya bokengeli oyo olingi. Ndenge ya pete ezali kosɛnga talo ya ofele oyo ekokani na yo."
+      }
+    }
+  },
   "footer": {
     "description": "Bokengeli na yo, elaka na biso. Bokengeli ya ndako, botali mpe bobateli mpo na bandako na bino mpe ba kompani na bino.",
     "navigation": "Ba lien",
