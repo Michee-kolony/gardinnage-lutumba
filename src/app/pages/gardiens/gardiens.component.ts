@@ -38,19 +38,30 @@ export class GardiensComponent implements OnInit, OnDestroy {
   formModel: CreateGardienPayload = this.buildEmptyForm();
 
   toastVisible = false;
-  toastType: 'success' | 'error' = 'success';
+  toastType: 'success' | 'error' | 'info' = 'success';
   toastMessage = '';
   private toastTimer?: ReturnType<typeof setTimeout>;
+
+  // Surveillance automatique du passage en service : on retient le dernier
+  // statut connu de chaque gardien pour détecter les transitions à chaque
+  // sondage périodique, et signaler uniquement les nouvelles prises de service.
+  private knownStatuts = new Map<string, StatutGardien>();
+  private pollTimer?: ReturnType<typeof setInterval>;
+  private static readonly POLL_INTERVAL_MS = 15000;
 
   constructor(private gardiensService: GardiensService, private router: Router) {}
 
   ngOnInit(): void {
     this.fetchGardiens();
+    this.pollTimer = setInterval(() => this.pollForStatusChanges(), GardiensComponent.POLL_INTERVAL_MS);
   }
 
   ngOnDestroy(): void {
     if (this.toastTimer) {
       clearTimeout(this.toastTimer);
+    }
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
     }
   }
 
@@ -79,10 +90,48 @@ export class GardiensComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.gardiens = res.gardiens;
         this.loading = false;
+
+        // Prise de référence : les statuts déjà présents au chargement ne
+        // doivent pas déclencher de notification, seules les prochaines
+        // transitions détectées par le sondage automatique le doivent.
+        this.knownStatuts.clear();
+        res.gardiens.forEach((g) => this.knownStatuts.set(g._id, g.statut));
       },
       error: () => {
         this.loadError = 'Impossible de charger la liste des gardiens.';
         this.loading = false;
+      }
+    });
+  }
+
+  // Sondage périodique et silencieux : détecte les gardiens qui viennent de
+  // passer "en service" depuis le dernier sondage et le signale directement,
+  // sans perturber l'utilisateur en cas d'échec réseau ponctuel.
+  private pollForStatusChanges(): void {
+    this.gardiensService.list().subscribe({
+      next: (res) => {
+        const nouveauxEnService: Gardien[] = [];
+
+        res.gardiens.forEach((g) => {
+          const ancienStatut = this.knownStatuts.get(g._id);
+          if (ancienStatut && ancienStatut !== 'en service' && g.statut === 'en service') {
+            nouveauxEnService.push(g);
+          }
+          this.knownStatuts.set(g._id, g.statut);
+        });
+
+        this.gardiens = res.gardiens;
+
+        if (nouveauxEnService.length === 1) {
+          const g = nouveauxEnService[0];
+          this.showToast('info', `${g.nom} ${g.postnom} vient de se mettre en service.`);
+        } else if (nouveauxEnService.length > 1) {
+          this.showToast('info', `${nouveauxEnService.length} gardiens viennent de se mettre en service.`);
+        }
+      },
+      error: () => {
+        // Échec silencieux : on retentera au prochain cycle, inutile
+        // d'interrompre l'utilisateur pour un sondage de fond.
       }
     });
   }
@@ -155,7 +204,7 @@ export class GardiensComponent implements OnInit, OnDestroy {
     }
   }
 
-  private showToast(type: 'success' | 'error', message: string): void {
+  private showToast(type: 'success' | 'error' | 'info', message: string): void {
     if (this.toastTimer) {
       clearTimeout(this.toastTimer);
     }
@@ -180,6 +229,7 @@ export class GardiensComponent implements OnInit, OnDestroy {
       lieuNaissance: '',
       nationalite: '',
       etatCivil: 'celibataire' as EtatCivil,
+      taille: null,
       telephonePrincipal: '',
       telephoneSecondaire: '',
       email: '',

@@ -37,6 +37,7 @@ export interface Gardien {
   lieuNaissance: string;
   nationalite: string;
   etatCivil: EtatCivil;
+  taille: number | null;
   photoProfil: string;
   telephonePrincipal: string;
   telephoneSecondaire: string;
@@ -61,6 +62,29 @@ export interface CreateGardienPayload {
   lieuNaissance: string;
   nationalite: string;
   etatCivil: EtatCivil;
+  taille: number | null;
+  telephonePrincipal: string;
+  telephoneSecondaire: string;
+  email: string;
+  password: string;
+  adresseActuelle: string;
+  commune: string;
+  quartier: string;
+  avenue: string;
+  statut: StatutGardien;
+  photo: File | null;
+}
+
+export interface UpdateGardienPayload {
+  nom: string;
+  postnom: string;
+  prenom: string;
+  sexe: Sexe;
+  dateNaissance: string;
+  lieuNaissance: string;
+  nationalite: string;
+  etatCivil: EtatCivil;
+  taille: number | null;
   telephonePrincipal: string;
   telephoneSecondaire: string;
   email: string;
@@ -85,6 +109,12 @@ interface GetGardienResponse {
 }
 
 interface CreateGardienResponse {
+  success: boolean;
+  message: string;
+  gardien: Gardien;
+}
+
+interface UpdateGardienResponse {
   success: boolean;
   message: string;
   gardien: Gardien;
@@ -130,6 +160,7 @@ export class GardiensService {
     formData.append('lieuNaissance', payload.lieuNaissance);
     formData.append('nationalite', payload.nationalite);
     formData.append('etatCivil', payload.etatCivil);
+    formData.append('taille', String(payload.taille ?? ''));
     formData.append('telephonePrincipal', payload.telephonePrincipal);
     formData.append('telephoneSecondaire', payload.telephoneSecondaire);
     formData.append('email', payload.email);
@@ -145,6 +176,38 @@ export class GardiensService {
     }
 
     return this.http.post<CreateGardienResponse>(`${environment.apiUrl}/api/gardiens/inscription`, formData);
+  }
+
+  update(id: string, payload: UpdateGardienPayload): Observable<UpdateGardienResponse> {
+    const formData = new FormData();
+    formData.append('nom', payload.nom);
+    formData.append('postnom', payload.postnom);
+    formData.append('prenom', payload.prenom);
+    formData.append('sexe', payload.sexe);
+    formData.append('dateNaissance', payload.dateNaissance);
+    formData.append('lieuNaissance', payload.lieuNaissance);
+    formData.append('nationalite', payload.nationalite);
+    formData.append('etatCivil', payload.etatCivil);
+    formData.append('taille', String(payload.taille ?? ''));
+    formData.append('telephonePrincipal', payload.telephonePrincipal);
+    formData.append('telephoneSecondaire', payload.telephoneSecondaire);
+    formData.append('email', payload.email);
+    formData.append('adresseActuelle', payload.adresseActuelle);
+    formData.append('commune', payload.commune);
+    formData.append('quartier', payload.quartier);
+    formData.append('avenue', payload.avenue);
+    formData.append('statut', payload.statut);
+
+    // Champs facultatifs à la modification : n'envoyer que s'ils sont renseignés,
+    // pour ne pas écraser le mot de passe ou la photo existante avec du vide.
+    if (payload.password) {
+      formData.append('password', payload.password);
+    }
+    if (payload.photo) {
+      formData.append('photoProfil', payload.photo, payload.photo.name);
+    }
+
+    return this.http.put<UpdateGardienResponse>(`${environment.apiUrl}/api/gardiens/${id}`, formData);
   }
 
   updateStatut(id: string, statut: StatutGardien): Observable<UpdateStatutResponse> {

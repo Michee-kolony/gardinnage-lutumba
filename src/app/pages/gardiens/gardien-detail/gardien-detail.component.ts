@@ -2,7 +2,16 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { jsPDF } from 'jspdf';
-import { Commentaire, Gardien, GardiensService, StatutGardien } from '../../../core/gardiens.service';
+import {
+  Commentaire,
+  ETATS_CIVILS,
+  Gardien,
+  GardiensService,
+  SEXES,
+  STATUTS_GARDIEN,
+  StatutGardien,
+  UpdateGardienPayload
+} from '../../../core/gardiens.service';
 import { AuthService } from '../../../core/auth.service';
 
 const LOGO_URL = '/images/logo.png';
@@ -25,6 +34,16 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
 
   deleting = false;
   deleteModalOpen = false;
+
+  editModalOpen = false;
+  submittingEdit = false;
+  editSelectedFileName = '';
+  editPhotoPreview = '';
+  editFormModel: UpdateGardienPayload = this.buildEmptyEditForm();
+
+  sexesDisponibles = SEXES;
+  etatsCivilsDisponibles = ETATS_CIVILS;
+  statutsDisponibles = STATUTS_GARDIEN;
 
   toastVisible = false;
   toastType: 'success' | 'error' = 'success';
@@ -160,6 +179,94 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
     this.closeDeleteModal();
+    this.closeEditModal();
+  }
+
+  toDateInputValue(value: string): string {
+    if (!value) {
+      return '';
+    }
+    try {
+      return new Date(value).toISOString().slice(0, 10);
+    } catch {
+      return '';
+    }
+  }
+
+  openEditModal(): void {
+    if (!this.gardien || !this.isSuperAdmin) {
+      return;
+    }
+
+    const g = this.gardien;
+
+    this.editFormModel = {
+      nom: g.nom,
+      postnom: g.postnom,
+      prenom: g.prenom,
+      sexe: g.sexe,
+      dateNaissance: this.toDateInputValue(g.dateNaissance),
+      lieuNaissance: g.lieuNaissance,
+      nationalite: g.nationalite,
+      etatCivil: g.etatCivil,
+      taille: g.taille,
+      telephonePrincipal: g.telephonePrincipal,
+      telephoneSecondaire: g.telephoneSecondaire,
+      email: g.email,
+      password: '',
+      adresseActuelle: g.adresseActuelle,
+      commune: g.commune,
+      quartier: g.quartier,
+      avenue: g.avenue,
+      statut: g.statut,
+      photo: null
+    };
+    this.editSelectedFileName = '';
+    this.editPhotoPreview = g.photoProfil;
+    this.editModalOpen = true;
+  }
+
+  closeEditModal(): void {
+    if (this.submittingEdit) {
+      return;
+    }
+    this.editModalOpen = false;
+  }
+
+  onEditPhotoSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) {
+      return;
+    }
+    this.editFormModel.photo = file;
+    this.editSelectedFileName = file.name;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.editPhotoPreview = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  submitEdit(): void {
+    if (!this.gardien || this.submittingEdit) {
+      return;
+    }
+
+    this.submittingEdit = true;
+
+    this.gardiensService.update(this.gardien._id, this.editFormModel).subscribe({
+      next: (res) => {
+        this.submittingEdit = false;
+        this.gardien = res.gardien;
+        this.editModalOpen = false;
+        this.showToast('success', 'Gardien modifié avec succès.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.submittingEdit = false;
+        this.showToast('error', err.error?.message || 'Impossible de modifier ce gardien.');
+      }
+    });
   }
 
   confirmDeleteGardien(): void {
@@ -367,5 +474,29 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
         img.src = url;
       }
     });
+  }
+
+  private buildEmptyEditForm(): UpdateGardienPayload {
+    return {
+      nom: '',
+      postnom: '',
+      prenom: '',
+      sexe: 'M',
+      dateNaissance: '',
+      lieuNaissance: '',
+      nationalite: '',
+      etatCivil: 'celibataire',
+      taille: null,
+      telephonePrincipal: '',
+      telephoneSecondaire: '',
+      email: '',
+      password: '',
+      adresseActuelle: '',
+      commune: '',
+      quartier: '',
+      avenue: '',
+      statut: 'non en service',
+      photo: null
+    };
   }
 }
