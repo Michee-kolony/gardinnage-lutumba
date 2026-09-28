@@ -1,0 +1,1009 @@
+<!-- Toast -->
+<div
+  class="fixed top-5 right-5 left-5 sm:left-auto z-50 sm:w-full sm:max-w-sm transition-all duration-300 ease-out"
+  [class.opacity-100]="toastVisible"
+  [class.translate-x-0]="toastVisible"
+  [class.opacity-0]="!toastVisible"
+  [class.translate-x-4]="!toastVisible"
+  [class.pointer-events-none]="!toastVisible"
+  role="alert"
+  aria-live="assertive"
+>
+  <div class="relative overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/5 flex items-start gap-3 p-4 pr-9">
+    @if (toastType === 'success') {
+      <span class="shrink-0 h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </span>
+    } @else {
+      <span class="shrink-0 h-8 w-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.3A1.5 1.5 0 0 0 4 19.5h16a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z" />
+        </svg>
+      </span>
+    }
+    <div class="min-w-0 pt-0.5">
+      <p class="text-sm font-semibold text-black">{{ toastType === 'success' ? 'Succès' : 'Erreur' }}</p>
+      <p class="text-sm text-neutral-600 mt-0.5">{{ toastMessage }}</p>
+    </div>
+    <button
+      type="button"
+      (click)="closeToast()"
+      aria-label="Fermer"
+      class="absolute top-3 right-3 h-6 w-6 rounded-full flex items-center justify-center text-neutral-400 hover:text-black hover:bg-neutral-100 transition-colors"
+    >
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+      </svg>
+    </button>
+    @if (toastVisible) {
+      <div
+        class="absolute bottom-0 left-0 h-1 toast-progress"
+        [class.bg-green-500]="toastType === 'success'"
+        [class.bg-red-500]="toastType === 'error'"
+      ></div>
+    }
+  </div>
+</div>
+
+<!-- Fil d'ariane / retour -->
+<button
+  (click)="goBack()"
+  class="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-black transition mb-6"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6" />
+  </svg>
+  Retour aux propriétés
+</button>
+
+@if (loading) {
+  <div class="bg-white rounded-2xl border border-neutral-200 p-10 flex flex-col items-center justify-center text-center">
+    <div class="h-8 w-8 rounded-full border-2 border-neutral-200 border-t-black animate-spin mb-3"></div>
+    <p class="text-sm text-neutral-500">Chargement de la propriété...</p>
+  </div>
+} @else if (loadError) {
+  <div class="bg-white rounded-2xl border border-red-200 p-10 flex flex-col items-center justify-center text-center">
+    <p class="text-sm text-red-600 mb-3">{{ loadError }}</p>
+    <button
+      (click)="fetchPropriete()"
+      class="text-sm font-medium bg-black text-white rounded-lg px-4 py-2 hover:bg-neutral-800 transition"
+    >
+      Réessayer
+    </button>
+  </div>
+} @else if (propriete) {
+  <div class="space-y-6 pb-10">
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+      <!-- Colonne principale -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Photos -->
+        <div class="bg-white rounded-2xl border border-neutral-200 overflow-hidden">
+          @if (propriete.photos.length > 0) {
+            <img [src]="propriete.photos[activePhotoIndex]" [alt]="propriete.nomReference" class="w-full h-64 sm:h-80 object-cover" />
+            @if (propriete.photos.length > 1) {
+              <div class="flex gap-2 p-3 overflow-x-auto">
+                @for (photo of propriete.photos; track $index) {
+                  <button type="button" (click)="activePhotoIndex = $index">
+                    <img
+                      [src]="photo"
+                      alt=""
+                      class="h-14 w-14 rounded-lg object-cover border-2 transition"
+                      [class.border-black]="$index === activePhotoIndex"
+                      [class.border-transparent]="$index !== activePhotoIndex"
+                    />
+                  </button>
+                }
+              </div>
+            }
+          } @else {
+            <div class="h-64 sm:h-80 flex items-center justify-center text-neutral-300">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 11.5 12 4l9 7.5M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" />
+              </svg>
+            </div>
+          }
+        </div>
+
+        <!-- En-tête -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h1 class="text-lg font-semibold text-black">{{ propriete.nomReference }}</h1>
+              <p class="text-sm text-neutral-500 mt-1">{{ propriete.commune }} — {{ propriete.quartier }}, {{ propriete.avenue }}</p>
+            </div>
+            <div class="flex flex-col items-end gap-1.5 shrink-0">
+              <span class="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap bg-neutral-100 text-black border border-neutral-300">
+                {{ typeLabel(propriete.typePropriete) }}
+              </span>
+              <span class="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap" [ngClass]="niveauBadgeClass(propriete.niveauSecurite)">
+                {{ propriete.niveauSecurite }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Identification & localisation -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <h2 class="text-sm font-semibold text-black mb-4">Identification &amp; localisation</h2>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+            <div>
+              <dt class="text-xs text-neutral-500">N° parcelle</dt>
+              <dd class="text-sm text-black mt-0.5">{{ propriete.numeroParcelle || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-neutral-500">Bâtiments / Niveaux</dt>
+              <dd class="text-sm text-black mt-0.5">{{ propriete.nombreBatiments ?? '—' }} / {{ propriete.nombreNiveaux ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-neutral-500">N° / Repère</dt>
+              <dd class="text-sm text-black mt-0.5">{{ propriete.numero || '—' }} {{ propriete.referenceComplementaire }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-neutral-500">Coordonnées GPS</dt>
+              <dd class="text-sm text-black mt-0.5">
+                @if (propriete.coordonnees.lat !== null && propriete.coordonnees.lng !== null) {
+                  {{ propriete.coordonnees.lat }}, {{ propriete.coordonnees.lng }}
+                } @else {
+                  —
+                }
+              </dd>
+            </div>
+            @if (propriete.lienCarte) {
+              <div class="sm:col-span-2">
+                <dt class="text-xs text-neutral-500">Lien carte</dt>
+                <dd class="text-sm mt-0.5"><a [href]="propriete.lienCarte" target="_blank" rel="noopener" class="text-blue-600 hover:underline truncate">{{ propriete.lienCarte }}</a></dd>
+              </div>
+            }
+          </dl>
+        </div>
+
+        <!-- Description -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <h2 class="text-sm font-semibold text-black mb-4">Description</h2>
+          <dl class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4">
+            <div>
+              <dt class="text-xs text-neutral-500">Chambres</dt>
+              <dd class="text-sm text-black mt-0.5">{{ propriete.nombreChambres ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-neutral-500">Portes d'accès</dt>
+              <dd class="text-sm text-black mt-0.5">{{ propriete.nombrePortesAcces ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-neutral-500">Véhicules</dt>
+              <dd class="text-sm text-black mt-0.5">{{ propriete.nombreVehicules ?? '—' }}</dd>
+            </div>
+          </dl>
+          <div class="flex flex-wrap items-center gap-2 mt-4">
+            <span class="text-xs px-2.5 py-1 rounded-full font-medium" [ngClass]="propriete.cloture ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-400'">Clôture</span>
+            <span class="text-xs px-2.5 py-1 rounded-full font-medium" [ngClass]="propriete.portail ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-400'">Portail</span>
+            <span class="text-xs px-2.5 py-1 rounded-full font-medium" [ngClass]="propriete.garage ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-400'">Garage</span>
+          </div>
+          @if (propriete.autresInformations) {
+            <p class="text-sm text-neutral-600 mt-4 leading-relaxed">{{ propriete.autresInformations }}</p>
+          }
+        </div>
+
+        <!-- Sécurité -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <h2 class="text-sm font-semibold text-black mb-4">Sécurité</h2>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs px-2.5 py-1 rounded-full font-medium" [ngClass]="propriete.cameras ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-400'">
+              Caméras{{ propriete.cameras ? ' (' + propriete.nombreCameras + ')' : '' }}
+            </span>
+            <span class="text-xs px-2.5 py-1 rounded-full font-medium" [ngClass]="propriete.alarme ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-400'">Alarme</span>
+            <span class="text-xs px-2.5 py-1 rounded-full font-medium" [ngClass]="propriete.eclairageSecurite ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-400'">Éclairage</span>
+            <span class="text-xs px-2.5 py-1 rounded-full font-medium" [ngClass]="propriete.interphone ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-400'">Interphone</span>
+          </div>
+          @if (propriete.autresEquipementsSecurite) {
+            <p class="text-sm text-neutral-600 mt-4 leading-relaxed">{{ propriete.autresEquipementsSecurite }}</p>
+          }
+        </div>
+
+        <!-- Abonnement -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <h2 class="text-sm font-semibold text-black mb-4">Abonnement</h2>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+            <div>
+              <dt class="text-xs text-neutral-500">Début</dt>
+              <dd class="text-sm text-black mt-0.5">{{ formatDate(propriete.dateDebutAbonnement) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-neutral-500">Expiration</dt>
+              <dd class="text-sm text-black mt-0.5">{{ formatDate(propriete.dateExpirationAbonnement) }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Documents -->
+        @if (propriete.documentPropriete || propriete.autresDocuments.length > 0) {
+          <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+            <h2 class="text-sm font-semibold text-black mb-4">Documents</h2>
+            <div class="flex flex-col gap-2">
+              @if (propriete.documentPropriete) {
+                <a [href]="propriete.documentPropriete" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:underline flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6" />
+                  </svg>
+                  Document de propriété
+                </a>
+              }
+              @for (doc of propriete.autresDocuments; track $index) {
+                <a [href]="doc" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:underline flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6" />
+                  </svg>
+                  Document {{ $index + 1 }}
+                </a>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Colonne latérale -->
+      <div class="lg:col-span-1 space-y-6">
+
+        <!-- Propriétaire -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <h2 class="text-sm font-semibold text-black mb-4">Propriétaire</h2>
+          @if (propriete.proprietaire) {
+            <button type="button" (click)="goToOwner()" class="w-full flex items-center gap-3 text-left hover:bg-neutral-50 rounded-xl p-2 -m-2 transition">
+              <img [src]="ownerAvatar(propriete.proprietaire)" alt="" class="h-12 w-12 rounded-full object-cover border border-neutral-200 shrink-0" />
+              <span class="min-w-0 flex-1">
+                <span class="block text-sm font-medium text-black truncate">{{ ownerFullName(propriete.proprietaire) }}</span>
+                <span class="block text-xs text-neutral-500 truncate">{{ propriete.proprietaire.telephone }}</span>
+              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="text-neutral-400 shrink-0" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          } @else {
+            <div class="flex items-center gap-3">
+              <span class="h-12 w-12 rounded-full bg-neutral-100 shrink-0"></span>
+              <p class="text-xs text-neutral-400">Compte propriétaire introuvable (supprimé depuis).</p>
+            </div>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-4 flex flex-col gap-2.5">
+          <button
+            type="button"
+            (click)="openEditModal()"
+            class="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium bg-black text-white hover:bg-neutral-800 active:bg-neutral-900 transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5m-1.5-9.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            Modifier
+          </button>
+          <button
+            type="button"
+            (click)="genererContrat()"
+            [disabled]="isGeneratingContrat"
+            class="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium border border-neutral-300 text-black hover:bg-neutral-50 active:bg-neutral-100 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            @if (isGeneratingContrat) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" />
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6M9 15h6M9 11h6" />
+              </svg>
+            }
+            {{ isGeneratingContrat ? 'Génération...' : 'Générer le contrat' }}
+          </button>
+          <button
+            type="button"
+            (click)="openDeleteModal()"
+            class="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50 active:bg-red-100 transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16zM10 11v6m4-6v6" />
+            </svg>
+            Supprimer
+          </button>
+        </div>
+
+        <!-- Aperçu du contrat -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-4">
+          <h2 class="text-sm font-semibold text-black mb-3">Aperçu du contrat</h2>
+
+          <button
+            type="button"
+            (click)="openContratApercuModal()"
+            class="block w-full text-left group relative"
+            aria-label="Agrandir l'aperçu du contrat"
+          >
+          <div class="aspect-[210/297] w-full rounded-lg border border-neutral-200 overflow-hidden shadow-inner bg-white flex flex-col text-[6px] leading-tight transition group-hover:shadow-md group-hover:border-neutral-300">
+
+            <!-- En-tête -->
+            <div class="bg-neutral-900 text-white px-3 pt-2.5 pb-2 shrink-0">
+              <div class="flex items-center gap-1.5">
+                <img src="/images/logo.png" alt="" class="h-4 w-4 object-contain shrink-0" onerror="this.style.display='none'" />
+                <span class="font-bold text-[8px] tracking-wide">GARDINNAGE</span>
+              </div>
+              <p class="text-[5px] text-neutral-300 mt-0.5">Contrat de prestation de surveillance</p>
+            </div>
+            <div class="h-[1.5px] bg-amber-600 shrink-0"></div>
+
+            <!-- Corps -->
+            <div class="px-3 py-2 flex-1 overflow-hidden space-y-2">
+              <div>
+                <p class="font-semibold text-[6.5px] text-black">Entre les soussignés</p>
+                <div class="w-4 h-[1px] bg-amber-600 my-0.5"></div>
+                <p class="text-neutral-600">
+                  Le Prestataire : GARDINNAGE, représentée par <span class="text-black">{{ adminNom }}</span>, administrateur.
+                </p>
+              </div>
+
+              <div class="flex items-start gap-2">
+                <p class="text-neutral-600 flex-1">
+                  @if (propriete.proprietaire) {
+                    Le Client : <span class="text-black">{{ ownerFullName(propriete.proprietaire) }}</span>, tél. {{ propriete.proprietaire.telephone }}.
+                  } @else {
+                    Le Client : propriétaire non renseigné.
+                  }
+                </p>
+                @if (propriete.proprietaire?.photo) {
+                  <img [src]="propriete.proprietaire!.photo!" alt="" class="h-6 w-6 rounded object-cover border border-neutral-300 shrink-0" />
+                }
+              </div>
+
+              @if (propriete.photos.length > 0) {
+                <div>
+                  <p class="font-semibold text-[6.5px] text-black">Photos de la propriété</p>
+                  <div class="w-4 h-[1px] bg-amber-600 my-0.5"></div>
+                  <div class="flex gap-1">
+                    @for (photo of propriete.photos.slice(0, 3); track $index) {
+                      <img [src]="photo" alt="" class="h-7 flex-1 object-cover rounded border border-neutral-300" />
+                    }
+                  </div>
+                </div>
+              }
+
+              <p class="italic text-neutral-400">
+                + Objet, désignation complète, durée, obligations des parties, résiliation...
+              </p>
+            </div>
+
+            <!-- Signatures -->
+            <div class="px-3 pb-2.5 pt-2 border-t border-amber-600/60 shrink-0 grid grid-cols-2 gap-3">
+              <div>
+                <p class="font-medium text-black">Pour le Prestataire</p>
+                <div class="border-b border-dashed border-neutral-300 mt-4 mb-0.5"></div>
+                <p class="text-neutral-500 truncate">{{ adminNom }}</p>
+              </div>
+              <div>
+                <p class="font-medium text-black">Pour le Client</p>
+                <div class="border-b border-dashed border-neutral-300 mt-4 mb-0.5"></div>
+                <p class="text-neutral-500 truncate">{{ propriete.proprietaire ? ownerFullName(propriete.proprietaire) : '—' }}</p>
+              </div>
+            </div>
+          </div>
+
+            <!-- Icône "agrandir", visible au survol -->
+            <span class="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+              </svg>
+            </span>
+          </button>
+
+          <p class="text-xs text-neutral-400 mt-2 text-center">Cliquer sur l'aperçu pour l'agrandir — le PDF généré contient le texte complet du contrat.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal : aperçu du contrat en grand -->
+  @if (contratApercuModalOpen) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fade-in_0.15s_ease-out]" (click)="closeContratApercuModal()"></div>
+
+      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-[modal-pop_0.2s_ease-out]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-neutral-200 sticky top-0 bg-white rounded-t-2xl z-10">
+          <h2 class="text-base font-semibold text-black">Aperçu du contrat</h2>
+          <button
+            type="button"
+            (click)="closeContratApercuModal()"
+            class="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-black transition"
+            aria-label="Fermer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-5">
+          <div class="rounded-xl border border-neutral-200 overflow-hidden shadow-inner bg-white">
+
+            <!-- En-tête -->
+            <div class="bg-neutral-900 text-white px-6 py-4">
+              <div class="flex items-center gap-2.5">
+                <img src="/images/logo.png" alt="" class="h-9 w-9 object-contain shrink-0" onerror="this.style.display='none'" />
+                <span class="font-bold text-xl tracking-wide">GARDINNAGE</span>
+              </div>
+              <p class="text-xs text-neutral-300 mt-1">Contrat de prestation de surveillance</p>
+            </div>
+            <div class="h-[3px] bg-amber-600"></div>
+
+            <!-- Corps -->
+            <div class="px-6 py-5 space-y-4">
+              <div>
+                <p class="font-semibold text-sm text-black">Entre les soussignés</p>
+                <div class="w-8 h-[2px] bg-amber-600 my-1"></div>
+                <p class="text-sm text-neutral-700 leading-relaxed">
+                  Le Prestataire : GARDINNAGE, société de gardiennage et de surveillance, représentée par <span class="text-black font-medium">{{ adminNom }}</span>, en qualité d'administrateur.
+                </p>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <p class="text-sm text-neutral-700 leading-relaxed flex-1">
+                  @if (propriete.proprietaire) {
+                    Le Client : <span class="text-black font-medium">{{ ownerFullName(propriete.proprietaire) }}</span>, téléphone {{ propriete.proprietaire.telephone }}, domicilié(e) à {{ propriete.proprietaire.adresse || '—' }}.
+                  } @else {
+                    Le Client : propriétaire non renseigné.
+                  }
+                </p>
+                @if (propriete.proprietaire?.photo) {
+                  <img [src]="propriete.proprietaire!.photo!" alt="" class="h-16 w-16 rounded-lg object-cover border border-neutral-300 shrink-0" />
+                }
+              </div>
+
+              <div>
+                <p class="font-semibold text-sm text-black">Désignation de la propriété</p>
+                <div class="w-8 h-[2px] bg-amber-600 my-1"></div>
+                <p class="text-sm text-neutral-700 leading-relaxed">
+                  Référence : <span class="text-black">{{ propriete.nomReference }}</span> — Type : {{ typeLabel(propriete.typePropriete) }}.
+                  Adresse : {{ adresseComplete(propriete) }}. Niveau de sécurité convenu : {{ propriete.niveauSecurite }}.
+                  Équipements de sécurité présents : {{ equipementsListe(propriete) }}.
+                </p>
+              </div>
+
+              @if (propriete.photos.length > 0) {
+                <div>
+                  <p class="font-semibold text-sm text-black">Photos de la propriété</p>
+                  <div class="w-8 h-[2px] bg-amber-600 my-1"></div>
+                  <div class="grid grid-cols-2 gap-2">
+                    @for (photo of propriete.photos.slice(0, 4); track $index) {
+                      <img [src]="photo" alt="" class="h-24 w-full object-cover rounded-lg border border-neutral-300" />
+                    }
+                  </div>
+                </div>
+              }
+
+              <p class="text-sm italic text-neutral-400">
+                + Objet du contrat, durée, obligations des parties, clause de résiliation — texte complet dans le PDF généré.
+              </p>
+            </div>
+
+            <!-- Signatures -->
+            <div class="px-6 py-5 border-t-2 border-amber-600/60 grid grid-cols-2 gap-6">
+              <div>
+                <p class="text-sm font-medium text-black">Pour le Prestataire</p>
+                <div class="border-b border-dashed border-neutral-300 mt-10 mb-1"></div>
+                <p class="text-sm text-neutral-500 truncate">{{ adminNom }}</p>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-black">Pour le Client</p>
+                <div class="border-b border-dashed border-neutral-300 mt-10 mb-1"></div>
+                <p class="text-sm text-neutral-500 truncate">{{ propriete.proprietaire ? ownerFullName(propriete.proprietaire) : '—' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-4">
+            <button
+              type="button"
+              (click)="closeContratApercuModal()"
+              class="px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition"
+            >
+              Fermer
+            </button>
+            <button
+              type="button"
+              (click)="genererContrat()"
+              [disabled]="isGeneratingContrat"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-black text-white hover:bg-neutral-800 active:bg-neutral-900 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              @if (isGeneratingContrat) {
+                <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin" style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" />
+                </svg>
+              }
+              {{ isGeneratingContrat ? 'Génération...' : 'Télécharger le PDF' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal : supprimer -->
+  @if (deleteModalOpen) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm animate-[fade-in_0.15s_ease-out]" (click)="closeDeleteModal()"></div>
+
+      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-[modal-pop_0.2s_ease-out]">
+        <div class="h-12 w-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.3A1.5 1.5 0 0 0 4 19.5h16a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z" />
+          </svg>
+        </div>
+
+        <h2 class="text-base font-semibold text-black">Supprimer cette propriété ?</h2>
+        <p class="text-sm text-neutral-500 mt-2 leading-relaxed">
+          Cette action est irréversible. <strong class="text-black">{{ propriete.nomReference }}</strong>
+          sera définitivement supprimée, avec toutes ses photos et documents associés.
+        </p>
+
+        <div class="flex items-center justify-end gap-3 mt-6">
+          <button
+            type="button"
+            (click)="closeDeleteModal()"
+            [disabled]="deleting"
+            class="px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            Non, annuler
+          </button>
+          <button
+            type="button"
+            (click)="confirmDeletePropriete()"
+            [disabled]="deleting"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 active:bg-red-800 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            @if (deleting) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin" style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" />
+              </svg>
+            }
+            {{ deleting ? 'Suppression...' : 'Oui, supprimer' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal : modifier -->
+  @if (editModalOpen) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/50 animate-[fade-in_0.15s_ease-out]" (click)="closeEditModal()"></div>
+
+      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-[modal-pop_0.2s_ease-out]">
+        <div class="flex items-center justify-between px-6 py-5 border-b border-neutral-200 sticky top-0 bg-white rounded-t-2xl z-10">
+          <div>
+            <h2 class="text-lg font-semibold text-black">Modifier {{ propriete.nomReference }}</h2>
+            <p class="text-xs text-neutral-500 mt-0.5">Seuls les nouveaux fichiers envoyés remplacent les existants.</p>
+          </div>
+          <button
+            (click)="closeEditModal()"
+            class="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-black transition"
+            aria-label="Fermer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form (ngSubmit)="submitEdit()" novalidate class="px-6 py-5 space-y-6">
+
+          <!-- Propriétaire -->
+          <div>
+            <label class="block text-sm font-medium text-black mb-1.5">Propriétaire *</label>
+            <div class="relative">
+              <button
+                type="button"
+                (click)="toggleOwnerPicker()"
+                class="w-full flex items-center gap-3 rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-left bg-white hover:bg-neutral-50 transition"
+              >
+                @if (selectedOwnerInForm()) {
+                  <img [src]="ownerAvatar(selectedOwnerInForm()!)" alt="" class="h-7 w-7 rounded-full object-cover border border-neutral-200 shrink-0" />
+                  <span class="text-black truncate">{{ ownerFullName(selectedOwnerInForm()!) }}</span>
+                } @else {
+                  <span class="h-7 w-7 rounded-full bg-neutral-100 shrink-0"></span>
+                  <span class="text-neutral-400 truncate">Choisir un propriétaire...</span>
+                }
+                <svg xmlns="http://www.w3.org/2000/svg" class="ml-auto text-neutral-400 shrink-0" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+
+              @if (ownerPickerOpen) {
+                <div class="absolute z-20 mt-1.5 w-full bg-white rounded-lg border border-neutral-200 shadow-xl overflow-hidden">
+                  <div class="p-2 border-b border-neutral-100">
+                    <input
+                      type="text"
+                      [(ngModel)]="ownerSearchTerm"
+                      name="ownerSearchTermEdit"
+                      placeholder="Rechercher un propriétaire..."
+                      class="w-full rounded-md border border-neutral-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                    />
+                  </div>
+                  <div class="max-h-56 overflow-y-auto">
+                    @for (proprietaire of filteredOwnersForPicker; track proprietaire._id) {
+                      <button
+                        type="button"
+                        (click)="selectOwner(proprietaire)"
+                        class="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-left hover:bg-neutral-50 transition"
+                      >
+                        <img [src]="ownerAvatar(proprietaire)" alt="" class="h-8 w-8 rounded-full object-cover border border-neutral-200 shrink-0" />
+                        <span class="min-w-0 flex-1">
+                          <span class="block text-black truncate">{{ ownerFullName(proprietaire) }}</span>
+                          <span class="block text-xs text-neutral-400 truncate">{{ proprietaire.telephone }}</span>
+                        </span>
+                      </button>
+                    } @empty {
+                      <p class="text-sm text-neutral-400 text-center py-4">Aucun propriétaire trouvé.</p>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Identification -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Identification</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editNomReference">Nom / référence *</label>
+                <input
+                  id="editNomReference" name="editNomReference" type="text" required
+                  [(ngModel)]="editFormModel.nomReference"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editTypePropriete">Type *</label>
+                <select
+                  id="editTypePropriete" name="editTypePropriete" required
+                  [(ngModel)]="editFormModel.typePropriete"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                >
+                  @for (type of typesDisponibles; track type) {
+                    <option [value]="type">{{ typeLabel(type) }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            @if (editFormModel.typePropriete === 'autre') {
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editTypeAutre">Préciser le type</label>
+                <input
+                  id="editTypeAutre" name="editTypeAutre" type="text"
+                  [(ngModel)]="editFormModel.typeAutre"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+            }
+
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editNumeroParcelle">N° parcelle</label>
+                <input
+                  id="editNumeroParcelle" name="editNumeroParcelle" type="text"
+                  [(ngModel)]="editFormModel.numeroParcelle"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editNombreBatiments">Bâtiments</label>
+                <input
+                  id="editNombreBatiments" name="editNombreBatiments" type="number" min="0"
+                  [(ngModel)]="editFormModel.nombreBatiments"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editNombreNiveaux">Niveaux</label>
+                <input
+                  id="editNombreNiveaux" name="editNombreNiveaux" type="number" min="0"
+                  [(ngModel)]="editFormModel.nombreNiveaux"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Localisation -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Localisation</h3>
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editCommune">Commune *</label>
+                <input
+                  id="editCommune" name="editCommune" type="text" required
+                  [(ngModel)]="editFormModel.commune"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editQuartier">Quartier *</label>
+                <input
+                  id="editQuartier" name="editQuartier" type="text" required
+                  [(ngModel)]="editFormModel.quartier"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editAvenue">Avenue *</label>
+                <input
+                  id="editAvenue" name="editAvenue" type="text" required
+                  [(ngModel)]="editFormModel.avenue"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editNumero">N°</label>
+                <input
+                  id="editNumero" name="editNumero" type="text"
+                  [(ngModel)]="editFormModel.numero"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editReferenceComplementaire">Repère complémentaire</label>
+                <input
+                  id="editReferenceComplementaire" name="editReferenceComplementaire" type="text"
+                  [(ngModel)]="editFormModel.referenceComplementaire"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editLat">Latitude</label>
+                <input
+                  id="editLat" name="editLat" type="number"
+                  [(ngModel)]="editFormModel.lat"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editLng">Longitude</label>
+                <input
+                  id="editLng" name="editLng" type="number"
+                  [(ngModel)]="editFormModel.lng"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editLienCarte">Lien carte</label>
+                <input
+                  id="editLienCarte" name="editLienCarte" type="text"
+                  [(ngModel)]="editFormModel.lienCarte"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Description</h3>
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editNombreChambres">Chambres</label>
+                <input
+                  id="editNombreChambres" name="editNombreChambres" type="number" min="0"
+                  [(ngModel)]="editFormModel.nombreChambres"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editNombrePortesAcces">Portes d'accès</label>
+                <input
+                  id="editNombrePortesAcces" name="editNombrePortesAcces" type="number" min="0"
+                  [(ngModel)]="editFormModel.nombrePortesAcces"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editNombreVehicules">Véhicules</label>
+                <input
+                  id="editNombreVehicules" name="editNombreVehicules" type="number" min="0"
+                  [(ngModel)]="editFormModel.nombreVehicules"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-5">
+              <label class="inline-flex items-center gap-2 text-sm text-black">
+                <input type="checkbox" name="editCloture" [(ngModel)]="editFormModel.cloture" class="rounded border-neutral-300" />
+                Clôture
+              </label>
+              <label class="inline-flex items-center gap-2 text-sm text-black">
+                <input type="checkbox" name="editPortail" [(ngModel)]="editFormModel.portail" class="rounded border-neutral-300" />
+                Portail
+              </label>
+              <label class="inline-flex items-center gap-2 text-sm text-black">
+                <input type="checkbox" name="editGarage" [(ngModel)]="editFormModel.garage" class="rounded border-neutral-300" />
+                Garage
+              </label>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="editAutresInformations">Autres informations</label>
+              <textarea
+                id="editAutresInformations" name="editAutresInformations" rows="2"
+                [(ngModel)]="editFormModel.autresInformations"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition resize-none"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Sécurité -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Sécurité</h3>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="editNiveauSecurite">Niveau de sécurité</label>
+              <select
+                id="editNiveauSecurite" name="editNiveauSecurite"
+                [(ngModel)]="editFormModel.niveauSecurite"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              >
+                @for (niveau of niveauxDisponibles; track niveau) {
+                  <option [value]="niveau">{{ niveau }}</option>
+                }
+              </select>
+            </div>
+            <div class="flex flex-wrap items-center gap-5">
+              <label class="inline-flex items-center gap-2 text-sm text-black">
+                <input type="checkbox" name="editCameras" [(ngModel)]="editFormModel.cameras" class="rounded border-neutral-300" />
+                Caméras
+              </label>
+              <label class="inline-flex items-center gap-2 text-sm text-black">
+                <input type="checkbox" name="editAlarme" [(ngModel)]="editFormModel.alarme" class="rounded border-neutral-300" />
+                Alarme
+              </label>
+              <label class="inline-flex items-center gap-2 text-sm text-black">
+                <input type="checkbox" name="editEclairageSecurite" [(ngModel)]="editFormModel.eclairageSecurite" class="rounded border-neutral-300" />
+                Éclairage
+              </label>
+              <label class="inline-flex items-center gap-2 text-sm text-black">
+                <input type="checkbox" name="editInterphone" [(ngModel)]="editFormModel.interphone" class="rounded border-neutral-300" />
+                Interphone
+              </label>
+            </div>
+            @if (editFormModel.cameras) {
+              <div class="w-1/3">
+                <label class="block text-sm font-medium text-black mb-1.5" for="editNombreCameras">Nombre de caméras</label>
+                <input
+                  id="editNombreCameras" name="editNombreCameras" type="number" min="0"
+                  [(ngModel)]="editFormModel.nombreCameras"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+            }
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="editAutresEquipementsSecurite">Autres équipements</label>
+              <input
+                id="editAutresEquipementsSecurite" name="editAutresEquipementsSecurite" type="text"
+                [(ngModel)]="editFormModel.autresEquipementsSecurite"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+          </div>
+
+          <!-- Abonnement -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Abonnement</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editDateDebutAbonnement">Début</label>
+                <input
+                  id="editDateDebutAbonnement" name="editDateDebutAbonnement" type="date"
+                  [(ngModel)]="editFormModel.dateDebutAbonnement"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editDateExpirationAbonnement">Expiration</label>
+                <input
+                  id="editDateExpirationAbonnement" name="editDateExpirationAbonnement" type="date"
+                  [(ngModel)]="editFormModel.dateExpirationAbonnement"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Photos &amp; documents</h3>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5">Remplacer les photos (5 max)</label>
+              <label
+                for="editPhotosFile"
+                class="inline-flex items-center gap-2 border border-neutral-300 rounded-lg px-3.5 py-2 text-sm text-black cursor-pointer hover:bg-neutral-50 transition"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+                </svg>
+                Choisir des photos
+              </label>
+              <input id="editPhotosFile" name="editPhotosFile" type="file" accept="image/*" multiple (change)="onPhotosSelected($event)" class="hidden" />
+              <p class="text-xs text-neutral-400 mt-1">Laisser vide pour conserver les {{ propriete.photos.length }} photo(s) actuelle(s).</p>
+              @if (photosPreviews.length > 0) {
+                <div class="flex gap-2 mt-2 flex-wrap">
+                  @for (preview of photosPreviews; track $index) {
+                    <img [src]="preview" alt="" class="h-14 w-14 rounded-lg object-cover border border-neutral-200" />
+                  }
+                </div>
+              }
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5">Remplacer le document de propriété</label>
+                <label
+                  for="editDocumentFile"
+                  class="inline-flex items-center gap-2 border border-neutral-300 rounded-lg px-3.5 py-2 text-sm text-black cursor-pointer hover:bg-neutral-50 transition"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+                  </svg>
+                  Choisir un fichier
+                </label>
+                <input id="editDocumentFile" name="editDocumentFile" type="file" accept="image/*,.pdf" (change)="onDocumentSelected($event)" class="hidden" />
+                <p class="text-xs text-neutral-400 mt-1 truncate">{{ documentSelectedName || 'Aucun nouveau fichier.' }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5">Remplacer les autres documents</label>
+                <label
+                  for="editAutresDocumentsFile"
+                  class="inline-flex items-center gap-2 border border-neutral-300 rounded-lg px-3.5 py-2 text-sm text-black cursor-pointer hover:bg-neutral-50 transition"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+                  </svg>
+                  Choisir des fichiers
+                </label>
+                <input id="editAutresDocumentsFile" name="editAutresDocumentsFile" type="file" accept="image/*,.pdf" multiple (change)="onAutresDocumentsSelected($event)" class="hidden" />
+                <p class="text-xs text-neutral-400 mt-1 truncate">{{ autresDocumentsNames.join(', ') || 'Aucun nouveau fichier.' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-2 border-t border-neutral-100 -mx-6 px-6 pb-0 pt-4 sticky bottom-0 bg-white">
+            <button
+              type="button"
+              (click)="closeEditModal()"
+              [disabled]="submittingEdit"
+              class="px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              [disabled]="submittingEdit"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-black text-white hover:bg-neutral-800 active:bg-neutral-900 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              @if (submittingEdit) {
+                <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin" style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" />
+                </svg>
+              }
+              {{ submittingEdit ? 'Enregistrement...' : 'Enregistrer' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+}

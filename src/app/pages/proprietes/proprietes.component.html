@@ -1,0 +1,704 @@
+<div class="space-y-6 pb-8">
+
+  <!-- Toast -->
+  <div
+    class="fixed top-5 right-5 left-5 sm:left-auto z-50 sm:w-full sm:max-w-sm transition-all duration-300 ease-out"
+    [class.opacity-100]="toastVisible"
+    [class.translate-x-0]="toastVisible"
+    [class.opacity-0]="!toastVisible"
+    [class.translate-x-4]="!toastVisible"
+    [class.pointer-events-none]="!toastVisible"
+    role="alert"
+    aria-live="assertive"
+  >
+    <div class="relative overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/5 flex items-start gap-3 p-4 pr-9">
+      @if (toastType === 'success') {
+        <span class="shrink-0 h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </span>
+      } @else {
+        <span class="shrink-0 h-8 w-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.3A1.5 1.5 0 0 0 4 19.5h16a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z" />
+          </svg>
+        </span>
+      }
+      <div class="min-w-0 pt-0.5">
+        <p class="text-sm font-semibold text-black">{{ toastType === 'success' ? 'Succès' : 'Erreur' }}</p>
+        <p class="text-sm text-neutral-600 mt-0.5">{{ toastMessage }}</p>
+      </div>
+      <button
+        type="button"
+        (click)="closeToast()"
+        aria-label="Fermer"
+        class="absolute top-3 right-3 h-6 w-6 rounded-full flex items-center justify-center text-neutral-400 hover:text-black hover:bg-neutral-100 transition-colors"
+      >
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+      @if (toastVisible) {
+        <div
+          class="absolute bottom-0 left-0 h-1 toast-progress"
+          [class.bg-green-500]="toastType === 'success'"
+          [class.bg-red-500]="toastType === 'error'"
+        ></div>
+      }
+    </div>
+  </div>
+
+  <!-- Barre d'actions -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+      <div class="relative w-full sm:max-w-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
+        </svg>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Rechercher une propriété (référence, propriétaire, commune...)"
+          class="w-full rounded-lg border border-neutral-300 bg-white pl-10 pr-4 py-2.5 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+        />
+      </div>
+
+      <!-- Filtre abonnement -->
+      <div class="inline-flex items-center gap-1 bg-neutral-100 rounded-lg p-1 shrink-0">
+        <button
+          type="button"
+          (click)="abonnementFilter = 'tous'"
+          class="px-3 py-1.5 rounded-md text-xs font-medium transition"
+          [class.bg-white]="abonnementFilter === 'tous'"
+          [class.shadow-sm]="abonnementFilter === 'tous'"
+          [class.text-black]="abonnementFilter === 'tous'"
+          [class.text-neutral-500]="abonnementFilter !== 'tous'"
+        >
+          Tous
+        </button>
+        <button
+          type="button"
+          (click)="abonnementFilter = 'encours'"
+          class="px-3 py-1.5 rounded-md text-xs font-medium transition"
+          [class.bg-white]="abonnementFilter === 'encours'"
+          [class.shadow-sm]="abonnementFilter === 'encours'"
+          [class.text-green-700]="abonnementFilter === 'encours'"
+          [class.text-neutral-500]="abonnementFilter !== 'encours'"
+        >
+          En cours
+        </button>
+        <button
+          type="button"
+          (click)="abonnementFilter = 'expire'"
+          class="px-3 py-1.5 rounded-md text-xs font-medium transition"
+          [class.bg-white]="abonnementFilter === 'expire'"
+          [class.shadow-sm]="abonnementFilter === 'expire'"
+          [class.text-red-700]="abonnementFilter === 'expire'"
+          [class.text-neutral-500]="abonnementFilter !== 'expire'"
+        >
+          Expiré
+        </button>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between sm:justify-end gap-4">
+      <div class="flex items-center gap-2 text-sm text-neutral-500">
+        <span class="font-medium text-black">{{ filteredProprietes.length }}</span>
+        <span>propriété(s) {{ searchTerm || abonnementFilter !== 'tous' ? 'trouvée(s)' : 'au total' }}</span>
+      </div>
+
+      <button
+        (click)="openModal()"
+        class="inline-flex items-center gap-2 bg-black text-white text-sm font-medium rounded-lg px-4 py-2.5 hover:bg-neutral-800 active:bg-neutral-900 transition shrink-0"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
+        </svg>
+        Ajouter une propriété
+      </button>
+    </div>
+  </div>
+
+  <!-- Liste des propriétés -->
+  @if (loading) {
+    <div class="bg-white rounded-2xl border border-neutral-200 p-10 flex flex-col items-center justify-center text-center">
+      <div class="h-8 w-8 rounded-full border-2 border-neutral-200 border-t-black animate-spin mb-3"></div>
+      <p class="text-sm text-neutral-500">Chargement des propriétés...</p>
+    </div>
+  } @else if (loadError) {
+    <div class="bg-white rounded-2xl border border-red-200 p-10 flex flex-col items-center justify-center text-center">
+      <p class="text-sm text-red-600 mb-3">{{ loadError }}</p>
+      <button
+        (click)="fetchProprietes()"
+        class="text-sm font-medium bg-black text-white rounded-lg px-4 py-2 hover:bg-neutral-800 transition"
+      >
+        Réessayer
+      </button>
+    </div>
+  } @else if (filteredProprietes.length > 0) {
+    <div class="flex flex-col gap-3">
+      @for (propriete of filteredProprietes; track propriete._id) {
+        <div
+          (click)="openPropriete(propriete)"
+          class="bg-white rounded-2xl border border-neutral-200 p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-md hover:border-neutral-300 transition cursor-pointer"
+        >
+          <!-- Photo -->
+          @if (propriete.photos.length > 0) {
+            <img
+              [src]="propriete.photos[0]"
+              [alt]="propriete.nomReference"
+              class="h-16 w-16 rounded-xl object-cover border border-neutral-200 shrink-0 mx-auto sm:mx-0"
+            />
+          } @else {
+            <div class="h-16 w-16 rounded-xl bg-neutral-100 border border-neutral-200 shrink-0 mx-auto sm:mx-0 flex items-center justify-center text-neutral-400">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 11.5 12 4l9 7.5M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" />
+              </svg>
+            </div>
+          }
+
+          <!-- Identité -->
+          <div class="flex-1 min-w-0 text-center sm:text-left">
+            <h3 class="text-sm font-semibold text-black truncate">{{ propriete.nomReference }}</h3>
+            <p class="text-xs text-neutral-500 truncate">{{ typeLabel(propriete.typePropriete) }} — {{ ownerFullName(propriete.proprietaire) }}</p>
+          </div>
+
+          <!-- Localisation -->
+          <div class="flex-1 min-w-0 space-y-1.5 text-center sm:text-left">
+            <p class="text-xs text-neutral-500 flex items-center justify-center sm:justify-start gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px" class="shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              <span class="truncate">{{ propriete.commune }} — {{ propriete.quartier }}</span>
+            </p>
+          </div>
+
+          <!-- Statut -->
+          <div class="shrink-0 flex items-center justify-center sm:justify-end gap-2">
+            <span class="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap" [ngClass]="niveauBadgeClass(propriete.niveauSecurite)">
+              {{ propriete.niveauSecurite }}
+            </span>
+            <span class="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap" [ngClass]="abonnementBadgeClass(propriete)">
+              {{ abonnementLabel(propriete) }}
+            </span>
+          </div>
+
+          <!-- Actions -->
+          <div class="shrink-0 flex items-center justify-center sm:justify-end gap-1.5">
+            <button
+              type="button"
+              (click)="$event.stopPropagation(); openPropriete(propriete)"
+              aria-label="Voir / modifier"
+              class="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-black transition"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5m-1.5-9.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              (click)="$event.stopPropagation(); openDeleteModal(propriete)"
+              aria-label="Supprimer"
+              class="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-red-50 hover:text-red-600 transition"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16zM10 11v6m4-6v6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="bg-white rounded-2xl border border-neutral-200 p-10 flex flex-col items-center justify-center text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="text-neutral-300 mb-3" style="width:40px;height:40px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
+      </svg>
+      <p class="text-sm text-neutral-500">
+        @if (searchTerm) {
+          Aucune propriété ne correspond à "{{ searchTerm }}".
+        } @else {
+          Aucune propriété enregistrée pour le moment.
+        }
+      </p>
+    </div>
+  }
+</div>
+
+<!-- Modal : ajouter une propriété -->
+@if (isModalOpen) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 animate-[fade-in_0.15s_ease-out]" (click)="closeModal()"></div>
+
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-[modal-pop_0.2s_ease-out]">
+      <div class="flex items-center justify-between px-6 py-5 border-b border-neutral-200 sticky top-0 bg-white rounded-t-2xl z-10">
+        <div>
+          <h2 class="text-lg font-semibold text-black">Ajouter une propriété</h2>
+          <p class="text-xs text-neutral-500 mt-0.5">Renseignez les informations de la nouvelle propriété.</p>
+        </div>
+        <button
+          (click)="closeModal()"
+          class="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-black transition"
+          aria-label="Fermer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="submitPropriete()" novalidate class="px-6 py-5 space-y-6">
+
+        <!-- Propriétaire -->
+        <div>
+          <label class="block text-sm font-medium text-black mb-1.5">Propriétaire *</label>
+          <div class="relative">
+            <button
+              type="button"
+              (click)="toggleOwnerPicker()"
+              class="w-full flex items-center gap-3 rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-left bg-white hover:bg-neutral-50 transition"
+            >
+              @if (selectedOwner()) {
+                <img [src]="ownerAvatar(selectedOwner()!)" alt="" class="h-7 w-7 rounded-full object-cover border border-neutral-200 shrink-0" />
+                <span class="text-black truncate">{{ ownerFullName(selectedOwner()!) }}</span>
+              } @else {
+                <span class="h-7 w-7 rounded-full bg-neutral-100 shrink-0"></span>
+                <span class="text-neutral-400">Choisir un propriétaire...</span>
+              }
+              <svg xmlns="http://www.w3.org/2000/svg" class="ml-auto text-neutral-400 shrink-0" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+
+            @if (ownerPickerOpen) {
+              <div class="absolute z-20 mt-1.5 w-full bg-white rounded-lg border border-neutral-200 shadow-xl overflow-hidden">
+                <div class="p-2 border-b border-neutral-100">
+                  <input
+                    type="text"
+                    [(ngModel)]="ownerSearchTerm"
+                    name="ownerSearchTerm"
+                    placeholder="Rechercher un propriétaire..."
+                    class="w-full rounded-md border border-neutral-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                  />
+                </div>
+                <div class="max-h-56 overflow-y-auto">
+                  @for (proprietaire of filteredOwnersForPicker; track proprietaire._id) {
+                    <button
+                      type="button"
+                      (click)="selectOwner(proprietaire)"
+                      class="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-left hover:bg-neutral-50 transition"
+                    >
+                      <img [src]="ownerAvatar(proprietaire)" alt="" class="h-8 w-8 rounded-full object-cover border border-neutral-200 shrink-0" />
+                      <span class="min-w-0 flex-1">
+                        <span class="block text-black truncate">{{ ownerFullName(proprietaire) }}</span>
+                        <span class="block text-xs text-neutral-400 truncate">{{ proprietaire.telephone }}</span>
+                      </span>
+                    </button>
+                  } @empty {
+                    <p class="text-sm text-neutral-400 text-center py-4">Aucun propriétaire trouvé.</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Identification -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Identification</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="nomReference">Nom / référence *</label>
+              <input
+                id="nomReference" name="nomReference" type="text" required
+                [(ngModel)]="formModel.nomReference"
+                placeholder="Villa Les Pins"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="typePropriete">Type *</label>
+              <select
+                id="typePropriete" name="typePropriete" required
+                [(ngModel)]="formModel.typePropriete"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              >
+                @for (type of typesDisponibles; track type) {
+                  <option [value]="type">{{ typeLabel(type) }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          @if (formModel.typePropriete === 'autre') {
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="typeAutre">Préciser le type</label>
+              <input
+                id="typeAutre" name="typeAutre" type="text"
+                [(ngModel)]="formModel.typeAutre"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+          }
+
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="numeroParcelle">N° parcelle</label>
+              <input
+                id="numeroParcelle" name="numeroParcelle" type="text"
+                [(ngModel)]="formModel.numeroParcelle"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="nombreBatiments">Bâtiments</label>
+              <input
+                id="nombreBatiments" name="nombreBatiments" type="number" min="0"
+                [(ngModel)]="formModel.nombreBatiments"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="nombreNiveaux">Niveaux</label>
+              <input
+                id="nombreNiveaux" name="nombreNiveaux" type="number" min="0"
+                [(ngModel)]="formModel.nombreNiveaux"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Localisation -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Localisation</h3>
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="commune">Commune *</label>
+              <input
+                id="commune" name="commune" type="text" required
+                [(ngModel)]="formModel.commune"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="quartier">Quartier *</label>
+              <input
+                id="quartier" name="quartier" type="text" required
+                [(ngModel)]="formModel.quartier"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="avenue">Avenue *</label>
+              <input
+                id="avenue" name="avenue" type="text" required
+                [(ngModel)]="formModel.avenue"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="numero">N°</label>
+              <input
+                id="numero" name="numero" type="text"
+                [(ngModel)]="formModel.numero"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="referenceComplementaire">Repère complémentaire</label>
+              <input
+                id="referenceComplementaire" name="referenceComplementaire" type="text"
+                [(ngModel)]="formModel.referenceComplementaire"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="lat">Latitude</label>
+              <input
+                id="lat" name="lat" type="number"
+                [(ngModel)]="formModel.lat"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="lng">Longitude</label>
+              <input
+                id="lng" name="lng" type="number"
+                [(ngModel)]="formModel.lng"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="lienCarte">Lien carte</label>
+              <input
+                id="lienCarte" name="lienCarte" type="text"
+                [(ngModel)]="formModel.lienCarte"
+                placeholder="https://maps.google.com/..."
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Description</h3>
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="nombreChambres">Chambres</label>
+              <input
+                id="nombreChambres" name="nombreChambres" type="number" min="0"
+                [(ngModel)]="formModel.nombreChambres"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="nombrePortesAcces">Portes d'accès</label>
+              <input
+                id="nombrePortesAcces" name="nombrePortesAcces" type="number" min="0"
+                [(ngModel)]="formModel.nombrePortesAcces"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="nombreVehicules">Véhicules</label>
+              <input
+                id="nombreVehicules" name="nombreVehicules" type="number" min="0"
+                [(ngModel)]="formModel.nombreVehicules"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-5">
+            <label class="inline-flex items-center gap-2 text-sm text-black">
+              <input type="checkbox" name="cloture" [(ngModel)]="formModel.cloture" class="rounded border-neutral-300" />
+              Clôture
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm text-black">
+              <input type="checkbox" name="portail" [(ngModel)]="formModel.portail" class="rounded border-neutral-300" />
+              Portail
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm text-black">
+              <input type="checkbox" name="garage" [(ngModel)]="formModel.garage" class="rounded border-neutral-300" />
+              Garage
+            </label>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-black mb-1.5" for="autresInformations">Autres informations</label>
+            <textarea
+              id="autresInformations" name="autresInformations" rows="2"
+              [(ngModel)]="formModel.autresInformations"
+              class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition resize-none"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Sécurité -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Sécurité</h3>
+          <div>
+            <label class="block text-sm font-medium text-black mb-1.5" for="niveauSecurite">Niveau de sécurité</label>
+            <select
+              id="niveauSecurite" name="niveauSecurite"
+              [(ngModel)]="formModel.niveauSecurite"
+              class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+            >
+              @for (niveau of niveauxDisponibles; track niveau) {
+                <option [value]="niveau">{{ niveau }}</option>
+              }
+            </select>
+          </div>
+          <div class="flex flex-wrap items-center gap-5">
+            <label class="inline-flex items-center gap-2 text-sm text-black">
+              <input type="checkbox" name="cameras" [(ngModel)]="formModel.cameras" class="rounded border-neutral-300" />
+              Caméras
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm text-black">
+              <input type="checkbox" name="alarme" [(ngModel)]="formModel.alarme" class="rounded border-neutral-300" />
+              Alarme
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm text-black">
+              <input type="checkbox" name="eclairageSecurite" [(ngModel)]="formModel.eclairageSecurite" class="rounded border-neutral-300" />
+              Éclairage
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm text-black">
+              <input type="checkbox" name="interphone" [(ngModel)]="formModel.interphone" class="rounded border-neutral-300" />
+              Interphone
+            </label>
+          </div>
+          @if (formModel.cameras) {
+            <div class="w-1/3">
+              <label class="block text-sm font-medium text-black mb-1.5" for="nombreCameras">Nombre de caméras</label>
+              <input
+                id="nombreCameras" name="nombreCameras" type="number" min="0"
+                [(ngModel)]="formModel.nombreCameras"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+          }
+          <div>
+            <label class="block text-sm font-medium text-black mb-1.5" for="autresEquipementsSecurite">Autres équipements</label>
+            <input
+              id="autresEquipementsSecurite" name="autresEquipementsSecurite" type="text"
+              [(ngModel)]="formModel.autresEquipementsSecurite"
+              class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+            />
+          </div>
+        </div>
+
+        <!-- Abonnement -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Abonnement</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="dateDebutAbonnement">Début</label>
+              <input
+                id="dateDebutAbonnement" name="dateDebutAbonnement" type="date"
+                [(ngModel)]="formModel.dateDebutAbonnement"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="dateExpirationAbonnement">Expiration</label>
+              <input
+                id="dateExpirationAbonnement" name="dateExpirationAbonnement" type="date"
+                [(ngModel)]="formModel.dateExpirationAbonnement"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Photos &amp; documents</h3>
+          <div>
+            <label class="block text-sm font-medium text-black mb-1.5">Photos (5 max)</label>
+            <label
+              for="photosFile"
+              class="inline-flex items-center gap-2 border border-neutral-300 rounded-lg px-3.5 py-2 text-sm text-black cursor-pointer hover:bg-neutral-50 transition"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+              </svg>
+              Choisir des photos
+            </label>
+            <input id="photosFile" name="photosFile" type="file" accept="image/*" multiple (change)="onPhotosSelected($event)" class="hidden" />
+            @if (photosPreviews.length > 0) {
+              <div class="flex gap-2 mt-2 flex-wrap">
+                @for (preview of photosPreviews; track $index) {
+                  <img [src]="preview" alt="" class="h-14 w-14 rounded-lg object-cover border border-neutral-200" />
+                }
+              </div>
+            }
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5">Document de propriété</label>
+              <label
+                for="documentFile"
+                class="inline-flex items-center gap-2 border border-neutral-300 rounded-lg px-3.5 py-2 text-sm text-black cursor-pointer hover:bg-neutral-50 transition"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+                </svg>
+                Choisir un fichier
+              </label>
+              <input id="documentFile" name="documentFile" type="file" accept="image/*,.pdf" (change)="onDocumentSelected($event)" class="hidden" />
+              <p class="text-xs text-neutral-400 mt-1 truncate">{{ documentSelectedName || 'Aucun fichier choisi.' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5">Autres documents (5 max)</label>
+              <label
+                for="autresDocumentsFile"
+                class="inline-flex items-center gap-2 border border-neutral-300 rounded-lg px-3.5 py-2 text-sm text-black cursor-pointer hover:bg-neutral-50 transition"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+                </svg>
+                Choisir des fichiers
+              </label>
+              <input id="autresDocumentsFile" name="autresDocumentsFile" type="file" accept="image/*,.pdf" multiple (change)="onAutresDocumentsSelected($event)" class="hidden" />
+              <p class="text-xs text-neutral-400 mt-1 truncate">{{ autresDocumentsNames.join(', ') || 'Aucun fichier choisi.' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2 border-t border-neutral-100 -mx-6 px-6 pb-0 pt-4 sticky bottom-0 bg-white">
+          <button
+            type="button"
+            (click)="closeModal()"
+            [disabled]="submitting"
+            class="px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            [disabled]="submitting"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-black text-white hover:bg-neutral-800 active:bg-neutral-900 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            @if (submitting) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin" style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" />
+              </svg>
+            }
+            {{ submitting ? 'Ajout...' : 'Ajouter la propriété' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal : supprimer une propriété -->
+@if (deleteModalOpen) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm animate-[fade-in_0.15s_ease-out]" (click)="closeDeleteModal()"></div>
+
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-[modal-pop_0.2s_ease-out]">
+      <div class="h-12 w-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.3A1.5 1.5 0 0 0 4 19.5h16a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z" />
+        </svg>
+      </div>
+
+      <h2 class="text-base font-semibold text-black">Supprimer cette propriété ?</h2>
+      <p class="text-sm text-neutral-500 mt-2 leading-relaxed">
+        Cette action est irréversible. <strong class="text-black">{{ deletingTargetName }}</strong>
+        sera définitivement supprimée, avec toutes ses photos et documents associés.
+      </p>
+
+      <div class="flex items-center justify-end gap-3 mt-6">
+        <button
+          type="button"
+          (click)="closeDeleteModal()"
+          [disabled]="deleting"
+          class="px-4 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          Non, annuler
+        </button>
+        <button
+          type="button"
+          (click)="confirmDeletePropriete()"
+          [disabled]="deleting"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 active:bg-red-800 transition disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          @if (deleting) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin" style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" />
+            </svg>
+          }
+          {{ deleting ? 'Suppression...' : 'Oui, supprimer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

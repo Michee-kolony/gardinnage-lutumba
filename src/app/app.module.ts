@@ -20,7 +20,9 @@ import { DonutChartComponent } from './dashboard/donut-chart/donut-chart.compone
 import { GardiensComponent } from './pages/gardiens/gardiens.component';
 import { GardienDetailComponent } from './pages/gardiens/gardien-detail/gardien-detail.component';
 import { ProprietairesComponent } from './pages/proprietaires/proprietaires.component';
-import { MaisonsComponent } from './pages/maisons/maisons.component';
+import { ProprietaireDetailComponent } from './pages/proprietaires/proprietaire-detail/proprietaire-detail.component';
+import { ProprietesComponent } from './pages/proprietes/proprietes.component';
+import { ProprieteDetailComponent } from './pages/proprietes/propriete-detail/propriete-detail.component';
 import { ContratsComponent } from './pages/contrats/contrats.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
@@ -42,7 +44,9 @@ import { AdministrateursComponent } from './pages/administrateurs/administrateur
     GardiensComponent,
     GardienDetailComponent,
     ProprietairesComponent,
-    MaisonsComponent,
+    ProprietaireDetailComponent,
+    ProprietesComponent,
+    ProprieteDetailComponent,
     ContratsComponent,
     IncidentsComponent,
     PaiementsComponent,

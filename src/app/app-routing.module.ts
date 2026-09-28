@@ -8,7 +8,9 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { GardiensComponent } from './pages/gardiens/gardiens.component';
 import { GardienDetailComponent } from './pages/gardiens/gardien-detail/gardien-detail.component';
 import { ProprietairesComponent } from './pages/proprietaires/proprietaires.component';
-import { MaisonsComponent } from './pages/maisons/maisons.component';
+import { ProprietaireDetailComponent } from './pages/proprietaires/proprietaire-detail/proprietaire-detail.component';
+import { ProprietesComponent } from './pages/proprietes/proprietes.component';
+import { ProprieteDetailComponent } from './pages/proprietes/propriete-detail/propriete-detail.component';
 import { ContratsComponent } from './pages/contrats/contrats.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
@@ -30,7 +32,9 @@ const routes: Routes = [
       { path: 'gardiens', component: GardiensComponent },
       { path: 'gardiens/:id', component: GardienDetailComponent },
       { path: 'proprietaires', component: ProprietairesComponent },
-      { path: 'maisons', component: MaisonsComponent },
+      { path: 'proprietaires/:id', component: ProprietaireDetailComponent },
+      { path: 'proprietes', component: ProprietesComponent },
+      { path: 'proprietes/:id', component: ProprieteDetailComponent },
       { path: 'contrats', component: ContratsComponent },
       { path: 'incidents', component: IncidentsComponent },
       { path: 'paiements', component: PaiementsComponent },

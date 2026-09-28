@@ -3,6 +3,8 @@ import * as L from 'leaflet';
 import { BarChartPoint } from './bar-chart/bar-chart.component';
 import { DonutSegment } from './donut-chart/donut-chart.component';
 import { Gardien, GardiensService, StatutGardien } from '../core/gardiens.service';
+import { ProprietairesService } from '../core/proprietaires.service';
+import { ProprietesService } from '../core/proprietes.service';
 
 interface StatDef {
   label: string;
@@ -41,7 +43,11 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('gardiensMap') mapContainer?: ElementRef<HTMLDivElement>;
   private map?: L.Map;
 
-  constructor(private gardiensService: GardiensService) {}
+  constructor(
+    private gardiensService: GardiensService,
+    private proprietairesService: ProprietairesService,
+    private proprietesService: ProprietesService
+  ) {}
 
   isRapportsModalOpen = false;
   rapportsSearchTerm = '';
@@ -70,8 +76,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   activiteStats: StatDef[] = [
-    { label: 'Propriétaires', value: 36, hint: 'Clients enregistrés', icon: 'users', emphasis: 'default', trend: 'up', trendValue: '+2' },
-    { label: 'Maisons sous surveillance', value: 52, hint: 'Sites actifs', icon: 'home', emphasis: 'default', trend: 'up', trendValue: '+4' },
+    { label: 'Propriétaires', value: '—', hint: 'Clients enregistrés', icon: 'users', emphasis: 'default', trend: 'neutral', trendValue: '' },
+    { label: 'Propriétés sous surveillance', value: '—', hint: 'Sites actifs', icon: 'home', emphasis: 'default', trend: 'neutral', trendValue: '' },
     { label: 'Contrats actifs', value: 44, hint: 'En cours de validité', icon: 'file', emphasis: 'default', trend: 'neutral', trendValue: '' },
     { label: 'Contrats expirant bientôt', value: 6, hint: 'Sous 30 jours', icon: 'alert', emphasis: 'dark', trend: 'down', trendValue: 'À traiter' },
   ];
@@ -166,6 +172,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.fetchGardiens();
     this.pollTimer = setInterval(() => this.fetchGardiens(), DashboardComponent.POLL_INTERVAL_MS);
+    this.fetchProprietairesCount();
+    this.fetchProprietesCount();
   }
 
   ngAfterViewInit(): void {
@@ -234,6 +242,28 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // La carte reste utilisable (vide) même si le chargement échoue.
         this.tryInitMap();
+      }
+    });
+  }
+
+  private fetchProprietairesCount(): void {
+    this.proprietairesService.list().subscribe({
+      next: (res) => {
+        this.activiteStats[0].value = res.total;
+      },
+      error: () => {
+        this.activiteStats[0].value = '—';
+      }
+    });
+  }
+
+  private fetchProprietesCount(): void {
+    this.proprietesService.list().subscribe({
+      next: (res) => {
+        this.activiteStats[1].value = res.total;
+      },
+      error: () => {
+        this.activiteStats[1].value = '—';
       }
     });
   }

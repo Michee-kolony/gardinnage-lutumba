@@ -8,7 +8,7 @@ const TITLES: Record<string, string> = {
   dashboard: 'Tableau de bord',
   gardiens: 'Gestion des gardiens',
   proprietaires: 'Gestion des propriétaires',
-  maisons: 'Maisons sous surveillance',
+  proprietes: 'Propriétés sous surveillance',
   contrats: 'Contrats',
   incidents: 'Incidents',
   paiements: 'Paiements',
