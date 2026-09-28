@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { AdminRole, AdminsService, CreateAdminPayload } from '../../core/admins.service';
-import { AdminData } from '../../core/auth.service';
+import { AdminData, AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-administrateurs',
@@ -20,12 +20,22 @@ export class AdministrateursComponent implements OnInit, OnDestroy {
   submitting = false;
   formModel: CreateAdminPayload = this.buildEmptyForm();
 
+  deletingId: string | null = null;
+
   toastVisible = false;
   toastType: 'success' | 'error' = 'success';
   toastMessage = '';
   private toastTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(private adminsService: AdminsService) {}
+  constructor(private adminsService: AdminsService, private authService: AuthService) {}
+
+  get isSuperAdmin(): boolean {
+    return this.authService.getAdmin()?.role === 'SUPER_ADMIN';
+  }
+
+  get currentAdminId(): string | undefined {
+    return this.authService.getAdmin()?._id;
+  }
 
   ngOnInit(): void {
     this.fetchAdmins();
@@ -106,6 +116,31 @@ export class AdministrateursComponent implements OnInit, OnDestroy {
       error: (err: HttpErrorResponse) => {
         this.submitting = false;
         this.showToast('error', err.error?.message || "Impossible d'ajouter cet administrateur.");
+      }
+    });
+  }
+
+  deleteAdmin(admin: AdminData): void {
+    if (!this.isSuperAdmin || this.deletingId) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Supprimer définitivement le compte de ${admin.nom} ?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.deletingId = admin._id;
+
+    this.adminsService.remove(admin._id).subscribe({
+      next: () => {
+        this.deletingId = null;
+        this.admins = this.admins.filter((a) => a._id !== admin._id);
+        this.showToast('success', 'Administrateur supprimé avec succès.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.deletingId = null;
+        this.showToast('error', err.error?.message || "Impossible de supprimer cet administrateur.");
       }
     });
   }

@@ -126,6 +126,27 @@
             <span class="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap" [ngClass]="statusBadgeClass(admin.actif)">
               {{ admin.actif ? 'Actif' : 'Désactivé' }}
             </span>
+
+            @if (isSuperAdmin && admin._id !== currentAdminId) {
+              <button
+                type="button"
+                (click)="deleteAdmin(admin)"
+                [disabled]="deletingId === admin._id"
+                [attr.aria-label]="'Supprimer ' + admin.nom"
+                title="Supprimer cet administrateur"
+                class="h-8 w-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                @if (deletingId === admin._id) {
+                  <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin" style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" />
+                  </svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3m2 0v13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V7h10z" />
+                  </svg>
+                }
+              </button>
+            }
           </div>
         </div>
       }

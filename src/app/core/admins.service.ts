@@ -26,6 +26,11 @@ interface CreateAdminResponse {
   admin: AdminData;
 }
 
+interface DeleteAdminResponse {
+  success: boolean;
+  message: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminsService {
 
@@ -37,5 +42,9 @@ export class AdminsService {
 
   create(payload: CreateAdminPayload): Observable<CreateAdminResponse> {
     return this.http.post<CreateAdminResponse>(`${environment.apiUrl}/api/admins/inscription`, payload);
+  }
+
+  remove(id: string): Observable<DeleteAdminResponse> {
+    return this.http.delete<DeleteAdminResponse>(`${environment.apiUrl}/api/admins/${id}`);
   }
 }

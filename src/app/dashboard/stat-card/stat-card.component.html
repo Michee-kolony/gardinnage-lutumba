@@ -39,6 +39,14 @@
           @case ('card') {
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7zM3 10h18M7 15h4" />
           }
+          @case ('male') {
+            <circle cx="10" cy="14" r="5" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14 10l6-6m0 0h-5m5 0v5" />
+          }
+          @case ('female') {
+            <circle cx="12" cy="9" r="5" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14v7m-3-3h6" />
+          }
           @default {
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
           }

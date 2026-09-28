@@ -83,8 +83,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   gardiensStats: StatDef[] = [
     { label: 'Total gardiens', value: '—', hint: 'Effectif global', icon: 'shield', emphasis: 'dark', trend: 'neutral', trendValue: '' },
     { label: 'En service', value: '—', hint: 'Actuellement en poste', icon: 'check', emphasis: 'default', trend: 'neutral', trendValue: '' },
-    { label: 'Disponibles', value: 12, hint: 'Prêts à être affectés', icon: 'clock', emphasis: 'default', trend: 'neutral', trendValue: '25%' },
-    { label: 'Absents', value: 5, hint: 'Congés / arrêts', icon: 'user-x', emphasis: 'default', trend: 'down', trendValue: '10%' },
+    { label: 'Gardiens masculins', value: '—', hint: 'Effectif masculin', icon: 'male', emphasis: 'default', trend: 'neutral', trendValue: '' },
+    { label: 'Gardiens féminins', value: '—', hint: 'Effectif féminin', icon: 'female', emphasis: 'default', trend: 'neutral', trendValue: '' },
   ];
 
   activiteStats: StatDef[] = [
@@ -171,15 +171,25 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.gardiensService.list().subscribe({
       next: (res) => {
         const enService = res.gardiens.filter((g) => g.statut === 'en service').length;
+        const masculins = res.gardiens.filter((g) => g.sexe === 'M').length;
+        const feminins = res.gardiens.filter((g) => g.sexe === 'F').length;
 
         this.gardiensStats[0].value = res.total;
         this.gardiensStats[1].value = enService;
         this.gardiensStats[1].trendValue = res.total > 0 ? `${Math.round((enService / res.total) * 100)}%` : '0%';
+        this.gardiensStats[2].value = masculins;
+        this.gardiensStats[2].trendValue = res.total > 0 ? `${Math.round((masculins / res.total) * 100)}%` : '0%';
+        this.gardiensStats[3].value = feminins;
+        this.gardiensStats[3].trendValue = res.total > 0 ? `${Math.round((feminins / res.total) * 100)}%` : '0%';
       },
       error: () => {
         this.gardiensStats[0].value = '—';
         this.gardiensStats[1].value = 0;
         this.gardiensStats[1].trendValue = '';
+        this.gardiensStats[2].value = 0;
+        this.gardiensStats[2].trendValue = '';
+        this.gardiensStats[3].value = 0;
+        this.gardiensStats[3].trendValue = '';
       }
     });
   }

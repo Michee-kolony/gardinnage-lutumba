@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { jsPDF } from 'jspdf';
 import { Commentaire, Gardien, GardiensService, StatutGardien } from '../../../core/gardiens.service';
+import { AuthService } from '../../../core/auth.service';
 
 const LOGO_URL = '/images/logo.png';
 
@@ -23,6 +24,7 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
   updatingStatut = false;
 
   deleting = false;
+  deleteModalOpen = false;
 
   toastVisible = false;
   toastType: 'success' | 'error' = 'success';
@@ -34,8 +36,13 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private gardiensService: GardiensService
+    private gardiensService: GardiensService,
+    private authService: AuthService
   ) {}
+
+  get isSuperAdmin(): boolean {
+    return this.authService.getAdmin()?.role === 'SUPER_ADMIN';
+  }
 
   ngOnInit(): void {
     this.gardienId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -136,13 +143,27 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  deleteGardien(): void {
-    if (!this.gardien || this.deleting) {
+  openDeleteModal(): void {
+    if (!this.gardien || this.deleting || !this.isSuperAdmin) {
       return;
     }
+    this.deleteModalOpen = true;
+  }
 
-    const confirmed = window.confirm(`Supprimer définitivement ${this.gardien.nom} ${this.gardien.postnom} ?`);
-    if (!confirmed) {
+  closeDeleteModal(): void {
+    if (this.deleting) {
+      return;
+    }
+    this.deleteModalOpen = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    this.closeDeleteModal();
+  }
+
+  confirmDeleteGardien(): void {
+    if (!this.gardien || this.deleting) {
       return;
     }
 
@@ -154,6 +175,7 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
       },
       error: (err: HttpErrorResponse) => {
         this.deleting = false;
+        this.deleteModalOpen = false;
         this.showToast('error', err.error?.message || 'Impossible de supprimer ce gardien.');
       }
     });
