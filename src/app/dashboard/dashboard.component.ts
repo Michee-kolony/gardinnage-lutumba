@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import * as L from 'leaflet';
 import { BarChartPoint } from './bar-chart/bar-chart.component';
 import { DonutSegment } from './donut-chart/donut-chart.component';
@@ -17,6 +18,7 @@ interface StatDef {
 }
 
 interface ContratExpirant {
+  proprieteId: string;
   proprietaire: string;
   photoUrl: string;
   maison: string;
@@ -46,7 +48,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private gardiensService: GardiensService,
     private proprietairesService: ProprietairesService,
-    private proprietesService: ProprietesService
+    private proprietesService: ProprietesService,
+    private router: Router
   ) {}
 
   isRapportsModalOpen = false;
@@ -122,12 +125,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     { label: 'Non traités', value: 3, strokeColor: '#d03b3b' },
   ];
 
-  contratsExpirants: ContratExpirant[] = [
-    { proprietaire: 'M. Bernard Dubois', photoUrl: 'https://i.pravatar.cc/150?img=60', maison: 'Villa Les Pins — Cannes', finContrat: '28/09/2026', joursRestants: 15 },
-    { proprietaire: 'Mme Sophie Lambert', photoUrl: 'https://i.pravatar.cc/150?img=47', maison: 'Résidence Bellevue — Nice', finContrat: '03/10/2026', joursRestants: 20 },
-    { proprietaire: 'M. Karim Haddad', photoUrl: 'https://i.pravatar.cc/150?img=52', maison: 'Domaine du Lac — Antibes', finContrat: '08/10/2026', joursRestants: 25 },
-    { proprietaire: 'Mme Julie Fontaine', photoUrl: 'https://i.pravatar.cc/150?img=45', maison: 'Maison Rosier — Grasse', finContrat: '12/10/2026', joursRestants: 29 },
-  ];
+  contratsExpirants: ContratExpirant[] = [];
 
   joursBadgeClass(jours: number): string {
     return jours <= 15 ? 'bg-amber-500 text-black' : 'bg-amber-100 text-amber-800 border border-amber-300';
@@ -257,15 +255,51 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // Charge les propriétés une seule fois pour alimenter à la fois la stat
+  // "Propriétés sous surveillance" et la liste des contrats arrivant à
+  // expiration (les deux viennent du même endpoint).
   private fetchProprietesCount(): void {
     this.proprietesService.list().subscribe({
       next: (res) => {
         this.activiteStats[1].value = res.total;
+
+        const maintenant = new Date();
+        this.contratsExpirants = res.proprietes
+          .filter((p) => p.dateExpirationAbonnement && new Date(p.dateExpirationAbonnement) >= maintenant)
+          .map((p) => {
+            const dateExpiration = new Date(p.dateExpirationAbonnement as string);
+            const joursRestants = Math.ceil((dateExpiration.getTime() - maintenant.getTime()) / (1000 * 60 * 60 * 24));
+            const nomProprietaire = p.proprietaire ? `${p.proprietaire.prenom} ${p.proprietaire.nom}` : 'Propriétaire inconnu';
+
+            return {
+              proprieteId: p._id,
+              proprietaire: nomProprietaire,
+              photoUrl: p.proprietaire?.photo || `https://ui-avatars.com/api/?background=e5e5e5&color=737373&name=${encodeURIComponent(nomProprietaire)}`,
+              maison: p.nomReference,
+              finContrat: this.formatDate(p.dateExpirationAbonnement as string),
+              joursRestants
+            };
+          })
+          .sort((a, b) => a.joursRestants - b.joursRestants)
+          .slice(0, 8);
       },
       error: () => {
         this.activiteStats[1].value = '—';
+        this.contratsExpirants = [];
       }
     });
+  }
+
+  private formatDate(value: string): string {
+    try {
+      return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value));
+    } catch {
+      return value;
+    }
+  }
+
+  openPropriete(proprieteId: string): void {
+    this.router.navigate(['/admin/proprietes', proprieteId]);
   }
 
   // La vue (conteneur de la carte) et la réponse HTTP (gardiens en service)

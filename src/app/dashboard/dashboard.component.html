@@ -122,63 +122,75 @@
   <section>
     <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Contrats arrivant à expiration</h2>
 
-    <!-- Desktop / tablette : tableau -->
-    <div class="hidden sm:block bg-white rounded-2xl border border-neutral-200 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-neutral-200 text-left text-neutral-500">
-            <th class="px-5 py-3 font-medium">Propriétaire</th>
-            <th class="px-5 py-3 font-medium">Propriété</th>
-            <th class="px-5 py-3 font-medium">Fin de contrat</th>
-            <th class="px-5 py-3 font-medium text-right">Jours restants</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (contrat of contratsExpirants; track contrat.maison) {
-            <tr class="border-b border-neutral-100 last:border-0 hover:bg-neutral-50 transition">
-              <td class="px-5 py-3 text-black font-medium">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="truncate">{{ contrat.proprietaire }}</span>
-                  <img
-                    [src]="contrat.photoUrl"
-                    [alt]="contrat.proprietaire"
-                    class="h-8 w-8 rounded-full object-cover border border-neutral-200 shrink-0"
-                  />
-                </div>
-              </td>
-              <td class="px-5 py-3 text-neutral-600">{{ contrat.maison }}</td>
-              <td class="px-5 py-3 text-neutral-600">{{ contrat.finContrat }}</td>
-              <td class="px-5 py-3 text-right">
-                <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium" [ngClass]="joursBadgeClass(contrat.joursRestants)">
-                  {{ contrat.joursRestants }} j
-                </span>
-              </td>
+    @if (contratsExpirants.length > 0) {
+      <!-- Desktop / tablette : tableau -->
+      <div class="hidden sm:block bg-white rounded-2xl border border-neutral-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-neutral-200 text-left text-neutral-500">
+              <th class="px-5 py-3 font-medium">Propriétaire</th>
+              <th class="px-5 py-3 font-medium">Propriété</th>
+              <th class="px-5 py-3 font-medium">Fin de contrat</th>
+              <th class="px-5 py-3 font-medium text-right">Jours restants</th>
             </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            @for (contrat of contratsExpirants; track contrat.proprieteId) {
+              <tr
+                (click)="openPropriete(contrat.proprieteId)"
+                class="border-b border-neutral-100 last:border-0 hover:bg-neutral-50 transition cursor-pointer"
+              >
+                <td class="px-5 py-3 text-black font-medium">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="truncate">{{ contrat.proprietaire }}</span>
+                    <img
+                      [src]="contrat.photoUrl"
+                      [alt]="contrat.proprietaire"
+                      class="h-8 w-8 rounded-full object-cover border border-neutral-200 shrink-0"
+                    />
+                  </div>
+                </td>
+                <td class="px-5 py-3 text-neutral-600">{{ contrat.maison }}</td>
+                <td class="px-5 py-3 text-neutral-600">{{ contrat.finContrat }}</td>
+                <td class="px-5 py-3 text-right">
+                  <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium" [ngClass]="joursBadgeClass(contrat.joursRestants)">
+                    {{ contrat.joursRestants }} j
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
-    <!-- Mobile : cartes empilées -->
-    <div class="sm:hidden flex flex-col gap-3">
-      @for (contrat of contratsExpirants; track contrat.maison) {
-        <div class="bg-white rounded-2xl border border-neutral-200 p-4 flex items-center gap-3">
-          <img
-            [src]="contrat.photoUrl"
-            [alt]="contrat.proprietaire"
-            class="h-12 w-12 rounded-full object-cover border border-neutral-200 shrink-0"
-          />
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-black truncate">{{ contrat.proprietaire }}</p>
-            <p class="text-xs text-neutral-500 truncate">{{ contrat.maison }}</p>
-            <p class="text-xs text-neutral-400 mt-0.5">Fin de contrat : {{ contrat.finContrat }}</p>
+      <!-- Mobile : cartes empilées -->
+      <div class="sm:hidden flex flex-col gap-3">
+        @for (contrat of contratsExpirants; track contrat.proprieteId) {
+          <div
+            (click)="openPropriete(contrat.proprieteId)"
+            class="bg-white rounded-2xl border border-neutral-200 p-4 flex items-center gap-3 cursor-pointer"
+          >
+            <img
+              [src]="contrat.photoUrl"
+              [alt]="contrat.proprietaire"
+              class="h-12 w-12 rounded-full object-cover border border-neutral-200 shrink-0"
+            />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-black truncate">{{ contrat.proprietaire }}</p>
+              <p class="text-xs text-neutral-500 truncate">{{ contrat.maison }}</p>
+              <p class="text-xs text-neutral-400 mt-0.5">Fin de contrat : {{ contrat.finContrat }}</p>
+            </div>
+            <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium shrink-0" [ngClass]="joursBadgeClass(contrat.joursRestants)">
+              {{ contrat.joursRestants }} j
+            </span>
           </div>
-          <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium shrink-0" [ngClass]="joursBadgeClass(contrat.joursRestants)">
-            {{ contrat.joursRestants }} j
-          </span>
-        </div>
-      }
-    </div>
+        }
+      </div>
+    } @else {
+      <div class="bg-white rounded-2xl border border-neutral-200 p-8 flex items-center justify-center text-center">
+        <p class="text-sm text-neutral-500">Aucun contrat n'arrive à expiration prochainement.</p>
+      </div>
+    }
   </section>
 
 </div>
