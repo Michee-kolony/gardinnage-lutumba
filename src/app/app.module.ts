@@ -1,12 +1,13 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { AuthInterceptor } from './core/auth.interceptor';
 import { HomeComponent } from './public/home/home.component';
 import { LoginComponent } from './auth/login/login.component';
 import { LayoutComponent } from './layout/layout.component';
@@ -24,6 +25,7 @@ import { ContratsComponent } from './pages/contrats/contrats.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
+import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
 
 @NgModule({
   declarations: [
@@ -44,7 +46,8 @@ import { ParametresComponent } from './pages/parametres/parametres.component';
     ContratsComponent,
     IncidentsComponent,
     PaiementsComponent,
-    ParametresComponent
+    ParametresComponent,
+    AdministrateursComponent
   ],
   imports: [
     BrowserModule,
@@ -61,7 +64,8 @@ import { ParametresComponent } from './pages/parametres/parametres.component';
         prefix: '/i18n/',
         suffix: '.json'
       })
-    })
+    }),
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]
 })

@@ -1,7 +1,8 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as L from 'leaflet';
 import { BarChartPoint } from './bar-chart/bar-chart.component';
 import { DonutSegment } from './donut-chart/donut-chart.component';
+import { GardiensService } from '../core/gardiens.service';
 
 interface StatDef {
   label: string;
@@ -47,9 +48,11 @@ interface RapportGardien {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements AfterViewInit, OnDestroy {
+export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('gardiensMap') mapContainer?: ElementRef<HTMLDivElement>;
   private map?: L.Map;
+
+  constructor(private gardiensService: GardiensService) {}
 
   isRapportsModalOpen = false;
   rapportsSearchTerm = '';
@@ -78,8 +81,8 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   ];
 
   gardiensStats: StatDef[] = [
-    { label: 'Total gardiens', value: 48, hint: 'Effectif global', icon: 'shield', emphasis: 'dark', trend: 'up', trendValue: '+3 ce mois' },
-    { label: 'En service', value: 31, hint: 'Actuellement en poste', icon: 'check', emphasis: 'default', trend: 'up', trendValue: '65%' },
+    { label: 'Total gardiens', value: '—', hint: 'Effectif global', icon: 'shield', emphasis: 'dark', trend: 'neutral', trendValue: '' },
+    { label: 'En service', value: '—', hint: 'Actuellement en poste', icon: 'check', emphasis: 'default', trend: 'neutral', trendValue: '' },
     { label: 'Disponibles', value: 12, hint: 'Prêts à être affectés', icon: 'clock', emphasis: 'default', trend: 'neutral', trendValue: '25%' },
     { label: 'Absents', value: 5, hint: 'Congés / arrêts', icon: 'user-x', emphasis: 'default', trend: 'down', trendValue: '10%' },
   ];
@@ -162,6 +165,23 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
 
   closeRapportsModal(): void {
     this.isRapportsModalOpen = false;
+  }
+
+  ngOnInit(): void {
+    this.gardiensService.list().subscribe({
+      next: (res) => {
+        const enService = res.gardiens.filter((g) => g.statut === 'en service').length;
+
+        this.gardiensStats[0].value = res.total;
+        this.gardiensStats[1].value = enService;
+        this.gardiensStats[1].trendValue = res.total > 0 ? `${Math.round((enService / res.total) * 100)}%` : '0%';
+      },
+      error: () => {
+        this.gardiensStats[0].value = '—';
+        this.gardiensStats[1].value = 0;
+        this.gardiensStats[1].trendValue = '';
+      }
+    });
   }
 
   ngAfterViewInit(): void {

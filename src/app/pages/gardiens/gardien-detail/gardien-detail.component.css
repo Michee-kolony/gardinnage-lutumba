@@ -1,6 +1,20 @@
 /* Carte de service : texture décorative (fines diagonales + filigrane), posée
    en tant que véritable arrière-plan CSS (background-image) — jamais un calque
    superposé — pour ne jamais pouvoir masquer la photo ou le texte au-dessus. */
+.toast-progress {
+  width: 100%;
+  animation: toast-shrink 5s linear forwards;
+}
+
+@keyframes toast-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
 .carte-preview-body {
   background-color: #ffffff;
   background-image:

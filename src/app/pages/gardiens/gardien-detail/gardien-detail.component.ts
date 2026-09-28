@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { jsPDF } from 'jspdf';
-import { CommentaireGardien, Gardien, GardiensService, StatutGardien, TypeCommentaire } from '../../../core/gardiens.service';
+import { Commentaire, Gardien, GardiensService, StatutGardien } from '../../../core/gardiens.service';
 
 const LOGO_URL = '/images/logo.png';
 
@@ -10,11 +11,25 @@ const LOGO_URL = '/images/logo.png';
   templateUrl: './gardien-detail.component.html',
   styleUrl: './gardien-detail.component.css'
 })
-export class GardienDetailComponent implements OnInit {
+export class GardienDetailComponent implements OnInit, OnDestroy {
   gardien?: Gardien;
+  loading = true;
+  loadError = '';
+
   isGeneratingCarte = false;
   dateEmission = '';
   commentSearchTerm = '';
+
+  updatingStatut = false;
+
+  deleting = false;
+
+  toastVisible = false;
+  toastType: 'success' | 'error' = 'success';
+  toastMessage = '';
+  private toastTimer?: ReturnType<typeof setTimeout>;
+
+  private gardienId = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -23,10 +38,9 @@ export class GardienDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.gardien = this.gardiensService.getGardienById(id);
+    this.gardienId = this.route.snapshot.paramMap.get('id') ?? '';
 
-    if (!this.gardien) {
+    if (!this.gardienId) {
       this.router.navigate(['/admin/gardiens']);
       return;
     }
@@ -36,6 +50,30 @@ export class GardienDetailComponent implements OnInit {
       month: '2-digit',
       year: 'numeric',
     }).format(new Date());
+
+    this.fetchGardien();
+  }
+
+  ngOnDestroy(): void {
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+    }
+  }
+
+  fetchGardien(): void {
+    this.loading = true;
+    this.loadError = '';
+
+    this.gardiensService.getById(this.gardienId).subscribe({
+      next: (res) => {
+        this.gardien = res.gardien;
+        this.loading = false;
+      },
+      error: () => {
+        this.loadError = 'Impossible de charger ce gardien.';
+        this.loading = false;
+      }
+    });
   }
 
   goBack(): void {
@@ -46,34 +84,102 @@ export class GardienDetailComponent implements OnInit {
     (event.target as HTMLImageElement).style.display = 'none';
   }
 
-  get filteredCommentaires(): CommentaireGardien[] {
+  formatDate(value: string): string {
+    if (!value) {
+      return '—';
+    }
+    try {
+      return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value));
+    } catch {
+      return value;
+    }
+  }
+
+  get filteredCommentaires(): Commentaire[] {
     const commentaires = this.gardien?.commentaires ?? [];
     const term = this.commentSearchTerm.trim().toLowerCase();
     if (!term) {
       return commentaires;
     }
     return commentaires.filter((c) =>
-      c.proprietaire.toLowerCase().includes(term) ||
-      c.message.toLowerCase().includes(term) ||
-      c.type.toLowerCase().includes(term)
+      c.nomProprietaire.toLowerCase().includes(term) ||
+      c.contenu.toLowerCase().includes(term)
     );
   }
 
   statutBadgeClass(statut: StatutGardien): string {
-    switch (statut) {
-      case 'En service':
-        return 'bg-green-100 text-green-700 border border-green-200';
-      case 'Disponible':
-        return 'bg-neutral-100 text-black border border-neutral-300';
-      case 'Absent':
-        return 'bg-red-100 text-red-700 border border-red-200';
+    return statut === 'en service'
+      ? 'bg-green-100 text-green-700 border border-green-200'
+      : 'bg-neutral-100 text-black border border-neutral-300';
+  }
+
+  toggleStatut(): void {
+    if (!this.gardien || this.updatingStatut) {
+      return;
+    }
+
+    const nouveauStatut: StatutGardien = this.gardien.statut === 'en service' ? 'non en service' : 'en service';
+    this.updatingStatut = true;
+
+    this.gardiensService.updateStatut(this.gardien._id, nouveauStatut).subscribe({
+      next: (res) => {
+        this.updatingStatut = false;
+        if (this.gardien) {
+          this.gardien.statut = res.gardien.statut;
+        }
+        this.showToast('success', 'Statut mis à jour.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.updatingStatut = false;
+        this.showToast('error', err.error?.message || 'Impossible de mettre à jour le statut.');
+      }
+    });
+  }
+
+  deleteGardien(): void {
+    if (!this.gardien || this.deleting) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Supprimer définitivement ${this.gardien.nom} ${this.gardien.postnom} ?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.deleting = true;
+
+    this.gardiensService.remove(this.gardien._id).subscribe({
+      next: () => {
+        this.router.navigate(['/admin/gardiens']);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.deleting = false;
+        this.showToast('error', err.error?.message || 'Impossible de supprimer ce gardien.');
+      }
+    });
+  }
+
+  closeToast(): void {
+    this.toastVisible = false;
+
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
     }
   }
 
-  commentaireBadgeClass(type: TypeCommentaire): string {
-    return type === 'positif'
-      ? 'bg-green-100 text-green-700 border border-green-200'
-      : 'bg-red-100 text-red-700 border border-red-200';
+  private showToast(type: 'success' | 'error', message: string): void {
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+    }
+
+    this.toastVisible = false;
+
+    setTimeout(() => {
+      this.toastType = type;
+      this.toastMessage = message;
+      this.toastVisible = true;
+      this.toastTimer = setTimeout(() => this.closeToast(), 5000);
+    });
   }
 
   async genererCarteService(): Promise<void> {
@@ -85,7 +191,7 @@ export class GardienDetailComponent implements OnInit {
 
     try {
       const [photoDataUrl, logoDataUrl] = await Promise.all([
-        this.loadImageAsDataUrl(gardien.photoUrl),
+        this.loadImageAsDataUrl(gardien.photoProfil),
         this.loadImageAsDataUrl(LOGO_URL),
       ]);
 
@@ -165,23 +271,17 @@ export class GardienDetailComponent implements OnInit {
       doc.setFontSize(7);
       doc.text(`Prénom : ${gardien.prenom}`, textX, cursorY);
 
-      cursorY += 4;
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(90, 90, 90);
-      doc.text(`alias « ${gardien.pseudo} »`, textX, cursorY);
-
-      cursorY += 4;
-      doc.setFont('helvetica', 'normal');
+      cursorY += 4.5;
       doc.setTextColor(0, 0, 0);
       doc.text(`Matricule : ${gardien.matricule}`, textX, cursorY);
 
       cursorY += 4;
-      doc.text(`Né(e) le : ${gardien.dateNaissance}`, textX, cursorY);
+      doc.text(`Né(e) le : ${this.formatDate(gardien.dateNaissance)}`, textX, cursorY);
 
-      // Zone / téléphone
+      // Adresse / téléphone
       doc.setFontSize(7);
-      doc.text(`Zone : ${gardien.zone}`, photoX, photoY + photoSize + 4);
-      doc.text(`Tél : ${gardien.telephone}`, photoX, photoY + photoSize + 8);
+      doc.text(`Zone : ${gardien.commune} — ${gardien.quartier}`, photoX, photoY + photoSize + 4);
+      doc.text(`Tél : ${gardien.telephonePrincipal}`, photoX, photoY + photoSize + 8);
 
       // Bande de pied de carte
       doc.setFillColor(240, 240, 240);
@@ -192,6 +292,10 @@ export class GardienDetailComponent implements OnInit {
       doc.text("Valable avec pièce d'identité", width - 4, height - 3.5, { align: 'right' });
 
       doc.save(`carte-service-${gardien.matricule}.pdf`);
+
+      if (!photoDataUrl) {
+        this.showToast('error', "La carte a été générée mais la photo n'a pas pu être chargée. Réessayez.");
+      }
     } finally {
       this.isGeneratingCarte = false;
     }
@@ -227,7 +331,19 @@ export class GardienDetailComponent implements OnInit {
         }
       };
       img.onerror = () => resolve(null);
-      img.src = url;
+
+      // Ce même visuel est déjà affiché ailleurs sur la page via de simples
+      // balises <img> sans crossOrigin. Le navigateur (ou le cache Cloudflare)
+      // peut alors resservir cette copie non taguée CORS et laisser le canvas
+      // "tainted" même quand le bucket autorise bien CORS. On force donc une
+      // requête réseau fraîche, correctement taguée, via un paramètre unique.
+      const isCrossOrigin = /^https?:\/\//i.test(url) && !url.startsWith(window.location.origin);
+      if (isCrossOrigin) {
+        const separator = url.includes('?') ? '&' : '?';
+        img.src = `${url}${separator}cors=${Date.now()}`;
+      } else {
+        img.src = url;
+      }
     });
   }
 }

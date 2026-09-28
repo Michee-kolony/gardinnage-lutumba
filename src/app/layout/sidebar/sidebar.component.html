@@ -63,6 +63,11 @@
             @case ('settings') {
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm9-3a9.05 9.05 0 0 0-.2-1.9l2-1.6-2-3.4-2.4 1a7.2 7.2 0 0 0-1.6-1L16.4 2h-4l-.4 2.6a7.2 7.2 0 0 0-1.6 1l-2.4-1-2 3.4 2 1.6a9.4 9.4 0 0 0 0 3.8l-2 1.6 2 3.4 2.4-1a7.2 7.2 0 0 0 1.6 1l.4 2.6h4l.4-2.6a7.2 7.2 0 0 0 1.6-1l2.4 1 2-3.4-2-1.6c.13-.62.2-1.26.2-1.9z" />
             }
+            @case ('badge') {
+              <rect x="4" y="4" width="16" height="16" rx="2" />
+              <circle cx="12" cy="10" r="2" />
+              <path stroke-linecap="round" d="M8 17c.5-2 2-3 4-3s3.5 1 4 3" />
+            }
           }
         </svg>
         @if (!collapsed) {
@@ -73,6 +78,26 @@
   </nav>
 
   <div class="p-3 border-t border-white/10 shrink-0 space-y-1">
+
+    <!-- Administrateur connecté -->
+    @if (admin) {
+      <div
+        class="flex items-center gap-3 px-3 py-2.5 mb-1"
+        [ngClass]="collapsed ? 'justify-center' : ''"
+        [title]="admin.nom"
+      >
+        <div class="h-9 w-9 rounded-full bg-white text-black flex items-center justify-center text-sm font-semibold uppercase shrink-0">
+          {{ admin.nom.charAt(0) }}
+        </div>
+        @if (!collapsed) {
+          <div class="min-w-0 leading-tight">
+            <p class="text-sm font-medium text-white truncate">{{ admin.nom }}</p>
+            <p class="text-xs text-neutral-400 truncate">{{ admin.role === 'SUPER_ADMIN' ? 'Super admin' : 'Administrateur' }}</p>
+          </div>
+        }
+      </div>
+    }
+
     <!-- Collapse / expand (desktop uniquement) -->
     <button
       (click)="layout.toggleSidebar()"

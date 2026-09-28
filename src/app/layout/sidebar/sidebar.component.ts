@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../core/auth.service';
+import { AdminData, AuthService } from '../../core/auth.service';
 import { LayoutService } from '../../core/layout.service';
 
 interface NavItem {
@@ -25,6 +25,7 @@ export class SidebarComponent {
     { label: 'Contrats', route: '/admin/contrats', icon: 'file' },
     { label: 'Incidents', route: '/admin/incidents', icon: 'alert' },
     { label: 'Paiements', route: '/admin/paiements', icon: 'card' },
+    { label: 'Administrateurs', route: '/admin/administrateurs', icon: 'badge' },
     { label: 'Paramètres', route: '/admin/parametres', icon: 'settings' },
   ];
 
@@ -33,6 +34,10 @@ export class SidebarComponent {
     private router: Router,
     public layout: LayoutService
   ) {}
+
+  get admin(): AdminData | null {
+    return this.authService.getAdmin();
+  }
 
   onNavClick(): void {
     if (this.layout.isMobile()) {

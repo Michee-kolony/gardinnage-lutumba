@@ -1,0 +1,13 @@
+.toast-progress {
+  width: 100%;
+  animation: toast-shrink 5s linear forwards;
+}
+
+@keyframes toast-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}

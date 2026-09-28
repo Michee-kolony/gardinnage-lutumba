@@ -1,37 +1,58 @@
-import { Component } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Gardien, GardiensService, STATUTS_GARDIEN, StatutGardien } from '../../core/gardiens.service';
 
-interface NewGardienForm {
-  matricule: string;
-  nom: string;
-  postnom: string;
-  prenom: string;
-  pseudo: string;
-  statut: StatutGardien;
-  zone: string;
-  telephone: string;
-  photoUrl: string;
-}
+import {
+  CreateGardienPayload,
+  ETATS_CIVILS,
+  EtatCivil,
+  Gardien,
+  GardiensService,
+  SEXES,
+  STATUTS_GARDIEN,
+  Sexe,
+  StatutGardien
+} from '../../core/gardiens.service';
 
 @Component({
   selector: 'app-gardiens',
   templateUrl: './gardiens.component.html',
   styleUrl: './gardiens.component.css'
 })
-export class GardiensComponent {
+export class GardiensComponent implements OnInit, OnDestroy {
+  gardiens: Gardien[] = [];
+  loading = true;
+  loadError = '';
+
   searchTerm = '';
+
   isModalOpen = false;
+  submitting = false;
   selectedFileName = '';
+  photoPreview = '';
+
+  sexesDisponibles = SEXES;
+  etatsCivilsDisponibles = ETATS_CIVILS;
   statutsDisponibles = STATUTS_GARDIEN;
+
+  formModel: CreateGardienPayload = this.buildEmptyForm();
+
+  toastVisible = false;
+  toastType: 'success' | 'error' = 'success';
+  toastMessage = '';
+  private toastTimer?: ReturnType<typeof setTimeout>;
 
   constructor(private gardiensService: GardiensService, private router: Router) {}
 
-  get gardiens(): Gardien[] {
-    return this.gardiensService.getGardiens();
+  ngOnInit(): void {
+    this.fetchGardiens();
   }
 
-  formModel: NewGardienForm = this.buildEmptyForm();
+  ngOnDestroy(): void {
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+    }
+  }
 
   get filteredGardiens(): Gardien[] {
     const term = this.searchTerm.trim().toLowerCase();
@@ -42,32 +63,52 @@ export class GardiensComponent {
       g.nom.toLowerCase().includes(term) ||
       g.postnom.toLowerCase().includes(term) ||
       g.prenom.toLowerCase().includes(term) ||
-      g.pseudo.toLowerCase().includes(term) ||
       g.matricule.toLowerCase().includes(term) ||
-      g.zone.toLowerCase().includes(term) ||
+      g.commune.toLowerCase().includes(term) ||
+      g.quartier.toLowerCase().includes(term) ||
+      g.telephonePrincipal.toLowerCase().includes(term) ||
       g.statut.toLowerCase().includes(term)
     );
   }
 
+  fetchGardiens(): void {
+    this.loading = true;
+    this.loadError = '';
+
+    this.gardiensService.list().subscribe({
+      next: (res) => {
+        this.gardiens = res.gardiens;
+        this.loading = false;
+      },
+      error: () => {
+        this.loadError = 'Impossible de charger la liste des gardiens.';
+        this.loading = false;
+      }
+    });
+  }
+
   statutBadgeClass(statut: StatutGardien): string {
-    switch (statut) {
-      case 'En service':
-        return 'bg-green-100 text-green-700 border border-green-200';
-      case 'Disponible':
-        return 'bg-neutral-100 text-black border border-neutral-300';
-      case 'Absent':
-        return 'bg-red-100 text-red-700 border border-red-200';
-    }
+    return statut === 'en service'
+      ? 'bg-green-100 text-green-700 border border-green-200'
+      : 'bg-neutral-100 text-black border border-neutral-300';
   }
 
   openGardien(gardien: Gardien): void {
-    this.router.navigate(['/admin/gardiens', gardien.id]);
+    this.router.navigate(['/admin/gardiens', gardien._id]);
   }
 
   openModal(): void {
     this.formModel = this.buildEmptyForm();
     this.selectedFileName = '';
+    this.photoPreview = '';
     this.isModalOpen = true;
+  }
+
+  closeModal(): void {
+    if (this.submitting) {
+      return;
+    }
+    this.isModalOpen = false;
   }
 
   onPhotoSelected(event: Event): void {
@@ -75,60 +116,80 @@ export class GardiensComponent {
     if (!file) {
       return;
     }
+    this.formModel.photo = file;
     this.selectedFileName = file.name;
+
     const reader = new FileReader();
     reader.onload = () => {
-      this.formModel.photoUrl = reader.result as string;
+      this.photoPreview = reader.result as string;
     };
     reader.readAsDataURL(file);
   }
 
-  closeModal(): void {
-    this.isModalOpen = false;
+  submitGardien(): void {
+    if (this.submitting || !this.formModel.photo) {
+      return;
+    }
+
+    this.submitting = true;
+
+    this.gardiensService.create(this.formModel).subscribe({
+      next: (res) => {
+        this.submitting = false;
+        this.gardiens = [res.gardien, ...this.gardiens];
+        this.isModalOpen = false;
+        this.showToast('success', 'Gardien ajouté avec succès.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.submitting = false;
+        this.showToast('error', err.error?.message || "Impossible d'ajouter ce gardien.");
+      }
+    });
   }
 
-  onSubmitGardien(): void {
-    const nextId = this.gardiensService.nextId;
+  closeToast(): void {
+    this.toastVisible = false;
 
-    const gardien: Gardien = {
-      id: nextId,
-      matricule: this.formModel.matricule.trim() || `GRD-2024-${String(nextId).padStart(3, '0')}`,
-      nom: this.formModel.nom.trim(),
-      postnom: this.formModel.postnom.trim(),
-      prenom: this.formModel.prenom.trim() || '—',
-      pseudo: this.formModel.pseudo.trim() || '—',
-      photoUrl: this.formModel.photoUrl.trim() || `https://i.pravatar.cc/300?img=${(nextId % 70) + 1}`,
-      statut: this.formModel.statut,
-      zone: this.formModel.zone.trim(),
-      telephone: this.formModel.telephone.trim(),
-      dateNaissance: '—',
-      lieuNaissance: '—',
-      adresse: '—',
-      dateEmbauche: '—',
-      numeroCni: '—',
-      groupeSanguin: '—',
-      contactUrgenceNom: '—',
-      contactUrgenceTelephone: '—',
-      maisons: [],
-      commentaires: [],
-    };
-
-    this.gardiensService.addGardien(gardien);
-    this.closeModal();
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+    }
   }
 
-  private buildEmptyForm(): NewGardienForm {
-    const nextId = this.gardiensService.nextId;
+  private showToast(type: 'success' | 'error', message: string): void {
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+    }
+
+    this.toastVisible = false;
+
+    setTimeout(() => {
+      this.toastType = type;
+      this.toastMessage = message;
+      this.toastVisible = true;
+      this.toastTimer = setTimeout(() => this.closeToast(), 5000);
+    });
+  }
+
+  private buildEmptyForm(): CreateGardienPayload {
     return {
-      matricule: `GRD-2024-${String(nextId).padStart(3, '0')}`,
       nom: '',
       postnom: '',
       prenom: '',
-      pseudo: '',
-      statut: 'Disponible',
-      zone: '',
-      telephone: '',
-      photoUrl: '',
+      sexe: 'M' as Sexe,
+      dateNaissance: '',
+      lieuNaissance: '',
+      nationalite: '',
+      etatCivil: 'celibataire' as EtatCivil,
+      telephonePrincipal: '',
+      telephoneSecondaire: '',
+      email: '',
+      password: '',
+      adresseActuelle: '',
+      commune: '',
+      quartier: '',
+      avenue: '',
+      statut: 'non en service' as StatutGardien,
+      photo: null
     };
   }
 }

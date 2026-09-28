@@ -13,6 +13,7 @@ import { ContratsComponent } from './pages/contrats/contrats.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
+import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
 import { authGuard } from './core/auth.guard';
 
 const routes: Routes = [
@@ -22,6 +23,7 @@ const routes: Routes = [
     path: 'admin',
     component: LayoutComponent,
     canActivate: [authGuard],
+    canActivateChild: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', component: DashboardComponent },
@@ -32,6 +34,7 @@ const routes: Routes = [
       { path: 'contrats', component: ContratsComponent },
       { path: 'incidents', component: IncidentsComponent },
       { path: 'paiements', component: PaiementsComponent },
+      { path: 'administrateurs', component: AdministrateursComponent },
       { path: 'parametres', component: ParametresComponent },
     ]
   },
