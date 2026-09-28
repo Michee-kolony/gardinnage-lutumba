@@ -110,12 +110,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     { label: 'Sep', value: 9 },
   ];
 
-  // Palette catégorielle (ordre fixe, sans signification particulière)
-  prestationsSegments: DonutSegment[] = [
-    { label: 'Surveillance de nuit', value: 22, strokeColor: '#2a78d6' },
-    { label: 'Surveillance de jour', value: 15, strokeColor: '#eb6834' },
-    { label: 'Rondes ponctuelles', value: 9, strokeColor: '#1baf7a' },
-    { label: 'Intervention sur alarme', value: 6, strokeColor: '#eda100' },
+  // Répartition réelle des propriétés par statut de contrat (calculée dans
+  // fetchProprietesCount, à partir de dateExpirationAbonnement).
+  contratsSegments: DonutSegment[] = [
+    { label: 'En cours', value: 0, strokeColor: '#16a34a' },
+    { label: 'Arrive à expiration', value: 0, strokeColor: '#eab308' },
+    { label: 'Expiré', value: 0, strokeColor: '#dc2626' },
   ];
 
   // Palette de statut (sémantique : bon / en attente / critique)
@@ -128,7 +128,20 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   contratsExpirants: ContratExpirant[] = [];
 
   joursBadgeClass(jours: number): string {
-    return jours <= 15 ? 'bg-amber-500 text-black' : 'bg-amber-100 text-amber-800 border border-amber-300';
+    if (jours < 0) {
+      return 'bg-red-100 text-red-700 border border-red-300';
+    }
+    if (jours <= 15) {
+      return 'bg-orange-100 text-orange-700 border border-orange-300';
+    }
+    return 'bg-green-100 text-green-700 border border-green-300';
+  }
+
+  joursLabel(jours: number): string {
+    if (jours < 0) {
+      return `Expiré depuis ${Math.abs(jours)} j`;
+    }
+    return `${jours} j`;
   }
 
   get filteredRapports(): RapportGardien[] {
@@ -264,8 +277,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.activiteStats[1].value = res.total;
 
         const maintenant = new Date();
-        this.contratsExpirants = res.proprietes
-          .filter((p) => p.dateExpirationAbonnement && new Date(p.dateExpirationAbonnement) >= maintenant)
+        const echeances = res.proprietes
+          .filter((p) => !!p.dateExpirationAbonnement)
           .map((p) => {
             const dateExpiration = new Date(p.dateExpirationAbonnement as string);
             const joursRestants = Math.ceil((dateExpiration.getTime() - maintenant.getTime()) / (1000 * 60 * 60 * 24));
@@ -280,12 +293,23 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
               joursRestants
             };
           })
-          .sort((a, b) => a.joursRestants - b.joursRestants)
-          .slice(0, 8);
+          .sort((a, b) => a.joursRestants - b.joursRestants);
+
+        this.contratsExpirants = echeances.slice(0, 8);
+
+        // Nouvelle référence de tableau (et de chaque segment) : DonutChartComponent
+        // ne recalcule son rendu que dans ngOnChanges, qui ne se déclenche que sur
+        // un changement de référence de @Input(), pas sur une simple mutation.
+        this.contratsSegments = [
+          { label: 'En cours', value: echeances.filter((c) => c.joursRestants > 15).length, strokeColor: '#16a34a' },
+          { label: 'Arrive à expiration', value: echeances.filter((c) => c.joursRestants >= 0 && c.joursRestants <= 15).length, strokeColor: '#eab308' },
+          { label: 'Expiré', value: echeances.filter((c) => c.joursRestants < 0).length, strokeColor: '#dc2626' },
+        ];
       },
       error: () => {
         this.activiteStats[1].value = '—';
         this.contratsExpirants = [];
+        this.contratsSegments = this.contratsSegments.map((segment) => ({ ...segment, value: 0 }));
       }
     });
   }

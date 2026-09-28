@@ -23,7 +23,6 @@ import { ProprietairesComponent } from './pages/proprietaires/proprietaires.comp
 import { ProprietaireDetailComponent } from './pages/proprietaires/proprietaire-detail/proprietaire-detail.component';
 import { ProprietesComponent } from './pages/proprietes/proprietes.component';
 import { ProprieteDetailComponent } from './pages/proprietes/propriete-detail/propriete-detail.component';
-import { ContratsComponent } from './pages/contrats/contrats.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
@@ -47,7 +46,6 @@ import { AdministrateursComponent } from './pages/administrateurs/administrateur
     ProprietaireDetailComponent,
     ProprietesComponent,
     ProprieteDetailComponent,
-    ContratsComponent,
     IncidentsComponent,
     PaiementsComponent,
     ParametresComponent,

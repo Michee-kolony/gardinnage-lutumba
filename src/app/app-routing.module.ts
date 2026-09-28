@@ -11,7 +11,6 @@ import { ProprietairesComponent } from './pages/proprietaires/proprietaires.comp
 import { ProprietaireDetailComponent } from './pages/proprietaires/proprietaire-detail/proprietaire-detail.component';
 import { ProprietesComponent } from './pages/proprietes/proprietes.component';
 import { ProprieteDetailComponent } from './pages/proprietes/propriete-detail/propriete-detail.component';
-import { ContratsComponent } from './pages/contrats/contrats.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
@@ -35,7 +34,6 @@ const routes: Routes = [
       { path: 'proprietaires/:id', component: ProprietaireDetailComponent },
       { path: 'proprietes', component: ProprietesComponent },
       { path: 'proprietes/:id', component: ProprieteDetailComponent },
-      { path: 'contrats', component: ContratsComponent },
       { path: 'incidents', component: IncidentsComponent },
       { path: 'paiements', component: PaiementsComponent },
       { path: 'administrateurs', component: AdministrateursComponent },

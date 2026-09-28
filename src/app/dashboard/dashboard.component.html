@@ -105,9 +105,9 @@
       ></app-bar-chart>
 
       <app-donut-chart
-        title="Répartition des prestations"
-        subtitle="Par type de mission"
-        [segments]="prestationsSegments"
+        title="Analyse des contrats"
+        subtitle="Par statut d'abonnement"
+        [segments]="contratsSegments"
       ></app-donut-chart>
 
       <app-donut-chart
@@ -153,8 +153,8 @@
                 <td class="px-5 py-3 text-neutral-600">{{ contrat.maison }}</td>
                 <td class="px-5 py-3 text-neutral-600">{{ contrat.finContrat }}</td>
                 <td class="px-5 py-3 text-right">
-                  <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium" [ngClass]="joursBadgeClass(contrat.joursRestants)">
-                    {{ contrat.joursRestants }} j
+                  <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap" [ngClass]="joursBadgeClass(contrat.joursRestants)">
+                    {{ joursLabel(contrat.joursRestants) }}
                   </span>
                 </td>
               </tr>
@@ -180,8 +180,8 @@
               <p class="text-xs text-neutral-500 truncate">{{ contrat.maison }}</p>
               <p class="text-xs text-neutral-400 mt-0.5">Fin de contrat : {{ contrat.finContrat }}</p>
             </div>
-            <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium shrink-0" [ngClass]="joursBadgeClass(contrat.joursRestants)">
-              {{ contrat.joursRestants }} j
+            <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium shrink-0 whitespace-nowrap" [ngClass]="joursBadgeClass(contrat.joursRestants)">
+              {{ joursLabel(contrat.joursRestants) }}
             </span>
           </div>
         }
