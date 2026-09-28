@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } fr
 import * as L from 'leaflet';
 import { BarChartPoint } from './bar-chart/bar-chart.component';
 import { DonutSegment } from './donut-chart/donut-chart.component';
-import { GardiensService } from '../core/gardiens.service';
+import { Gardien, GardiensService, StatutGardien } from '../core/gardiens.service';
 
 interface StatDef {
   label: string;
@@ -20,17 +20,6 @@ interface ContratExpirant {
   maison: string;
   finContrat: string;
   joursRestants: number;
-}
-
-interface AgentActif {
-  nom: string;
-  matricule: string;
-  pseudo: string;
-  photoUrl: string;
-  zone: string;
-  telephone: string;
-  lat: number;
-  lng: number;
 }
 
 type PeriodeRapport = 'aujourdhui' | 'hier';
@@ -67,18 +56,11 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     { nom: 'Camille Bernard', photoUrl: 'https://i.pravatar.cc/150?img=48', message: "Ronde Croisette terminée. Un véhicule suspect stationné a été signalé aux autorités.", date: 'Hier, 21:15', periode: 'hier' },
   ];
 
-  // Coordonnées GPS réelles (lat, lng) des gardiens, positionnés sur les communes
-  // de Kinshasa affichées avec de vraies rues (tuiles CARTO Dark Matter).
-  agentsActifs: AgentActif[] = [
-    { nom: 'Karim Benali', matricule: 'GRD-2024-001', pseudo: 'Faucon', photoUrl: 'https://i.pravatar.cc/150?img=12', zone: 'Gombe', telephone: '+243 810 123 456', lat: -4.3005, lng: 15.3081 },
-    { nom: 'Julien Moreau', matricule: 'GRD-2024-002', pseudo: 'Loup', photoUrl: 'https://i.pravatar.cc/150?img=13', zone: 'Kintambo', telephone: '+243 820 234 567', lat: -4.3236, lng: 15.2747 },
-    { nom: 'Mehdi Cherif', matricule: 'GRD-2024-004', pseudo: 'Aigle', photoUrl: 'https://i.pravatar.cc/150?img=14', zone: 'Kinshasa (centre)', telephone: '+243 830 345 678', lat: -4.3372, lng: 15.3225 },
-    { nom: 'Alexandre Petit', matricule: 'GRD-2024-007', pseudo: 'Cobra', photoUrl: 'https://i.pravatar.cc/150?img=16', zone: 'Lemba', telephone: '+243 840 456 789', lat: -4.3906, lng: 15.3283 },
-    { nom: 'Camille Bernard', matricule: 'GRD-2024-008', pseudo: 'Tigre', photoUrl: 'https://i.pravatar.cc/150?img=48', zone: 'Ngaliema / Binza', telephone: '+243 850 567 890', lat: -4.3800, lng: 15.2450 },
-    { nom: 'Nicolas Faure', matricule: 'GRD-2024-011', pseudo: 'Requin', photoUrl: 'https://i.pravatar.cc/150?img=18', zone: 'Bandalungwa', telephone: '+243 860 678 901', lat: -4.3486, lng: 15.2967 },
-    { nom: 'Sofia Marchetti', matricule: 'GRD-2024-013', pseudo: 'Panthère', photoUrl: 'https://i.pravatar.cc/150?img=25', zone: 'Limete', telephone: '+243 870 789 012', lat: -4.3556, lng: 15.3550 },
-    { nom: 'Hugo Lemaire', matricule: 'GRD-2024-014', pseudo: 'Ours', photoUrl: 'https://i.pravatar.cc/150?img=33', zone: 'Ngaba', telephone: '+243 880 890 123', lat: -4.3808, lng: 15.3153 },
-  ];
+  // Gardiens réellement "en service" (chargés depuis le backend dans ngOnInit),
+  // utilisés à la fois pour la rangée d'avatars et les marqueurs de la carte.
+  gardiensEnService: Gardien[] = [];
+  private mapInitialized = false;
+  private markersLayer?: L.LayerGroup;
 
   gardiensStats: StatDef[] = [
     { label: 'Total gardiens', value: '—', hint: 'Effectif global', icon: 'shield', emphasis: 'dark', trend: 'neutral', trendValue: '' },
@@ -167,7 +149,38 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isRapportsModalOpen = false;
   }
 
+  // Sondage périodique : permet de détecter automatiquement, sans rechargement
+  // de page, qu'un gardien vient de se mettre en service (il apparaît alors
+  // dans la rangée d'avatars et sur la carte) ou qu'il s'est déconnecté /
+  // remis hors service (il en disparaît directement).
+  private pollTimer?: ReturnType<typeof setInterval>;
+  private static readonly POLL_INTERVAL_MS = 15000;
+  private firstLoadDone = false;
+
+  // Dernier statut connu de chaque gardien, pour détecter les transitions
+  // vers "en service" d'un sondage à l'autre et jouer un son uniquement pour
+  // ces nouvelles prises de service (pas au tout premier chargement).
+  private knownStatuts = new Map<string, StatutGardien>();
+  private audioContext?: AudioContext;
+
   ngOnInit(): void {
+    this.fetchGardiens();
+    this.pollTimer = setInterval(() => this.fetchGardiens(), DashboardComponent.POLL_INTERVAL_MS);
+  }
+
+  ngAfterViewInit(): void {
+    this.tryInitMap();
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+    }
+    this.map?.remove();
+    this.audioContext?.close();
+  }
+
+  private fetchGardiens(): void {
     this.gardiensService.list().subscribe({
       next: (res) => {
         const enService = res.gardiens.filter((g) => g.statut === 'en service').length;
@@ -181,25 +194,59 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gardiensStats[2].trendValue = res.total > 0 ? `${Math.round((masculins / res.total) * 100)}%` : '0%';
         this.gardiensStats[3].value = feminins;
         this.gardiensStats[3].trendValue = res.total > 0 ? `${Math.round((feminins / res.total) * 100)}%` : '0%';
+
+        // Remplace entièrement la liste à chaque sondage : un gardien qui n'est
+        // plus "en service" (déconnexion, fin de service) disparaît donc
+        // automatiquement de la rangée d'avatars et de la carte.
+        this.gardiensEnService = res.gardiens.filter((g) => g.statut === 'en service');
+
+        // Ne signale sonorement que les transitions détectées après le tout
+        // premier chargement, pas les gardiens déjà en service à l'arrivée
+        // sur le dashboard.
+        let nouveauxEnService = false;
+        res.gardiens.forEach((g) => {
+          const ancienStatut = this.knownStatuts.get(g._id);
+          if (this.firstLoadDone && ancienStatut && ancienStatut !== 'en service' && g.statut === 'en service') {
+            nouveauxEnService = true;
+          }
+          this.knownStatuts.set(g._id, g.statut);
+        });
+        if (nouveauxEnService) {
+          this.playServiceSound();
+        }
+
+        this.firstLoadDone = true;
+        this.tryInitMap();
+        this.renderMarkers();
       },
       error: () => {
-        this.gardiensStats[0].value = '—';
-        this.gardiensStats[1].value = 0;
-        this.gardiensStats[1].trendValue = '';
-        this.gardiensStats[2].value = 0;
-        this.gardiensStats[2].trendValue = '';
-        this.gardiensStats[3].value = 0;
-        this.gardiensStats[3].trendValue = '';
+        // Échec silencieux au-delà du tout premier chargement : on retentera
+        // au prochain cycle de sondage plutôt que d'effacer les données déjà
+        // affichées à l'écran pour un simple raté réseau ponctuel.
+        if (!this.firstLoadDone) {
+          this.gardiensStats[1].value = 0;
+          this.gardiensStats[1].trendValue = '';
+          this.gardiensStats[2].value = 0;
+          this.gardiensStats[2].trendValue = '';
+          this.gardiensStats[3].value = 0;
+          this.gardiensStats[3].trendValue = '';
+        }
+
+        // La carte reste utilisable (vide) même si le chargement échoue.
+        this.tryInitMap();
       }
     });
   }
 
-  ngAfterViewInit(): void {
+  // La vue (conteneur de la carte) et la réponse HTTP (gardiens en service)
+  // arrivent chacune de façon asynchrone, dans un ordre non garanti : on ne
+  // construit la carte qu'une fois que les deux sont disponibles.
+  private tryInitMap(): void {
+    if (this.mapInitialized || !this.mapContainer) {
+      return;
+    }
+    this.mapInitialized = true;
     this.initMap();
-  }
-
-  ngOnDestroy(): void {
-    this.map?.remove();
   }
 
   private initMap(): void {
@@ -230,12 +277,37 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     // crédit OpenStreetMap, requis par leur licence.
     this.map.attributionControl.setPrefix(false);
 
-    const markers: L.Marker[] = this.agentsActifs.map((agent) => {
+    this.markersLayer = L.layerGroup().addTo(this.map);
+    window.addEventListener('resize', () => this.map?.invalidateSize());
+
+    // Au cas où les données des gardiens étaient déjà arrivées avant que la
+    // carte n'existe (ou inversement), on dessine les marqueurs tout de suite.
+    this.renderMarkers();
+  }
+
+  // Reconstruit les marqueurs à partir de gardiensEnService. Appelée à chaque
+  // fois que les données changent, indépendamment de la création de la carte
+  // (les deux arrivent de façon asynchrone, dans un ordre non garanti).
+  private renderMarkers(): void {
+    if (!this.map || !this.markersLayer) {
+      return;
+    }
+
+    this.markersLayer.clearLayers();
+
+    // Seuls les gardiens en service ET ayant une position enregistrée peuvent
+    // être placés sur la carte (coordonnees.lat/lng sont nullable côté backend).
+    const gardiensLocalises = this.gardiensEnService.filter(
+      (g): g is Gardien & { coordonnees: { lat: number; lng: number } } =>
+        g.coordonnees.lat !== null && g.coordonnees.lng !== null
+    );
+
+    const markers: L.Marker[] = gardiensLocalises.map((gardien) => {
       const icon = L.divIcon({
         className: '',
         html: `
           <div style="position:relative;width:40px;height:40px;">
-            <img src="${agent.photoUrl}" alt="${agent.nom}"
+            <img src="${gardien.photoProfil}" alt="${gardien.nom}"
               style="width:40px;height:40px;border-radius:9999px;object-fit:cover;border:2px solid #ffffff;box-shadow:0 2px 6px rgba(0,0,0,0.5);" />
             <span style="position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-radius:9999px;background:#22c55e;border:2px solid #ffffff;"></span>
           </div>
@@ -244,16 +316,22 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         iconAnchor: [20, 20],
       });
 
-      return L.marker([agent.lat, agent.lng], { icon })
-        .addTo(this.map!)
-        .bindPopup(this.buildAgentPopup(agent), { minWidth: 220 })
-        .bindTooltip(agent.zone, {
+      return L.marker([gardien.coordonnees.lat, gardien.coordonnees.lng], { icon })
+        .addTo(this.markersLayer!)
+        .bindPopup(this.buildAgentPopup(gardien), { minWidth: 220 })
+        .bindTooltip(`${gardien.commune} — ${gardien.quartier}`, {
           permanent: true,
           direction: 'bottom',
           offset: [0, 4],
           className: 'zone-label',
         });
     });
+
+    if (markers.length === 0) {
+      // Aucun gardien localisé pour le moment : on garde la vue par défaut
+      // (centrée sur Kinshasa) plutôt que de cadrer sur des bornes vides.
+      return;
+    }
 
     const bounds = L.featureGroup(markers).getBounds();
 
@@ -275,27 +353,57 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     requestAnimationFrame(fitWhenReady);
-    window.addEventListener('resize', () => this.map?.invalidateSize());
   }
 
-  private buildAgentPopup(agent: AgentActif): string {
+  // Bip natif à deux tons généré via l'API Web Audio (aucun fichier son requis),
+  // joué lorsqu'un gardien vient de se mettre en service.
+  private playServiceSound(): void {
+    try {
+      if (!this.audioContext) {
+        this.audioContext = new AudioContext();
+      }
+      const ctx = this.audioContext;
+      const now = ctx.currentTime;
+
+      [880, 1175].forEach((frequence, index) => {
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const debut = now + index * 0.14;
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(frequence, debut);
+
+        gain.gain.setValueAtTime(0, debut);
+        gain.gain.linearRampToValueAtTime(0.2, debut + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, debut + 0.18);
+
+        oscillator.connect(gain).connect(ctx.destination);
+        oscillator.start(debut);
+        oscillator.stop(debut + 0.2);
+      });
+    } catch {
+      // Lecture audio indisponible (permissions navigateur, etc.) : on
+      // n'interrompt pas l'affichage pour autant.
+    }
+  }
+
+  private buildAgentPopup(gardien: Gardien): string {
     return `
       <div style="font-family:system-ui,-apple-system,sans-serif;min-width:200px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-          <img src="${agent.photoUrl}" alt="${agent.nom}"
+          <img src="${gardien.photoProfil}" alt="${gardien.nom}"
             style="width:44px;height:44px;border-radius:9999px;object-fit:cover;border:2px solid #e5e5e5;flex-shrink:0;" />
           <div>
-            <p style="margin:0;font-weight:600;font-size:13px;color:#000;">${agent.nom}</p>
+            <p style="margin:0;font-weight:600;font-size:13px;color:#000;">${gardien.nom} ${gardien.postnom}</p>
             <span style="display:inline-block;margin-top:3px;font-size:10px;font-weight:600;color:#15803d;background:#dcfce7;padding:2px 8px;border-radius:9999px;">
               En service
             </span>
           </div>
         </div>
         <div style="font-size:12px;color:#404040;line-height:1.7;border-top:1px solid #e5e5e5;padding-top:8px;">
-          <div><strong style="color:#000;">Matricule :</strong> ${agent.matricule}</div>
-          <div><strong style="color:#000;">Pseudo :</strong> ${agent.pseudo}</div>
-          <div><strong style="color:#000;">Zone :</strong> ${agent.zone}</div>
-          <div><strong style="color:#000;">Téléphone :</strong> ${agent.telephone}</div>
+          <div><strong style="color:#000;">Matricule :</strong> ${gardien.matricule}</div>
+          <div><strong style="color:#000;">Zone :</strong> ${gardien.commune} — ${gardien.quartier}</div>
+          <div><strong style="color:#000;">Téléphone :</strong> ${gardien.telephonePrincipal}</div>
         </div>
       </div>
     `;

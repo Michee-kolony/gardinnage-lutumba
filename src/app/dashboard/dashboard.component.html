@@ -22,21 +22,25 @@
   <section>
     <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Gardiens actifs maintenant</h2>
     <div class="bg-white rounded-2xl border border-neutral-200 p-4">
-      <div class="flex gap-4 overflow-x-auto hide-scrollbar">
-        @for (agent of agentsActifs; track agent.nom) {
-          <div class="flex flex-col items-center gap-1.5 shrink-0 w-16">
-            <div class="relative">
-              <img
-                [src]="agent.photoUrl"
-                [alt]="agent.nom"
-                class="h-14 w-14 rounded-full object-cover border-2 border-white shadow ring-2 ring-green-500"
-              />
-              <span class="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-green-500 border-2 border-white"></span>
+      @if (gardiensEnService.length > 0) {
+        <div class="flex gap-4 overflow-x-auto hide-scrollbar">
+          @for (gardien of gardiensEnService; track gardien._id) {
+            <div class="flex flex-col items-center gap-1.5 shrink-0 w-16" [title]="gardien.nom + ' ' + gardien.postnom">
+              <div class="relative">
+                <img
+                  [src]="gardien.photoProfil"
+                  [alt]="gardien.nom + ' ' + gardien.postnom"
+                  class="h-14 w-14 rounded-full object-cover border-2 border-white shadow ring-2 ring-green-500"
+                />
+                <span class="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-green-500 border-2 border-white"></span>
+              </div>
+              <span class="text-[11px] text-neutral-600 text-center truncate w-full">{{ gardien.prenom }}</span>
             </div>
-            <span class="text-[11px] text-neutral-600 text-center truncate w-full">{{ agent.nom.split(' ')[0] }}</span>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      } @else {
+        <p class="text-sm text-neutral-500 text-center py-4">Aucun gardien en service actuellement.</p>
+      }
     </div>
   </section>
 
