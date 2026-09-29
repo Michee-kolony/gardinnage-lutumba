@@ -4,6 +4,7 @@ import * as L from 'leaflet';
 import { BarChartPoint } from './bar-chart/bar-chart.component';
 import { DonutSegment } from './donut-chart/donut-chart.component';
 import { Gardien, GardiensService, StatutGardien } from '../core/gardiens.service';
+import { DevisePaiement, Paiement, PaiementsService } from '../core/paiements.service';
 import { ProprietairesService } from '../core/proprietaires.service';
 import { ProprietesService } from '../core/proprietes.service';
 
@@ -47,6 +48,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private gardiensService: GardiensService,
+    private paiementsService: PaiementsService,
     private proprietairesService: ProprietairesService,
     private proprietesService: ProprietesService,
     private router: Router
@@ -86,9 +88,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   financeStats: StatDef[] = [
-    { label: 'Incidents signalés', value: 9, hint: 'Ce mois-ci', icon: 'alert', emphasis: 'default', trend: 'down', trendValue: '-2' },
-    { label: 'Paiements reçus', value: '18 400 €', hint: 'Ce mois-ci', icon: 'cash', emphasis: 'dark', trend: 'up', trendValue: '+12%' },
-    { label: 'Paiements en attente', value: '3 250 €', hint: '7 factures', icon: 'card', emphasis: 'default', trend: 'neutral', trendValue: '' },
+    { label: 'Incidents signalés', value: '—', hint: 'Données indisponibles', icon: 'alert', emphasis: 'default', trend: 'neutral', trendValue: '' },
+    { label: 'Paiements reçus · CDF', value: '—', hint: 'Ce mois-ci', icon: 'cash', emphasis: 'dark', trend: 'neutral', trendValue: '' },
+    { label: 'Paiements reçus · USD', value: '—', hint: 'Ce mois-ci', icon: 'cash', emphasis: 'default', trend: 'neutral', trendValue: '' },
   ];
 
   presenceData: BarChartPoint[] = [
@@ -183,6 +185,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.fetchGardiens();
     this.pollTimer = setInterval(() => this.fetchGardiens(), DashboardComponent.POLL_INTERVAL_MS);
+    this.fetchFinanceStats();
     this.fetchProprietairesCount();
     this.fetchProprietesCount();
   }
@@ -266,6 +269,38 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.activiteStats[0].value = '—';
       }
     });
+  }
+
+  private fetchFinanceStats(): void {
+    this.paiementsService.list().subscribe({
+      next: (response) => {
+        const maintenant = new Date();
+        const paiementsDuMois = response.paiements.filter((paiement) => {
+          const date = new Date(paiement.createdAt);
+          return date.getFullYear() === maintenant.getFullYear() && date.getMonth() === maintenant.getMonth();
+        });
+
+        const totalParDevise = (devise: DevisePaiement) => paiementsDuMois
+          .filter((paiement) => paiement.devise === devise)
+          .reduce((total, paiement) => total + paiement.montant, 0);
+
+        this.financeStats[1].value = this.formatDashboardAmount(totalParDevise('CDF'), 'CDF');
+        this.financeStats[1].hint = `${paiementsDuMois.filter((paiement) => paiement.devise === 'CDF').length} paiement(s) ce mois-ci`;
+        this.financeStats[2].value = this.formatDashboardAmount(totalParDevise('USD'), 'USD');
+        this.financeStats[2].hint = `${paiementsDuMois.filter((paiement) => paiement.devise === 'USD').length} paiement(s) ce mois-ci`;
+      },
+      error: () => {
+        this.financeStats[1].value = '—';
+        this.financeStats[1].hint = 'Données indisponibles';
+        this.financeStats[2].value = '—';
+        this.financeStats[2].hint = 'Données indisponibles';
+      }
+    });
+  }
+
+  private formatDashboardAmount(amount: number, devise: DevisePaiement): string {
+    const valeur = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(amount);
+    return devise === 'USD' ? `$ ${valeur}` : `${valeur} CDF`;
   }
 
   // Charge les propriétés une seule fois pour alimenter à la fois la stat

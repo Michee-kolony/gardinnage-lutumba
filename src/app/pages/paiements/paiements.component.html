@@ -1,11 +1,242 @@
-<div class="bg-white rounded-2xl border border-neutral-200 p-10 flex flex-col items-center justify-center text-center min-h-[60vh]">
-  <div class="h-14 w-14 rounded-xl bg-black text-white flex items-center justify-center mb-4">
-    <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7zM3 10h18M7 15h4" />
-    </svg>
+<main class="space-y-6 pb-8 text-neutral-900">
+  <header class="flex flex-col gap-4 border-b border-neutral-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Gestion financière</p>
+      <h1 class="font-serif text-3xl font-medium leading-tight text-black">Paiements</h1>
+      <p class="mt-2 text-sm text-neutral-500">Suivez les encaissements et éditez vos reçus.</p>
+    </div>
+    <button type="button" (click)="openModal()" [disabled]="proprietes.length === 0"
+      class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-neutral-800 active:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" d="M12 5v14M5 12h14" /></svg>
+      Enregistrer un paiement
+    </button>
+  </header>
+
+  <section class="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Résumé des paiements">
+    <article class="rounded-lg border border-neutral-200 border-l-[3px] border-l-black bg-gradient-to-br from-neutral-100 to-white p-4 shadow-sm">
+      <div class="mb-3 flex items-center justify-between gap-2"><span class="text-xs font-semibold text-neutral-600">Encaissé en CDF</span><span class="grid h-8 w-8 place-items-center rounded-full bg-black text-[10px] font-bold text-white">FC</span></div>
+      <strong class="block truncate text-xl font-bold tabular-nums text-black sm:text-2xl">{{ formatAmount(totalCDF, 'CDF') }}</strong>
+      <span class="mt-1.5 block text-[11px] text-neutral-500">Total des paiements</span>
+    </article>
+    <article class="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+      <div class="mb-3 flex items-center justify-between gap-2"><span class="text-xs font-semibold text-neutral-600">Encaissé en USD</span><span class="grid h-8 w-8 place-items-center rounded-full bg-neutral-100 text-sm font-bold text-neutral-700">$</span></div>
+      <strong class="block truncate text-xl font-bold tabular-nums text-black sm:text-2xl">{{ formatAmount(totalUSD, 'USD') }}</strong>
+      <span class="mt-1.5 block text-[11px] text-neutral-500">Total des paiements</span>
+    </article>
+    <article class="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+      <div class="mb-3 flex items-center justify-between gap-2"><span class="text-xs font-semibold text-neutral-600">Transactions</span><span class="grid h-8 w-8 place-items-center rounded-full bg-neutral-100 text-sm font-bold text-neutral-700">#</span></div>
+      <strong class="block truncate text-xl font-bold tabular-nums text-black sm:text-2xl">{{ nombrePaiements }}</strong>
+      <span class="mt-1.5 block text-[11px] text-neutral-500">Reçus générés</span>
+    </article>
+    <article class="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+      <div class="mb-3 flex items-center justify-between gap-2"><span class="text-xs font-semibold text-neutral-600">Propriétés</span><span class="grid h-8 w-8 place-items-center rounded-full bg-neutral-100 text-neutral-700"><svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-[1.7]"><path stroke-linecap="round" stroke-linejoin="round" d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-7h6v7" /></svg></span></div>
+      <strong class="block truncate text-xl font-bold tabular-nums text-black sm:text-2xl">{{ proprietesCouvertes }}</strong>
+      <span class="mt-1.5 block text-[11px] text-neutral-500">Avec un paiement enregistré</span>
+    </article>
+  </section>
+
+  <section class="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm" aria-label="Historique des paiements">
+    <div class="flex flex-col gap-3 border-b border-neutral-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <div>
+        <h2 class="font-serif text-xl font-medium text-black">Historique</h2>
+        <p class="mt-1 text-xs text-neutral-500">{{ filteredPaiements.length }} transaction(s)</p>
+      </div>
+      <label class="flex h-10 w-full items-center gap-2 rounded-lg border border-neutral-300 px-3 text-neutral-400 transition focus-within:border-black focus-within:ring-2 focus-within:ring-black/10 sm:max-w-xs">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 shrink-0 fill-none stroke-current stroke-2"><circle cx="10.8" cy="10.8" r="6.8" /><path stroke-linecap="round" d="m16 16 5 5" /></svg>
+        <input [(ngModel)]="searchTerm" type="search" placeholder="Rechercher un paiement" aria-label="Rechercher un paiement" class="w-full min-w-0 border-0 bg-transparent text-sm text-black outline-none placeholder:text-neutral-400" />
+      </label>
+    </div>
+
+    @if (loading) {
+      <div class="grid min-h-56 place-items-center gap-3 p-8 text-sm text-neutral-500"><span class="h-6 w-6 animate-spin rounded-full border-2 border-neutral-200 border-t-black"></span><p>Chargement des paiements...</p></div>
+    } @else if (loadError) {
+      <div class="flex min-h-56 flex-col items-center justify-center gap-3 p-8 text-center">
+        <p class="text-sm text-red-700">{{ loadError }}</p>
+        <button type="button" class="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800" (click)="fetchPaiements()">Réessayer</button>
+      </div>
+    } @else if (filteredPaiements.length === 0) {
+      <div class="flex min-h-64 flex-col items-center justify-center px-6 py-12 text-center">
+        <span class="mb-3 grid h-12 w-12 place-items-center rounded-full bg-neutral-100 font-serif text-2xl text-neutral-800">₣</span>
+        <h3 class="font-serif text-lg font-medium text-black">{{ searchTerm ? 'Aucun résultat' : 'Aucun paiement enregistré' }}</h3>
+        <p class="mt-1 max-w-sm text-sm text-neutral-500">{{ searchTerm ? 'Modifiez votre recherche.' : 'Les transactions enregistrées apparaîtront ici.' }}</p>
+        @if (!searchTerm) {
+          <button type="button" class="mt-4 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800" (click)="openModal()">Enregistrer un paiement</button>
+        }
+      </div>
+    } @else {
+      <div class="hidden grid-cols-[1.2fr_1.1fr_1fr_1fr_0.9fr_auto_auto] gap-4 bg-neutral-50 px-5 py-3 text-[10px] font-bold uppercase text-neutral-500 lg:grid">
+        <span>Référence / date</span><span>Propriété</span><span>Propriétaire</span><span>Période couverte</span><span>Mode</span><span>Montant</span><span class="sr-only">Actions</span>
+      </div>
+      <div class="divide-y divide-neutral-100">
+        @for (paiement of filteredPaiements; track paiement._id) {
+          <article class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2.5 px-4 py-4 transition-colors hover:bg-neutral-50/70 sm:px-5 lg:grid-cols-[1.2fr_1.1fr_1fr_1fr_0.9fr_auto_auto] lg:items-center lg:gap-4">
+            <div class="col-start-1 row-start-1 min-w-0 lg:col-auto lg:row-auto">
+              <span class="block truncate text-xs font-semibold text-neutral-800">{{ receiptReference(paiement) }}</span>
+              <span class="mt-1 block text-[11px] text-neutral-500">{{ formatDate(paiement.createdAt) }}</span>
+            </div>
+            <div class="col-start-1 row-start-2 min-w-0 lg:col-auto lg:row-auto">
+              <span class="block truncate text-sm font-semibold text-black">{{ propertyName(paiement) }}</span>
+              <span class="mt-0.5 block truncate text-[11px] text-neutral-500">{{ propertyOf(paiement)?.commune || 'Adresse indisponible' }}</span>
+            </div>
+            <span class="col-start-1 row-start-3 truncate text-xs text-neutral-700 lg:col-auto lg:row-auto">{{ ownerName(paiement.proprietaire) }}</span>
+            <span class="col-start-1 row-start-4 truncate text-xs text-neutral-600 lg:col-auto lg:row-auto">{{ periodLabel(paiement) }}</span>
+            <span class="col-start-1 row-start-5 truncate text-xs text-neutral-600 lg:col-auto lg:row-auto">{{ modeLabel(paiement.modePaiement) }}</span>
+            <span class="col-start-2 row-start-1 whitespace-nowrap text-right text-xs font-bold tabular-nums text-black lg:col-auto lg:row-auto">{{ formatAmount(paiement.montant, paiement.devise) }}</span>
+            <button type="button" (click)="openReceiptPreview(paiement)" [attr.aria-label]="'Prévisualiser le reçu de ' + propertyName(paiement)" title="Prévisualiser le reçu"
+              class="col-start-2 row-span-4 row-start-2 inline-flex h-9 w-9 self-center items-center justify-center rounded-lg border border-neutral-200 bg-white text-black transition hover:border-black hover:bg-black hover:text-white lg:col-auto lg:row-auto">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-[1.8]"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+            </button>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>
+
+@if (isModalOpen) {
+  <div class="fixed inset-0 z-50 grid items-end bg-black/55 p-0 sm:items-center sm:p-5 animate-[fade-in_0.15s_ease-out]" (click)="closeModal()">
+    <section class="mx-auto max-h-[94vh] w-full max-w-2xl overflow-y-auto rounded-t-xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-xl animate-[modal-pop_0.2s_ease-out]" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" (click)="$event.stopPropagation()">
+      <header class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-neutral-200 bg-white px-5 py-5 sm:px-6">
+        <div>
+          <p class="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Nouvelle transaction</p>
+          <h2 id="payment-modal-title" class="font-serif text-xl font-medium text-black sm:text-2xl">Enregistrer un paiement</h2>
+          <p class="mt-1.5 max-w-lg text-xs leading-relaxed text-neutral-500">Le propriétaire est associé et la référence du reçu est générée automatiquement.</p>
+        </div>
+        <button type="button" (click)="closeModal()" aria-label="Fermer" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-neutral-100 text-neutral-600 transition hover:bg-neutral-200 hover:text-black">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
+      </header>
+
+      <form (ngSubmit)="submitPaiement()" #paymentForm="ngForm" class="px-5 pt-5 sm:px-6">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <label class="grid min-w-0 gap-1.5 sm:col-span-2">
+            <span class="text-xs font-semibold text-neutral-700">Propriété <b class="text-red-700">*</b></span>
+            <select name="propriete" [(ngModel)]="formModel.propriete" required class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
+              <option value="" disabled>Sélectionner une propriété</option>
+              @for (propriete of proprietes; track propriete._id) {
+                <option [value]="propriete._id">{{ propriete.nomReference }} · {{ propriete.proprietaire ? propriete.proprietaire.prenom + ' ' + propriete.proprietaire.nom : 'Sans propriétaire' }} · {{ propriete.commune }}</option>
+              }
+            </select>
+          </label>
+          <label class="grid min-w-0 gap-1.5">
+            <span class="text-xs font-semibold text-neutral-700">Montant <b class="text-red-700">*</b></span>
+            <input name="montant" type="number" min="0.01" step="0.01" [(ngModel)]="formModel.montant" required placeholder="0,00" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black focus:ring-2 focus:ring-black/10" />
+          </label>
+          <label class="grid min-w-0 gap-1.5">
+            <span class="text-xs font-semibold text-neutral-700">Devise <span class="font-normal text-neutral-400">(facultatif)</span></span>
+            <select name="devise" [(ngModel)]="formModel.devise" class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
+              <option value="CDF">Franc congolais (CDF)</option><option value="USD">Dollar américain (USD)</option>
+            </select>
+          </label>
+          <label class="grid min-w-0 gap-1.5">
+            <span class="text-xs font-semibold text-neutral-700">Mode de paiement <b class="text-red-700">*</b></span>
+            <select name="modePaiement" [(ngModel)]="formModel.modePaiement" required class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
+              <option value="especes">Espèces</option><option value="mobile_money">Mobile Money</option><option value="virement">Virement</option><option value="carte">Carte bancaire</option><option value="cheque">Chèque</option><option value="autre">Autre</option>
+            </select>
+          </label>
+          <div class="hidden sm:block"></div>
+          <label class="grid min-w-0 gap-1.5">
+            <span class="text-xs font-semibold text-neutral-700">Début de période <span class="font-normal text-neutral-400">(facultatif)</span></span>
+            <input name="periodeDebut" type="date" [(ngModel)]="formModel.periodeDebut" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10" />
+          </label>
+          <label class="grid min-w-0 gap-1.5">
+            <span class="text-xs font-semibold text-neutral-700">Fin de période <span class="font-normal text-neutral-400">(facultatif)</span></span>
+            <input name="periodeFin" type="date" [(ngModel)]="formModel.periodeFin" [min]="formModel.periodeDebut || ''" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10" />
+          </label>
+          <label class="grid min-w-0 gap-1.5 sm:col-span-2">
+            <span class="text-xs font-semibold text-neutral-700">Note <span class="font-normal text-neutral-400">(facultatif)</span></span>
+            <textarea name="description" [(ngModel)]="formModel.description" rows="3" placeholder="Information complémentaire" class="w-full resize-y rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black focus:ring-2 focus:ring-black/10"></textarea>
+          </label>
+        </div>
+
+        @if (formError) { <p class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">{{ formError }}</p> }
+        <footer class="-mx-5 mt-6 flex flex-col-reverse gap-2 border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
+          <button type="button" (click)="closeModal()" [disabled]="submitting" class="min-h-11 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">Annuler</button>
+          <button type="submit" [disabled]="paymentForm.invalid || submitting" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-black px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 active:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (submitting) { <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span> Enregistrement... } @else { Enregistrer le paiement }
+          </button>
+        </footer>
+      </form>
+    </section>
   </div>
-  <h2 class="text-lg font-semibold text-black">Paiements</h2>
-  <p class="text-sm text-neutral-500 mt-2 max-w-md">
-    Le suivi des paiements reçus et en attente sera disponible ici prochainement.
-  </p>
-</div>
+}
+
+@if (receiptPreview; as paiement) {
+  <div class="fixed inset-0 z-[70] grid items-end bg-black/60 p-0 sm:items-center sm:p-5" (click)="closeReceiptPreview()">
+    <section class="mx-auto flex max-h-[96vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-xl bg-white shadow-2xl sm:max-h-[92vh] sm:rounded-xl" role="dialog" aria-modal="true" aria-labelledby="receipt-preview-title" (click)="$event.stopPropagation()">
+      <header class="flex shrink-0 items-center justify-between gap-4 border-b border-neutral-200 px-4 py-3.5 sm:px-6">
+        <div>
+          <h2 id="receipt-preview-title" class="text-sm font-semibold text-black">Aperçu du reçu</h2>
+          <p class="mt-0.5 text-xs text-neutral-500">Vérifiez les informations avant de télécharger le PDF.</p>
+        </div>
+        <button type="button" (click)="closeReceiptPreview()" aria-label="Fermer l’aperçu" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-neutral-500 transition hover:bg-neutral-100 hover:text-black">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
+      </header>
+
+      <div class="overflow-y-auto bg-neutral-100 p-3 sm:p-7">
+        <article class="mx-auto w-full max-w-[620px] overflow-hidden bg-white shadow-lg ring-1 ring-black/5">
+          <header class="relative overflow-hidden bg-black px-6 py-7 text-white sm:px-9 sm:py-8">
+            <div class="absolute inset-y-0 left-0 w-1 bg-[#d4a94a]"></div>
+            <div class="flex items-center gap-3.5 sm:gap-4">
+              <div class="grid h-14 w-14 shrink-0 place-items-center rounded-md bg-white p-1.5 sm:h-16 sm:w-16">
+                <img src="/images/logo.png" alt="Logo Gardinnage" class="max-h-full max-w-full object-contain" />
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] font-bold tracking-[0.14em] text-neutral-200 sm:text-xs">GARDINNAGE</p>
+                <p class="mt-1 text-[9px] uppercase tracking-wide text-neutral-400 sm:text-[10px]">Gestion et sécurité immobilière</p>
+                <h3 class="mt-3 font-serif text-xl font-medium sm:text-2xl">Reçu de paiement</h3>
+              </div>
+            </div>
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-3 text-[10px] sm:text-xs">
+              <span class="font-medium text-neutral-300">N° {{ receiptReference(paiement) }}</span>
+              <span class="rounded-full border border-[#d4a94a]/50 px-2.5 py-1 font-semibold uppercase tracking-wide text-[#f2cd87]">Paiement enregistré</span>
+            </div>
+          </header>
+
+          <div class="px-5 py-6 sm:px-9 sm:py-8">
+            <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-500">Montant enregistré</p>
+            <div class="mt-2 rounded-md border border-neutral-200 bg-neutral-50 px-4 py-4 sm:px-5 sm:py-5">
+              <strong class="block break-words font-serif text-2xl font-semibold text-black sm:text-3xl">{{ formatAmount(paiement.montant, paiement.devise) }}</strong>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 gap-5 border-b border-neutral-200 pb-5 sm:grid-cols-2 sm:gap-7">
+              <div class="min-w-0">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Payé par</p>
+                <p class="mt-2 break-words text-sm font-semibold text-neutral-900">{{ ownerName(paiement.proprietaire) }}</p>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Propriété concernée</p>
+                <p class="mt-2 break-words text-sm font-semibold text-neutral-900">{{ propertyName(paiement) }}</p>
+                <p class="mt-1 break-words text-xs text-neutral-500">{{ propertyOf(paiement)?.commune }}, {{ propertyOf(paiement)?.quartier }}</p>
+              </div>
+            </div>
+
+            <dl class="divide-y divide-neutral-100">
+              <div class="flex items-start justify-between gap-4 py-3"><dt class="text-xs text-neutral-500">Date d’enregistrement</dt><dd class="text-right text-xs font-semibold text-neutral-800">{{ formatDate(paiement.createdAt) }}</dd></div>
+              <div class="flex items-start justify-between gap-4 py-3"><dt class="text-xs text-neutral-500">Mode de paiement</dt><dd class="text-right text-xs font-semibold text-neutral-800">{{ modeLabel(paiement.modePaiement) }}</dd></div>
+              <div class="flex items-start justify-between gap-4 py-3"><dt class="text-xs text-neutral-500">Référence de transaction</dt><dd class="max-w-[65%] break-all text-right text-xs font-semibold text-neutral-800">{{ receiptReference(paiement) }}</dd></div>
+              <div class="flex items-start justify-between gap-4 py-3"><dt class="text-xs text-neutral-500">Période couverte</dt><dd class="text-right text-xs font-semibold text-neutral-800">{{ periodLabel(paiement) }}</dd></div>
+              @if (paiement.description) {
+                <div class="flex items-start justify-between gap-4 py-3"><dt class="text-xs text-neutral-500">Note</dt><dd class="max-w-[65%] whitespace-pre-wrap text-right text-xs font-semibold text-neutral-800">{{ paiement.description }}</dd></div>
+              }
+            </dl>
+          </div>
+
+          <footer class="flex items-center justify-between gap-3 bg-black px-5 py-4 text-[10px] text-neutral-300 sm:px-9">
+            <span>Merci pour votre confiance.</span>
+            <span class="text-right">Émis le {{ formatDate(currentDateIso) }}</span>
+          </footer>
+        </article>
+      </div>
+
+      <footer class="flex shrink-0 flex-col-reverse gap-2 border-t border-neutral-200 bg-white px-4 py-3.5 sm:flex-row sm:justify-end sm:px-6">
+        <button type="button" (click)="closeReceiptPreview()" class="min-h-10 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100">Fermer</button>
+        <button type="button" (click)="generateReceipt(paiement)" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white transition hover:bg-neutral-800 active:bg-neutral-900">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-[1.8]"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3" /></svg>
+          Télécharger le PDF
+        </button>
+      </footer>
+    </section>
+  </div>
+}

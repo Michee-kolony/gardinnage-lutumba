@@ -1,11 +1,100 @@
-<div class="bg-white rounded-2xl border border-neutral-200 p-10 flex flex-col items-center justify-center text-center min-h-[60vh]">
-  <div class="h-14 w-14 rounded-xl bg-black text-white flex items-center justify-center mb-4">
-    <svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.3A1.5 1.5 0 0 0 4 19.5h16a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z" />
-    </svg>
-  </div>
-  <h2 class="text-lg font-semibold text-black">Incidents</h2>
-  <p class="text-sm text-neutral-500 mt-2 max-w-md">
-    Le suivi détaillé des incidents signalés sera disponible ici prochainement.
-  </p>
-</div>
+<main class="space-y-6 pb-8 text-neutral-900">
+  <header class="flex flex-col gap-4 border-b border-neutral-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Surveillance terrain</p>
+      <h1 class="font-serif text-3xl font-medium leading-tight text-black">Incidents</h1>
+      <p class="mt-2 text-sm text-neutral-500">Historique des signalements transmis par les gardiens.</p>
+    </div>
+    <button type="button" (click)="resetFilters()" [disabled]="!searchTerm && urgenceFilter === 'tous'" aria-label="Réinitialiser les filtres" title="Réinitialiser les filtres"
+      class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-3.5 text-sm font-medium text-black transition hover:border-black hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M7 12h10m-7 5h4" /></svg>
+      Effacer les filtres
+    </button>
+  </header>
+
+  <section class="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Résumé des incidents">
+    <article class="rounded-lg border border-neutral-200 border-l-[3px] border-l-black bg-white p-4 shadow-sm">
+      <p class="text-xs font-semibold text-neutral-500">Total signalé</p>
+      <strong class="mt-2 block text-2xl font-bold tabular-nums text-black">{{ incidents.length }}</strong>
+      <p class="mt-1 text-[11px] text-neutral-500">Tous les incidents reçus</p>
+    </article>
+    <article class="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+      <p class="text-xs font-semibold text-neutral-500">Aujourd’hui</p>
+      <strong class="mt-2 block text-2xl font-bold tabular-nums text-black">{{ incidentsAujourdhui }}</strong>
+      <p class="mt-1 text-[11px] text-neutral-500">Signalements du jour</p>
+    </article>
+    <article class="col-span-2 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm sm:col-span-1">
+      <p class="text-xs font-semibold text-neutral-500">Urgence critique</p>
+      <strong class="mt-2 block text-2xl font-bold tabular-nums text-red-700">{{ incidentsCritiques }}</strong>
+      <p class="mt-1 text-[11px] text-neutral-500">À traiter en priorité</p>
+    </article>
+  </section>
+
+  <section class="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm" aria-label="Historique complet des incidents">
+    <div class="flex flex-col gap-3 border-b border-neutral-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <div>
+        <h2 class="font-serif text-xl font-medium text-black">Tous les signalements</h2>
+        <p class="mt-1 text-xs text-neutral-500">{{ filteredIncidents.length }} résultat(s) · du plus récent au plus ancien</p>
+      </div>
+      <div class="flex flex-col gap-2 sm:flex-row">
+        <label class="flex h-10 items-center gap-2 rounded-lg border border-neutral-300 px-3 text-neutral-400 transition focus-within:border-black focus-within:ring-2 focus-within:ring-black/10 sm:w-64">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 shrink-0 fill-none stroke-current stroke-2"><circle cx="10.8" cy="10.8" r="6.8" /><path stroke-linecap="round" d="m16 16 5 5" /></svg>
+          <input [(ngModel)]="searchTerm" type="search" placeholder="Gardien, type, lieu..." aria-label="Rechercher dans les incidents" class="w-full min-w-0 border-0 bg-transparent text-sm text-black outline-none placeholder:text-neutral-400" />
+        </label>
+        <select [(ngModel)]="urgenceFilter" aria-label="Filtrer par urgence" class="h-10 rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black focus:ring-2 focus:ring-black/10">
+          <option value="tous">Toutes urgences</option><option value="critique">Critique</option><option value="haute">Haute</option><option value="moyenne">Moyenne</option><option value="faible">Faible</option>
+        </select>
+      </div>
+    </div>
+
+    @if (filteredIncidents.length === 0) {
+      <div class="flex min-h-64 flex-col items-center justify-center px-6 py-12 text-center">
+        <span class="mb-3 grid h-12 w-12 place-items-center rounded-full bg-neutral-100 text-neutral-800"><svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 fill-none stroke-current stroke-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.3A1.5 1.5 0 0 1 4 19.5h16a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z" /></svg></span>
+        <h3 class="font-serif text-lg font-medium text-black">{{ searchTerm || urgenceFilter !== 'tous' ? 'Aucun résultat' : 'Aucun incident signalé' }}</h3>
+        <p class="mt-1 text-sm text-neutral-500">{{ searchTerm || urgenceFilter !== 'tous' ? 'Modifiez la recherche ou le niveau d’urgence.' : 'Les signalements envoyés par les gardiens apparaîtront ici.' }}</p>
+      </div>
+    } @else {
+      <div class="divide-y divide-neutral-100">
+        @for (incident of filteredIncidents; track incident._id) {
+          <article class="grid gap-4 border-l-[3px] border-l-neutral-300 p-4 sm:p-5" [ngClass]="{'border-l-red-600': incident.urgence === 'critique', 'border-l-orange-500': incident.urgence === 'haute', 'border-l-amber-400': incident.urgence === 'moyenne'}">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-sm font-semibold text-black">{{ incident.type }}</h3>
+                  <span class="rounded-full border px-2.5 py-1 text-[10px] font-semibold" [ngClass]="urgenceClass(incident.urgence)">{{ urgenceLabel(incident.urgence) }}</span>
+                </div>
+                <p class="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-700">{{ incident.description }}</p>
+              </div>
+              <time class="shrink-0 text-xs text-neutral-500">{{ formatDate(incident.createdAt) }}</time>
+            </div>
+
+            <div class="grid gap-3 text-xs text-neutral-600 sm:grid-cols-2 lg:grid-cols-3">
+              <div class="flex min-w-0 items-center gap-2">
+                @if (gardienPhoto(incident.gardien); as photo) {
+                  <img [src]="photo" [alt]="gardienName(incident.gardien)" class="h-8 w-8 shrink-0 rounded-full border border-neutral-200 object-cover" />
+                } @else {
+                  <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-neutral-100 text-[10px] font-bold text-neutral-600">{{ gardienName(incident.gardien).slice(0, 1) }}</span>
+                }
+                <span class="min-w-0"><span class="block truncate font-semibold text-neutral-800">{{ gardienName(incident.gardien) }}</span><span class="block text-[10px] text-neutral-500">{{ gardienMatricule(incident.gardien) }}</span></span>
+              </div>
+              <div class="min-w-0"><span class="block text-[10px] font-semibold uppercase text-neutral-400">Propriété</span><span class="mt-0.5 block truncate text-neutral-700">{{ incident.propriete || 'Non précisée' }}</span></div>
+              <div class="min-w-0"><span class="block text-[10px] font-semibold uppercase text-neutral-400">Adresse</span><span class="mt-0.5 block truncate text-neutral-700">{{ incident.adresse || 'Non précisée' }}</span></div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-neutral-100 pt-3 text-[11px] text-neutral-500">
+              <span>GPS {{ incident.gps.lat | number:'1.4-4' }}, {{ incident.gps.lng | number:'1.4-4' }}</span>
+              <a [href]="'https://www.google.com/maps?q=' + incident.gps.lat + ',' + incident.gps.lng" target="_blank" rel="noopener noreferrer" class="font-medium text-black underline underline-offset-2">Voir sur la carte</a>
+            </div>
+
+            @if (incident.photo || incident.video) {
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                @if (incident.photo) { <a [href]="incident.photo" target="_blank" rel="noopener noreferrer" class="block overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"><img [src]="incident.photo" [alt]="'Photo du signalement ' + incident.type" class="max-h-80 w-full object-contain" /></a> }
+                @if (incident.video) { <video [src]="incident.video" controls preload="metadata" class="max-h-80 w-full rounded-lg border border-neutral-200 bg-black"></video> }
+              </div>
+            }
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>
