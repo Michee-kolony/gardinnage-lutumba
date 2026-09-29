@@ -93,15 +93,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     { label: 'Paiements reçus · USD', value: '—', hint: 'Ce mois-ci', icon: 'cash', emphasis: 'default', trend: 'neutral', trendValue: '' },
   ];
 
-  presenceData: BarChartPoint[] = [
-    { label: 'Lun', value: 28 },
-    { label: 'Mar', value: 31 },
-    { label: 'Mer', value: 27 },
-    { label: 'Jeu', value: 33 },
-    { label: 'Ven', value: 30 },
-    { label: 'Sam', value: 22 },
-    { label: 'Dim', value: 18 },
-  ];
+  paiements: Paiement[] = [];
 
   incidentsData: BarChartPoint[] = [
     { label: 'Avr', value: 4 },
@@ -274,6 +266,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private fetchFinanceStats(): void {
     this.paiementsService.list().subscribe({
       next: (response) => {
+        this.paiements = response.paiements;
         const maintenant = new Date();
         const paiementsDuMois = response.paiements.filter((paiement) => {
           const date = new Date(paiement.createdAt);
@@ -290,6 +283,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.financeStats[2].hint = `${paiementsDuMois.filter((paiement) => paiement.devise === 'USD').length} paiement(s) ce mois-ci`;
       },
       error: () => {
+        this.paiements = [];
         this.financeStats[1].value = '—';
         this.financeStats[1].hint = 'Données indisponibles';
         this.financeStats[2].value = '—';

@@ -92,11 +92,7 @@
   <section>
     <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Statistiques</h2>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <app-bar-chart
-        title="Présences de la semaine"
-        subtitle="Nombre de gardiens en service par jour"
-        [data]="presenceData"
-      ></app-bar-chart>
+      <app-paiements-chart [paiements]="paiements"></app-paiements-chart>
 
       <app-bar-chart
         title="Incidents par mois"

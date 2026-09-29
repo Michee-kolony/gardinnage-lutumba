@@ -17,6 +17,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { StatCardComponent } from './dashboard/stat-card/stat-card.component';
 import { BarChartComponent } from './dashboard/bar-chart/bar-chart.component';
 import { DonutChartComponent } from './dashboard/donut-chart/donut-chart.component';
+import { PaiementsChartComponent } from './dashboard/paiements-chart/paiements-chart.component';
 import { GardiensComponent } from './pages/gardiens/gardiens.component';
 import { GardienDetailComponent } from './pages/gardiens/gardien-detail/gardien-detail.component';
 import { ProprietairesComponent } from './pages/proprietaires/proprietaires.component';
@@ -40,6 +41,7 @@ import { AdministrateursComponent } from './pages/administrateurs/administrateur
     StatCardComponent,
     BarChartComponent,
     DonutChartComponent,
+    PaiementsChartComponent,
     GardiensComponent,
     GardienDetailComponent,
     ProprietairesComponent,

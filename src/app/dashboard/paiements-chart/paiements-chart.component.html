@@ -1,0 +1,48 @@
+<div class="bg-white rounded-2xl border border-neutral-200 p-5 h-full flex flex-col">
+  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5">
+    <div>
+      <h3 class="text-sm font-semibold text-black">Paiements par mois</h3>
+      <p class="text-xs text-neutral-500 mt-0.5">Montants encaissés selon l'année et la devise</p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <select
+        class="h-9 rounded-md border border-neutral-200 bg-white px-2 text-sm text-neutral-700"
+        aria-label="Année des paiements"
+        [value]="anneeSelectionnee"
+        (change)="changerAnnee($any($event.target).value)"
+      >
+        @for (annee of anneesDisponibles; track annee) {
+          <option [value]="annee">{{ annee }}</option>
+        }
+      </select>
+
+      <div class="flex rounded-md border border-neutral-200 p-0.5" role="group" aria-label="Devise des paiements">
+        @for (devise of devises; track devise) {
+          <button
+            type="button"
+            class="rounded px-2.5 py-1.5 text-xs font-medium transition-colors"
+            [class.bg-neutral-900]="deviseSelectionnee === devise"
+            [class.text-white]="deviseSelectionnee === devise"
+            [class.text-neutral-600]="deviseSelectionnee !== devise"
+            [attr.aria-pressed]="deviseSelectionnee === devise"
+            (click)="changerDevise(devise)"
+          >{{ devise }}</button>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (meilleurMois; as meilleur) {
+    <div class="mb-3 flex items-center justify-between text-xs">
+      <span class="text-neutral-500">Mois le plus élevé</span>
+      <span class="font-semibold text-green-700">{{ meilleur.label }} · {{ formatMontant(meilleur.montant) }}</span>
+    </div>
+  } @else {
+    <p class="mb-3 text-xs text-neutral-500">Aucun paiement enregistré pour {{ anneeSelectionnee }} en {{ deviseSelectionnee }}.</p>
+  }
+
+  <div class="chart-container flex-1 min-h-[190px]">
+    <canvas #chartCanvas aria-label="Montants des paiements par mois" role="img"></canvas>
+  </div>
+</div>
