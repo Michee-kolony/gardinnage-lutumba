@@ -9,6 +9,9 @@ export type TypePropriete = 'maison' | 'villa' | 'appartement' | 'immeuble' | 'b
 export const TYPES_PROPRIETE: TypePropriete[] = ['maison', 'villa', 'appartement', 'immeuble', 'bureau', 'commerce', 'autre'];
 
 export type NiveauSecurite = 'standard' | 'renforce' | 'haute surveillance';
+
+// Calculé par le serveur à partir de dateExpirationAbonnement
+export type StatutAbonnement = 'actif' | 'expire' | 'aucun';
 export const NIVEAUX_SECURITE: NiveauSecurite[] = ['standard', 'renforce', 'haute surveillance'];
 
 export interface Propriete {
@@ -44,8 +47,12 @@ export interface Propriete {
   eclairageSecurite: boolean;
   interphone: boolean;
   autresEquipementsSecurite: string;
+  // Lecture seule : fixées uniquement par l'enregistrement d'un paiement
   dateDebutAbonnement: string | null;
   dateExpirationAbonnement: string | null;
+  // Id du paiement qui porte l'abonnement actuel (seul paiement dont la période est modifiable)
+  dernierPaiement: string | null;
+  statutAbonnement: StatutAbonnement;
   photos: string[];
   documentPropriete: string | null;
   autresDocuments: string[];
@@ -88,8 +95,6 @@ export interface ProprietePayload {
   eclairageSecurite: boolean;
   interphone: boolean;
   autresEquipementsSecurite: string;
-  dateDebutAbonnement: string;
-  dateExpirationAbonnement: string;
   photos: File[];
   documentPropriete: File | null;
   autresDocuments: File[];
@@ -114,6 +119,41 @@ export function verifierTailleFichiers(payload: ProprietePayload): string | null
     return `Le document "${documentTropLourd.name}" dépasse 10 Mo.`;
   }
   return null;
+}
+
+// Statut d'abonnement tel que renvoyé par le serveur (jamais recalculé côté frontend)
+export function statutAbonnement(propriete: Propriete): StatutAbonnement {
+  return propriete.statutAbonnement ?? 'aucun';
+}
+
+export function statutAbonnementLabel(statut: StatutAbonnement): string {
+  const labels: Record<StatutAbonnement, string> = { actif: 'Actif', expire: 'Expiré', aucun: 'Aucun abonnement' };
+  return labels[statut];
+}
+
+export function statutAbonnementBadgeClass(statut: StatutAbonnement): string {
+  const classes: Record<StatutAbonnement, string> = {
+    actif: 'bg-green-100 text-green-700 border border-green-200',
+    expire: 'bg-red-100 text-red-700 border border-red-200',
+    aucun: 'bg-neutral-100 text-neutral-600 border border-neutral-200'
+  };
+  return classes[statut];
+}
+
+// Date au format JJ/MM/AAAA (les dates d'abonnement sont calculées en UTC par le serveur)
+export function formatDateCourte(date: string | Date | null): string {
+  if (!date) {
+    return '';
+  }
+  return new Date(date).toLocaleDateString('fr-FR', { timeZone: 'UTC' });
+}
+
+// « Abonnement du JJ/MM/AAAA au JJ/MM/AAAA », ou '' si les dates ne sont pas connues
+export function periodeAbonnementLabel(propriete: Propriete): string {
+  if (!propriete.dateDebutAbonnement || !propriete.dateExpirationAbonnement) {
+    return '';
+  }
+  return `Abonnement du ${formatDateCourte(propriete.dateDebutAbonnement)} au ${formatDateCourte(propriete.dateExpirationAbonnement)}`;
 }
 
 // Message lisible pour une erreur d'envoi. Le serveur (nginx) répond 413 sans en-têtes CORS

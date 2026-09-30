@@ -1,0 +1,125 @@
+<div class="fixed inset-0 z-50 grid items-end bg-black/55 p-0 sm:items-center sm:p-5 animate-[fade-in_0.15s_ease-out]" (click)="close()">
+  <section class="mx-auto max-h-[94vh] w-full max-w-2xl overflow-y-auto rounded-t-xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-xl animate-[modal-pop_0.2s_ease-out]" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" (click)="$event.stopPropagation()">
+    <header class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-neutral-200 bg-white px-5 py-5 sm:px-6">
+      <div>
+        <p class="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">{{ isEdit ? 'Transaction enregistrée' : 'Nouvelle transaction' }}</p>
+        <h2 id="payment-modal-title" class="font-serif text-xl font-medium text-black sm:text-2xl">{{ isEdit ? 'Modifier le paiement' : 'Enregistrer un paiement' }}</h2>
+        <p class="mt-1.5 max-w-lg text-xs leading-relaxed text-neutral-500">
+          @if (isEdit) {
+            La propriété d’un paiement ne peut pas être changée : supprimez-le et enregistrez-en un nouveau.
+          } @else {
+            Le paiement fixe la période d’abonnement de la propriété. Le propriétaire est associé et la référence du reçu est générée automatiquement.
+          }
+        </p>
+      </div>
+      <button type="button" (click)="close()" aria-label="Fermer" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-neutral-100 text-neutral-600 transition hover:bg-neutral-200 hover:text-black">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>
+    </header>
+
+    @if (created) {
+      <div class="px-5 py-8 text-center sm:px-6">
+        <span class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-green-100 text-green-700">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 fill-none stroke-current stroke-[2.5]"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+        </span>
+        <h3 class="font-serif text-lg font-medium text-black">Paiement enregistré</h3>
+        <p class="mt-2 text-sm text-neutral-600">Référence du reçu</p>
+        <p class="mt-1 break-all text-base font-semibold text-black">{{ created.referenceTransaction }}</p>
+        @if (created.periodeDebut && created.periodeFin) {
+          <p class="mt-3 text-xs text-neutral-500">Période couverte : du {{ dateCourte(created.periodeDebut) }} au {{ dateCourte(created.periodeFin) }}</p>
+        }
+        <button type="button" (click)="close()" class="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-black px-5 text-sm font-semibold text-white transition hover:bg-neutral-800">Fermer</button>
+      </div>
+    } @else {
+      <form (ngSubmit)="submit()" #paymentForm="ngForm" class="px-5 pt-5 sm:px-6">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          @if (!isEdit) {
+            <label class="grid min-w-0 gap-1.5 sm:col-span-2">
+              <span class="text-xs font-semibold text-neutral-700">Propriété <b class="text-red-700">*</b></span>
+              <select name="propriete" [(ngModel)]="formModel.propriete" required class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
+                <option value="" disabled>Sélectionner une propriété</option>
+                @for (propriete of proprietes; track propriete._id) {
+                  <option [value]="propriete._id" [disabled]="isProprieteActive(propriete) && propriete._id !== formModel.propriete">{{ proprieteOptionLabel(propriete) }}</option>
+                }
+              </select>
+              @if (selectedProprieteActive && selectedPropriete) {
+                <span class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">Abonnement en cours jusqu’au {{ expirationLabel(selectedPropriete) }} : un nouveau paiement sera refusé avant cette date.</span>
+              }
+            </label>
+          }
+
+          @if (periodeModifiable) {
+            <label class="grid min-w-0 gap-1.5">
+              <span class="text-xs font-semibold text-neutral-700">Période couverte <b class="text-red-700">*</b></span>
+              <select name="dureeMois" [(ngModel)]="formModel.dureeMois" required class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
+                @for (option of dureesProposees; track option.mois) {
+                  <option [ngValue]="option.mois">{{ option.label }}</option>
+                }
+              </select>
+            </label>
+          }
+          <label class="grid min-w-0 gap-1.5">
+            <span class="text-xs font-semibold text-neutral-700">Montant <b class="text-red-700">*</b></span>
+            <input name="montant" type="number" min="0.01" step="0.01" [(ngModel)]="formModel.montant" required placeholder="0,00" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black focus:ring-2 focus:ring-black/10" />
+          </label>
+          <label class="grid min-w-0 gap-1.5">
+            <span class="text-xs font-semibold text-neutral-700">Devise <span class="font-normal text-neutral-400">(facultatif)</span></span>
+            <select name="devise" [(ngModel)]="formModel.devise" class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
+              <option value="CDF">Franc congolais (CDF)</option><option value="USD">Dollar américain (USD)</option>
+            </select>
+          </label>
+          <label class="grid min-w-0 gap-1.5">
+            <span class="text-xs font-semibold text-neutral-700">Mode de paiement <b class="text-red-700">*</b></span>
+            <select name="modePaiement" [(ngModel)]="formModel.modePaiement" required class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
+              @for (mode of modes; track mode) {
+                <option [value]="mode">{{ modeLabel(mode) }}</option>
+              }
+            </select>
+          </label>
+          <label class="grid min-w-0 gap-1.5 sm:col-span-2">
+            <span class="text-xs font-semibold text-neutral-700">Note <span class="font-normal text-neutral-400">(facultatif)</span></span>
+            <textarea name="description" [(ngModel)]="formModel.description" rows="3" placeholder="Information complémentaire" class="w-full resize-y rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black focus:ring-2 focus:ring-black/10"></textarea>
+          </label>
+
+          @if (!periodeModifiable) {
+            <div class="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-3 text-xs text-neutral-600 sm:col-span-2">
+              <p><span class="font-semibold text-neutral-800">Durée :</span> {{ dureeLabel(paiement?.dureeMois ?? null) }} · <span class="font-semibold text-neutral-800">Période :</span> {{ periodeActuelleLabel }}</p>
+              <p class="mt-1 text-neutral-500">Seule la période du paiement le plus récent est modifiable.</p>
+            </div>
+          } @else if (isEdit) {
+            <label class="grid min-w-0 gap-1.5">
+              <span class="text-xs font-semibold text-neutral-700">Date de début</span>
+              <input name="periodeDebut" type="date" [(ngModel)]="formModel.periodeDebut" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10" />
+            </label>
+          } @else {
+            <div class="sm:col-span-2">
+              <button type="button" (click)="optionsAvancees = !optionsAvancees" [attr.aria-expanded]="optionsAvancees" class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-600 transition hover:text-black">
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="h-3.5 w-3.5 fill-none stroke-current stroke-2 transition" [class.rotate-90]="optionsAvancees"><path stroke-linecap="round" stroke-linejoin="round" d="m9 6 6 6-6 6" /></svg>
+                Options avancées
+              </button>
+              @if (optionsAvancees) {
+                <label class="mt-3 grid min-w-0 gap-1.5 sm:max-w-xs">
+                  <span class="text-xs font-semibold text-neutral-700">Date de début <span class="font-normal text-neutral-400">(paiement saisi en retard)</span></span>
+                  <input name="periodeDebut" type="date" [(ngModel)]="formModel.periodeDebut" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10" />
+                  <span class="text-[11px] text-neutral-500">Laisser vide pour commencer aujourd’hui.</span>
+                </label>
+              }
+            </div>
+          }
+        </div>
+
+        @if (apercuPeriode) {
+          <p class="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-800">Période couverte : <span class="font-semibold">{{ apercuPeriode }}</span></p>
+        }
+        @if (conflitMessage) { <p class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800" role="alert">{{ conflitMessage }}</p> }
+        @if (formError) { <p class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">{{ formError }}</p> }
+        <footer class="-mx-5 mt-6 flex flex-col-reverse gap-2 border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
+          <button type="button" (click)="close()" [disabled]="submitting" class="min-h-11 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">Annuler</button>
+          <button type="submit" [disabled]="paymentForm.invalid || (periodeModifiable && !dureeValide) || submitting" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-black px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 active:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50">
+            @if (submitting) { <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span> Enregistrement... } @else { {{ isEdit ? 'Enregistrer les modifications' : 'Enregistrer le paiement' }} }
+          </button>
+        </footer>
+      </form>
+    }
+  </section>
+</div>

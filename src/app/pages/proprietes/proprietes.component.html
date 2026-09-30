@@ -79,14 +79,14 @@
         </button>
         <button
           type="button"
-          (click)="abonnementFilter = 'encours'"
+          (click)="abonnementFilter = 'actif'"
           class="px-3 py-1.5 rounded-md text-xs font-medium transition"
-          [class.bg-white]="abonnementFilter === 'encours'"
-          [class.shadow-sm]="abonnementFilter === 'encours'"
-          [class.text-green-700]="abonnementFilter === 'encours'"
-          [class.text-neutral-500]="abonnementFilter !== 'encours'"
+          [class.bg-white]="abonnementFilter === 'actif'"
+          [class.shadow-sm]="abonnementFilter === 'actif'"
+          [class.text-green-700]="abonnementFilter === 'actif'"
+          [class.text-neutral-500]="abonnementFilter !== 'actif'"
         >
-          En cours
+          Actif
         </button>
         <button
           type="button"
@@ -98,6 +98,17 @@
           [class.text-neutral-500]="abonnementFilter !== 'expire'"
         >
           Expiré
+        </button>
+        <button
+          type="button"
+          (click)="abonnementFilter = 'aucun'"
+          class="px-3 py-1.5 rounded-md text-xs font-medium transition"
+          [class.bg-white]="abonnementFilter === 'aucun'"
+          [class.shadow-sm]="abonnementFilter === 'aucun'"
+          [class.text-black]="abonnementFilter === 'aucun'"
+          [class.text-neutral-500]="abonnementFilter !== 'aucun'"
+        >
+          Aucun
         </button>
       </div>
     </div>
@@ -173,6 +184,9 @@
               </svg>
               <span class="truncate">{{ propriete.commune }} — {{ propriete.quartier }}</span>
             </p>
+            @if (periodeAbonnement(propriete)) {
+              <p class="text-xs text-neutral-500 truncate">{{ periodeAbonnement(propriete) }}</p>
+            }
           </div>
 
           <!-- Statut -->
@@ -553,28 +567,6 @@
           </div>
         </div>
 
-        <!-- Abonnement -->
-        <div class="space-y-4">
-          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Abonnement</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-black mb-1.5" for="dateDebutAbonnement">Début</label>
-              <input
-                id="dateDebutAbonnement" name="dateDebutAbonnement" type="date"
-                [(ngModel)]="formModel.dateDebutAbonnement"
-                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-black mb-1.5" for="dateExpirationAbonnement">Expiration</label>
-              <input
-                id="dateExpirationAbonnement" name="dateExpirationAbonnement" type="date"
-                [(ngModel)]="formModel.dateExpirationAbonnement"
-                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
-              />
-            </div>
-          </div>
-        </div>
 
         <!-- Documents -->
         <div class="space-y-4">

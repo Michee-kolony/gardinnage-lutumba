@@ -3,7 +3,7 @@
     <div>
       <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Gestion financière</p>
       <h1 class="font-serif text-3xl font-medium leading-tight text-black">Paiements</h1>
-      <p class="mt-2 text-sm text-neutral-500">Suivez les encaissements et éditez vos reçus.</p>
+      <p class="mt-2 text-sm text-neutral-500">Chaque paiement fixe la période d’abonnement de la propriété concernée.</p>
     </div>
     <button type="button" (click)="openModal()" [disabled]="proprietes.length === 0"
       class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-neutral-800 active:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50">
@@ -79,13 +79,26 @@
               <span class="mt-0.5 block truncate text-[11px] text-neutral-500">{{ propertyOf(paiement)?.commune || 'Adresse indisponible' }}</span>
             </div>
             <span class="col-start-1 row-start-3 truncate text-xs text-neutral-700 lg:col-auto lg:row-auto">{{ ownerName(paiement.proprietaire) }}</span>
-            <span class="col-start-1 row-start-4 truncate text-xs text-neutral-600 lg:col-auto lg:row-auto">{{ periodLabel(paiement) }}</span>
+            <span class="col-start-1 row-start-4 min-w-0 text-xs text-neutral-600 lg:col-auto lg:row-auto">
+              <span class="block truncate">{{ periodLabel(paiement) }}</span>
+              @if (dureeLabel(paiement)) { <span class="mt-0.5 block text-[11px] text-neutral-500">{{ dureeLabel(paiement) }}</span> }
+            </span>
             <span class="col-start-1 row-start-5 truncate text-xs text-neutral-600 lg:col-auto lg:row-auto">{{ modeLabel(paiement.modePaiement) }}</span>
             <span class="col-start-2 row-start-1 whitespace-nowrap text-right text-xs font-bold tabular-nums text-black lg:col-auto lg:row-auto">{{ formatAmount(paiement.montant, paiement.devise) }}</span>
-            <button type="button" (click)="openReceiptPreview(paiement)" [attr.aria-label]="'Prévisualiser le reçu de ' + propertyName(paiement)" title="Prévisualiser le reçu"
-              class="col-start-2 row-span-4 row-start-2 inline-flex h-9 w-9 self-center items-center justify-center rounded-lg border border-neutral-200 bg-white text-black transition hover:border-black hover:bg-black hover:text-white lg:col-auto lg:row-auto">
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-[1.8]"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
-            </button>
+            <div class="col-start-2 row-span-4 row-start-2 flex flex-col items-center gap-1.5 self-center lg:col-auto lg:row-auto lg:flex-row">
+              <button type="button" (click)="openReceiptPreview(paiement)" [attr.aria-label]="'Prévisualiser le reçu de ' + propertyName(paiement)" title="Prévisualiser le reçu"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-black transition hover:border-black hover:bg-black hover:text-white">
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-[1.8]"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+              </button>
+              <button type="button" (click)="openEdit(paiement)" [attr.aria-label]="'Modifier le paiement ' + receiptReference(paiement)" title="Modifier"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition hover:border-black hover:text-black">
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-[1.8]"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5m-1.5-9.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+              </button>
+              <button type="button" (click)="openDelete(paiement)" [attr.aria-label]="'Supprimer le paiement ' + receiptReference(paiement)" title="Supprimer"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600">
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-[1.8]"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16zM10 11v6m4-6v6" /></svg>
+              </button>
+            </div>
           </article>
         }
       </div>
@@ -94,71 +107,15 @@
 </main>
 
 @if (isModalOpen) {
-  <div class="fixed inset-0 z-50 grid items-end bg-black/55 p-0 sm:items-center sm:p-5 animate-[fade-in_0.15s_ease-out]" (click)="closeModal()">
-    <section class="mx-auto max-h-[94vh] w-full max-w-2xl overflow-y-auto rounded-t-xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-xl animate-[modal-pop_0.2s_ease-out]" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" (click)="$event.stopPropagation()">
-      <header class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-neutral-200 bg-white px-5 py-5 sm:px-6">
-        <div>
-          <p class="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Nouvelle transaction</p>
-          <h2 id="payment-modal-title" class="font-serif text-xl font-medium text-black sm:text-2xl">Enregistrer un paiement</h2>
-          <p class="mt-1.5 max-w-lg text-xs leading-relaxed text-neutral-500">Le propriétaire est associé et la référence du reçu est générée automatiquement.</p>
-        </div>
-        <button type="button" (click)="closeModal()" aria-label="Fermer" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-neutral-100 text-neutral-600 transition hover:bg-neutral-200 hover:text-black">
-          <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18" /></svg>
-        </button>
-      </header>
+  <app-paiement-form [proprietes]="proprietes" (saved)="onPaiementChange()" (abonnementEnCours)="fetchProprietes()" (closed)="closeModal()"></app-paiement-form>
+}
 
-      <form (ngSubmit)="submitPaiement()" #paymentForm="ngForm" class="px-5 pt-5 sm:px-6">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label class="grid min-w-0 gap-1.5 sm:col-span-2">
-            <span class="text-xs font-semibold text-neutral-700">Propriété <b class="text-red-700">*</b></span>
-            <select name="propriete" [(ngModel)]="formModel.propriete" required class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
-              <option value="" disabled>Sélectionner une propriété</option>
-              @for (propriete of proprietes; track propriete._id) {
-                <option [value]="propriete._id">{{ propriete.nomReference }} · {{ propriete.proprietaire ? propriete.proprietaire.prenom + ' ' + propriete.proprietaire.nom : 'Sans propriétaire' }} · {{ propriete.commune }}</option>
-              }
-            </select>
-          </label>
-          <label class="grid min-w-0 gap-1.5">
-            <span class="text-xs font-semibold text-neutral-700">Montant <b class="text-red-700">*</b></span>
-            <input name="montant" type="number" min="0.01" step="0.01" [(ngModel)]="formModel.montant" required placeholder="0,00" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black focus:ring-2 focus:ring-black/10" />
-          </label>
-          <label class="grid min-w-0 gap-1.5">
-            <span class="text-xs font-semibold text-neutral-700">Devise <span class="font-normal text-neutral-400">(facultatif)</span></span>
-            <select name="devise" [(ngModel)]="formModel.devise" class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
-              <option value="CDF">Franc congolais (CDF)</option><option value="USD">Dollar américain (USD)</option>
-            </select>
-          </label>
-          <label class="grid min-w-0 gap-1.5">
-            <span class="text-xs font-semibold text-neutral-700">Mode de paiement <b class="text-red-700">*</b></span>
-            <select name="modePaiement" [(ngModel)]="formModel.modePaiement" required class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
-              <option value="especes">Espèces</option><option value="mobile_money">Mobile Money</option><option value="virement">Virement</option><option value="carte">Carte bancaire</option><option value="cheque">Chèque</option><option value="autre">Autre</option>
-            </select>
-          </label>
-          <div class="hidden sm:block"></div>
-          <label class="grid min-w-0 gap-1.5">
-            <span class="text-xs font-semibold text-neutral-700">Début de période <span class="font-normal text-neutral-400">(facultatif)</span></span>
-            <input name="periodeDebut" type="date" [(ngModel)]="formModel.periodeDebut" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10" />
-          </label>
-          <label class="grid min-w-0 gap-1.5">
-            <span class="text-xs font-semibold text-neutral-700">Fin de période <span class="font-normal text-neutral-400">(facultatif)</span></span>
-            <input name="periodeFin" type="date" [(ngModel)]="formModel.periodeFin" [min]="formModel.periodeDebut || ''" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10" />
-          </label>
-          <label class="grid min-w-0 gap-1.5 sm:col-span-2">
-            <span class="text-xs font-semibold text-neutral-700">Note <span class="font-normal text-neutral-400">(facultatif)</span></span>
-            <textarea name="description" [(ngModel)]="formModel.description" rows="3" placeholder="Information complémentaire" class="w-full resize-y rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black focus:ring-2 focus:ring-black/10"></textarea>
-          </label>
-        </div>
+@if (editTarget; as paiement) {
+  <app-paiement-form [paiement]="paiement" [proprieteContexte]="proprieteDe(paiement)" (saved)="onPaiementChange()" (closed)="editTarget = null"></app-paiement-form>
+}
 
-        @if (formError) { <p class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">{{ formError }}</p> }
-        <footer class="-mx-5 mt-6 flex flex-col-reverse gap-2 border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
-          <button type="button" (click)="closeModal()" [disabled]="submitting" class="min-h-11 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">Annuler</button>
-          <button type="submit" [disabled]="paymentForm.invalid || submitting" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-black px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 active:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50">
-            @if (submitting) { <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span> Enregistrement... } @else { Enregistrer le paiement }
-          </button>
-        </footer>
-      </form>
-    </section>
-  </div>
+@if (deleteTarget; as paiement) {
+  <app-paiement-suppression [paiement]="paiement" [propriete]="proprieteDe(paiement)" (deleted)="onPaiementChange()" (closed)="deleteTarget = null"></app-paiement-suppression>
 }
 
 @if (receiptPreview; as paiement) {

@@ -8,9 +8,14 @@ import {
   Propriete,
   ProprietePayload,
   ProprietesService,
+  StatutAbonnement,
   TYPES_PROPRIETE,
   TypePropriete,
   messageErreurEnvoi,
+  periodeAbonnementLabel,
+  statutAbonnement,
+  statutAbonnementBadgeClass,
+  statutAbonnementLabel,
   verifierTailleFichiers
 } from '../../core/proprietes.service';
 import { Proprietaire, ProprietairesService } from '../../core/proprietaires.service';
@@ -26,7 +31,7 @@ export class ProprietesComponent implements OnInit, OnDestroy {
   loadError = '';
 
   searchTerm = '';
-  abonnementFilter: 'tous' | 'encours' | 'expire' = 'tous';
+  abonnementFilter: 'tous' | StatutAbonnement = 'tous';
 
   typesDisponibles = TYPES_PROPRIETE;
   niveauxDisponibles = NIVEAUX_SECURITE;
@@ -90,29 +95,23 @@ export class ProprietesComponent implements OnInit, OnDestroy {
         p.quartier.toLowerCase().includes(term) ||
         p.typePropriete.toLowerCase().includes(term);
 
-      const matchesFilter =
-        this.abonnementFilter === 'tous' ||
-        (this.abonnementFilter === 'expire' && this.estExpire(p)) ||
-        (this.abonnementFilter === 'encours' && !this.estExpire(p));
+      const matchesFilter = this.abonnementFilter === 'tous' || statutAbonnement(p) === this.abonnementFilter;
 
       return matchesTerm && matchesFilter;
     });
   }
 
-  // Une propriété sans date d'expiration renseignée est considérée "en cours"
-  // (rien n'indique qu'elle soit arrivée à échéance).
-  estExpire(propriete: Propriete): boolean {
-    return !!propriete.dateExpirationAbonnement && new Date(propriete.dateExpirationAbonnement) < new Date();
-  }
-
+  // Statut calculé par le serveur (actif / expiré / aucun), les dates sont en lecture seule
   abonnementBadgeClass(propriete: Propriete): string {
-    return this.estExpire(propriete)
-      ? 'bg-red-100 text-red-700 border border-red-200'
-      : 'bg-green-100 text-green-700 border border-green-200';
+    return statutAbonnementBadgeClass(statutAbonnement(propriete));
   }
 
   abonnementLabel(propriete: Propriete): string {
-    return this.estExpire(propriete) ? 'Expiré' : 'En cours';
+    return statutAbonnementLabel(statutAbonnement(propriete));
+  }
+
+  periodeAbonnement(propriete: Propriete): string {
+    return periodeAbonnementLabel(propriete);
   }
 
   get filteredOwnersForPicker(): Proprietaire[] {
@@ -354,8 +353,6 @@ export class ProprietesComponent implements OnInit, OnDestroy {
       eclairageSecurite: false,
       interphone: false,
       autresEquipementsSecurite: '',
-      dateDebutAbonnement: '',
-      dateExpirationAbonnement: '',
       photos: [],
       documentPropriete: null,
       autresDocuments: []

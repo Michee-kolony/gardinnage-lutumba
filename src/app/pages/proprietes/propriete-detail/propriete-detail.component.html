@@ -123,6 +123,9 @@
               <span class="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap" [ngClass]="niveauBadgeClass(propriete.niveauSecurite)">
                 {{ propriete.niveauSecurite }}
               </span>
+              <span class="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap" [ngClass]="abonnementBadgeClass">
+                {{ abonnementLabel }}
+              </span>
             </div>
           </div>
         </div>
@@ -205,19 +208,89 @@
           }
         </div>
 
-        <!-- Abonnement -->
+        <!-- Abonnement : fixé uniquement par les paiements -->
         <div class="bg-white rounded-2xl border border-neutral-200 p-6">
-          <h2 class="text-sm font-semibold text-black mb-4">Abonnement</h2>
-          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-            <div>
-              <dt class="text-xs text-neutral-500">Début</dt>
-              <dd class="text-sm text-black mt-0.5">{{ formatDate(propriete.dateDebutAbonnement) }}</dd>
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-semibold text-black">Abonnement</h2>
+                <span class="text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap" [ngClass]="abonnementBadgeClass">{{ abonnementLabel }}</span>
+              </div>
+              <p class="text-sm text-neutral-600 mt-1.5">{{ periodeAbonnement || 'Aucune période enregistrée.' }}</p>
+              @if (abonnementActif) {
+                <p class="text-xs text-neutral-500 mt-1">Abonnement en cours jusqu'au {{ expirationAbonnement }} : un nouveau paiement pourra être enregistré à l'expiration.</p>
+              }
             </div>
-            <div>
-              <dt class="text-xs text-neutral-500">Expiration</dt>
-              <dd class="text-sm text-black mt-0.5">{{ formatDate(propriete.dateExpirationAbonnement) }}</dd>
+            <button
+              type="button"
+              (click)="openPaiementModal()"
+              [disabled]="abonnementActif"
+              [attr.title]="abonnementActif ? 'Abonnement en cours jusqu’au ' + expirationAbonnement : null"
+              class="inline-flex items-center justify-center gap-2 bg-black text-white text-sm font-medium rounded-lg px-4 py-2.5 hover:bg-neutral-800 active:bg-neutral-900 transition shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
+              </svg>
+              Enregistrer un paiement
+            </button>
+          </div>
+
+          <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Historique des paiements</h3>
+          @if (paiementsLoading) {
+            <div class="flex items-center gap-2 py-4 text-sm text-neutral-500">
+              <span class="h-4 w-4 rounded-full border-2 border-neutral-200 border-t-black animate-spin"></span>
+              Chargement des paiements...
             </div>
-          </dl>
+          } @else if (paiementsError) {
+            <div class="flex items-center gap-3 py-4">
+              <p class="text-sm text-red-600">{{ paiementsError }}</p>
+              <button type="button" (click)="fetchPaiements()" class="text-xs font-medium text-black underline">Réessayer</button>
+            </div>
+          } @else if (paiements.length === 0) {
+            <p class="py-4 text-sm text-neutral-500">Aucun paiement enregistré pour cette propriété.</p>
+          } @else {
+            <ul class="divide-y divide-neutral-100">
+              @for (paiement of paiements; track paiement._id) {
+                <li class="py-3 flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-black">
+                      {{ paiementMontant(paiement.montant, paiement.devise) }}
+                      <span class="font-normal text-neutral-500">· {{ paiementMode(paiement.modePaiement) }}{{ paiement.dureeMois ? ' · ' + paiementDuree(paiement.dureeMois) : '' }}</span>
+                    </p>
+                    <p class="text-xs text-neutral-600 mt-0.5">Période {{ paiementPeriode(paiement) }}</p>
+                    <p class="text-[11px] text-neutral-400 mt-0.5 break-all">
+                      Réf. {{ paiement.referenceTransaction }}
+                      @if (estDernierPaiement(paiement)) { <span class="ml-1 rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600">Abonnement actuel</span> }
+                    </p>
+                  </div>
+                  <div class="shrink-0 flex items-center gap-1">
+                    <button
+                      type="button"
+                      (click)="paiementEnModification = paiement"
+                      [attr.aria-label]="'Modifier le paiement ' + paiement.referenceTransaction"
+                      title="Modifier"
+                      class="h-8 w-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-black transition"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5m-1.5-9.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="paiementEnSuppression = paiement"
+                      [attr.aria-label]="'Supprimer le paiement ' + paiement.referenceTransaction"
+                      title="Supprimer"
+                      class="h-8 w-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-red-50 hover:text-red-600 transition"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16zM10 11v6m4-6v6" />
+                      </svg>
+                    </button>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
         </div>
 
         <!-- Documents -->
@@ -901,28 +974,6 @@
             </div>
           </div>
 
-          <!-- Abonnement -->
-          <div class="space-y-4">
-            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Abonnement</h3>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-black mb-1.5" for="editDateDebutAbonnement">Début</label>
-                <input
-                  id="editDateDebutAbonnement" name="editDateDebutAbonnement" type="date"
-                  [(ngModel)]="editFormModel.dateDebutAbonnement"
-                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-black mb-1.5" for="editDateExpirationAbonnement">Expiration</label>
-                <input
-                  id="editDateExpirationAbonnement" name="editDateExpirationAbonnement" type="date"
-                  [(ngModel)]="editFormModel.dateExpirationAbonnement"
-                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
-                />
-              </div>
-            </div>
-          </div>
 
           <!-- Documents -->
           <div class="space-y-4">
@@ -1006,4 +1057,31 @@
       </div>
     </div>
   }
+}
+
+<!-- Paiements : enregistrement, modification, suppression -->
+@if (paiementModalOpen && propriete) {
+  <app-paiement-form
+    [proprietes]="[propriete]"
+    [proprieteId]="propriete._id"
+    (saved)="onPaiementEnregistre()"
+    (abonnementEnCours)="rechargerPropriete()"
+    (closed)="paiementModalOpen = false"
+  ></app-paiement-form>
+}
+@if (paiementEnModification; as paiement) {
+  <app-paiement-form
+    [paiement]="paiement"
+    [proprieteContexte]="propriete ?? null"
+    (saved)="onPaiementEnregistre()"
+    (closed)="paiementEnModification = null"
+  ></app-paiement-form>
+}
+@if (paiementEnSuppression; as paiement) {
+  <app-paiement-suppression
+    [paiement]="paiement"
+    [propriete]="propriete ?? null"
+    (deleted)="onPaiementEnregistre()"
+    (closed)="paiementEnSuppression = null"
+  ></app-paiement-suppression>
 }

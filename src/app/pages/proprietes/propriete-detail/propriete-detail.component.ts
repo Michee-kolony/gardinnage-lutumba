@@ -9,11 +9,18 @@ import {
   Propriete,
   ProprietePayload,
   ProprietesService,
+  StatutAbonnement,
   TYPES_PROPRIETE,
   TypePropriete,
+  formatDateCourte,
   messageErreurEnvoi,
+  periodeAbonnementLabel,
+  statutAbonnement,
+  statutAbonnementBadgeClass,
+  statutAbonnementLabel,
   verifierTailleFichiers
 } from '../../../core/proprietes.service';
+import { DevisePaiement, ModePaiement, Paiement, PaiementsService, dureeAbonnementLabel } from '../../../core/paiements.service';
 import { Proprietaire, ProprietairesService } from '../../../core/proprietaires.service';
 import { AuthService } from '../../../core/auth.service';
 
@@ -50,6 +57,14 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
 
   activePhotoIndex = 0;
 
+  // Historique des paiements de la propriété (ils fixent son abonnement)
+  paiements: Paiement[] = [];
+  paiementsLoading = false;
+  paiementsError = '';
+  paiementModalOpen = false;
+  paiementEnModification: Paiement | null = null;
+  paiementEnSuppression: Paiement | null = null;
+
   isGeneratingContrat = false;
   contratApercuModalOpen = false;
   private dateEmission = '';
@@ -66,6 +81,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private proprietesService: ProprietesService,
     private proprietairesService: ProprietairesService,
+    private paiementsService: PaiementsService,
     private authService: AuthService
   ) {}
 
@@ -89,6 +105,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
     }).format(new Date());
 
     this.fetchPropriete();
+    this.fetchPaiements();
   }
 
   ngOnDestroy(): void {
@@ -127,6 +144,92 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     });
+  }
+
+  // Rechargement sans écran de chargement : après un paiement, les dates et le
+  // statut d'abonnement de la propriété ont été recalculés par le serveur.
+  rechargerPropriete(): void {
+    this.proprietesService.getById(this.proprieteId).subscribe({
+      next: (res) => (this.propriete = res.propriete),
+      error: () => this.showToast('error', 'Impossible de recharger cette propriété.')
+    });
+  }
+
+  fetchPaiements(): void {
+    this.paiementsLoading = true;
+    this.paiementsError = '';
+    this.paiementsService.list({ propriete: this.proprieteId }).subscribe({
+      next: (res) => {
+        this.paiements = res.paiements;
+        this.paiementsLoading = false;
+      },
+      error: (err: HttpErrorResponse) => {
+        this.paiementsError = err.error?.message || 'Impossible de charger les paiements.';
+        this.paiementsLoading = false;
+      }
+    });
+  }
+
+  // --- Abonnement / paiements ---
+
+  get statutAbonnementPropriete(): StatutAbonnement {
+    return this.propriete ? statutAbonnement(this.propriete) : 'aucun';
+  }
+
+  get abonnementActif(): boolean {
+    return this.statutAbonnementPropriete === 'actif';
+  }
+
+  get abonnementBadgeClass(): string {
+    return statutAbonnementBadgeClass(this.statutAbonnementPropriete);
+  }
+
+  get abonnementLabel(): string {
+    return statutAbonnementLabel(this.statutAbonnementPropriete);
+  }
+
+  get periodeAbonnement(): string {
+    return this.propriete ? periodeAbonnementLabel(this.propriete) : '';
+  }
+
+  get expirationAbonnement(): string {
+    return formatDateCourte(this.propriete?.dateExpirationAbonnement ?? null);
+  }
+
+  openPaiementModal(): void {
+    // Confort uniquement : le serveur refuse aussi (409) tant que l'abonnement est en cours
+    if (this.propriete && !this.abonnementActif) {
+      this.paiementModalOpen = true;
+    }
+  }
+
+  onPaiementEnregistre(): void {
+    this.rechargerPropriete();
+    this.fetchPaiements();
+  }
+
+  estDernierPaiement(paiement: Paiement): boolean {
+    return !!this.propriete?.dernierPaiement && this.propriete.dernierPaiement === paiement._id;
+  }
+
+  paiementPeriode(paiement: Paiement): string {
+    if (!paiement.periodeDebut || !paiement.periodeFin) {
+      return '—';
+    }
+    return `du ${formatDateCourte(paiement.periodeDebut)} au ${formatDateCourte(paiement.periodeFin)}`;
+  }
+
+  paiementMontant(montant: number, devise: DevisePaiement): string {
+    return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(montant) + ` ${devise}`;
+  }
+
+  paiementDuree(mois: number | null): string {
+    return dureeAbonnementLabel(mois);
+  }
+
+  paiementMode(mode: ModePaiement): string {
+    const labels: Record<ModePaiement, string> = { especes: 'Espèces', mobile_money: 'Mobile Money', virement: 'Virement', carte: 'Carte bancaire', cheque: 'Chèque', autre: 'Autre' };
+    return labels[mode];
   }
 
   goBack(): void {
@@ -257,8 +360,6 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
       eclairageSecurite: p.eclairageSecurite,
       interphone: p.interphone,
       autresEquipementsSecurite: p.autresEquipementsSecurite,
-      dateDebutAbonnement: this.toDateInputValue(p.dateDebutAbonnement),
-      dateExpirationAbonnement: this.toDateInputValue(p.dateExpirationAbonnement),
       photos: [],
       documentPropriete: null,
       autresDocuments: []
@@ -276,17 +377,6 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
     }
     this.editModalOpen = false;
     this.ownerPickerOpen = false;
-  }
-
-  toDateInputValue(value: string | null): string {
-    if (!value) {
-      return '';
-    }
-    try {
-      return new Date(value).toISOString().slice(0, 10);
-    } catch {
-      return '';
-    }
   }
 
   onPhotosSelected(event: Event): void {
@@ -696,8 +786,6 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
       eclairageSecurite: false,
       interphone: false,
       autresEquipementsSecurite: '',
-      dateDebutAbonnement: '',
-      dateExpirationAbonnement: '',
       photos: [],
       documentPropriete: null,
       autresDocuments: []

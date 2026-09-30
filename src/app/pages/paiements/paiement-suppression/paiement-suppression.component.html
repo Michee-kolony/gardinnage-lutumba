@@ -1,0 +1,19 @@
+<div class="fixed inset-0 z-[60] grid items-end bg-black/55 p-0 sm:items-center sm:p-5 animate-[fade-in_0.15s_ease-out]" (click)="close()">
+  <section class="mx-auto w-full max-w-md rounded-t-xl bg-white shadow-2xl sm:rounded-xl animate-[modal-pop_0.2s_ease-out]" role="alertdialog" aria-modal="true" aria-labelledby="delete-payment-title" (click)="$event.stopPropagation()">
+    <div class="px-5 pt-6 sm:px-6">
+      <span class="mb-3 grid h-10 w-10 place-items-center rounded-full bg-red-100 text-red-600">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 fill-none stroke-current stroke-2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16zM10 11v6m4-6v6" /></svg>
+      </span>
+      <h2 id="delete-payment-title" class="font-serif text-xl font-medium text-black">Supprimer ce paiement ?</h2>
+      <p class="mt-2 text-sm text-neutral-600">Le paiement <span class="font-semibold text-black">{{ paiement.referenceTransaction }}</span> sera définitivement supprimé.</p>
+      <p class="mt-2 text-sm text-neutral-600"><span class="font-semibold text-black">{{ proprieteNom }}</span> : {{ consequence }}</p>
+      @if (error) { <p class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">{{ error }}</p> }
+    </div>
+    <footer class="mt-6 flex flex-col-reverse gap-2 border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:flex-row sm:justify-end sm:rounded-b-xl sm:px-6">
+      <button type="button" (click)="close()" [disabled]="deleting" class="min-h-11 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">Annuler</button>
+      <button type="button" (click)="confirm()" [disabled]="deleting" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-600 px-5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+        @if (deleting) { <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span> Suppression... } @else { Supprimer }
+      </button>
+    </footer>
+  </section>
+</div>

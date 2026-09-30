@@ -26,6 +26,8 @@ import { ProprietesComponent } from './pages/proprietes/proprietes.component';
 import { ProprieteDetailComponent } from './pages/proprietes/propriete-detail/propriete-detail.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
+import { PaiementFormComponent } from './pages/paiements/paiement-form/paiement-form.component';
+import { PaiementSuppressionComponent } from './pages/paiements/paiement-suppression/paiement-suppression.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
 import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
 
@@ -50,6 +52,8 @@ import { AdministrateursComponent } from './pages/administrateurs/administrateur
     ProprieteDetailComponent,
     IncidentsComponent,
     PaiementsComponent,
+    PaiementFormComponent,
+    PaiementSuppressionComponent,
     ParametresComponent,
     AdministrateursComponent
   ],

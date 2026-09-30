@@ -6,8 +6,8 @@ import {
   DevisePaiement,
   ModePaiement,
   Paiement,
-  PaiementPayload,
-  PaiementsService
+  PaiementsService,
+  dureeAbonnementLabel
 } from '../../core/paiements.service';
 import { Propriete, ProprietesService } from '../../core/proprietes.service';
 import { Proprietaire } from '../../core/proprietaires.service';
@@ -24,16 +24,21 @@ export class PaiementsComponent implements OnInit {
   loadError = '';
   searchTerm = '';
   isModalOpen = false;
+  // Paiement en cours de modification / de suppression (modals partagées avec la fiche propriété)
+  editTarget: Paiement | null = null;
+  deleteTarget: Paiement | null = null;
   receiptPreview: Paiement | null = null;
-  submitting = false;
-  formError = '';
-  formModel: PaiementPayload = this.emptyForm();
   private logoDataUrl?: Promise<string | null>;
 
   constructor(private paiementsService: PaiementsService, private proprietesService: ProprietesService) {}
 
   ngOnInit(): void {
     this.fetchPaiements();
+    this.fetchProprietes();
+  }
+
+  // Les dates et le statut d'abonnement des propriétés changent à chaque paiement
+  fetchProprietes(): void {
     this.proprietesService.list().subscribe({
       next: (response) => (this.proprietes = response.proprietes),
       error: () => (this.loadError = 'Impossible de charger les propriétés disponibles.')
@@ -57,29 +62,38 @@ export class PaiementsComponent implements OnInit {
     return new Set(this.paiements.map((paiement) => this.propertyId(paiement))).size;
   }
 
-  fetchPaiements(): void {
-    this.loading = true;
-    this.loadError = '';
+  // silencieux : rechargement après une action, sans écran de chargement
+  fetchPaiements(silencieux = false): void {
+    if (!silencieux) {
+      this.loading = true;
+      this.loadError = '';
+    }
     this.paiementsService.list().subscribe({
       next: (response) => { this.paiements = response.paiements; this.loading = false; },
-      error: (error: HttpErrorResponse) => { this.loadError = error.error?.message || 'Impossible de charger les paiements.'; this.loading = false; }
+      error: (error: HttpErrorResponse) => {
+        if (!silencieux) this.loadError = error.error?.message || 'Impossible de charger les paiements.';
+        this.loading = false;
+      }
     });
   }
 
-  openModal(): void { this.formModel = this.emptyForm(); this.formError = ''; this.isModalOpen = true; }
-  closeModal(): void { if (!this.submitting) this.isModalOpen = false; }
+  openModal(): void { this.isModalOpen = true; }
+  closeModal(): void { this.isModalOpen = false; }
+  openEdit(paiement: Paiement): void { this.editTarget = paiement; }
+  openDelete(paiement: Paiement): void { this.deleteTarget = paiement; }
   openReceiptPreview(paiement: Paiement): void { this.receiptPreview = paiement; }
   closeReceiptPreview(): void { this.receiptPreview = null; }
 
-  submitPaiement(): void {
-    const form = this.formModel;
-    if (this.submitting || !form.propriete || !form.montant || form.montant <= 0 || !form.modePaiement) return;
-    this.submitting = true;
-    this.formError = '';
-    this.paiementsService.create(form).subscribe({
-      next: (response) => { this.paiements = [response.paiement, ...this.paiements]; this.submitting = false; this.isModalOpen = false; },
-      error: (error: HttpErrorResponse) => { this.formError = error.error?.message || 'Impossible d’enregistrer ce paiement.'; this.submitting = false; }
-    });
+  // Après toute action sur un paiement, le serveur a recalculé l'abonnement de la
+  // propriété : on recharge propriétés et paiements au lieu de modifier l'état à la main.
+  onPaiementChange(): void {
+    this.fetchPaiements(true);
+    this.fetchProprietes();
+  }
+
+  // Propriété à jour (dernierPaiement) pour savoir si la période du paiement est modifiable
+  proprieteDe(paiement: Paiement): Propriete | null {
+    return this.proprietes.find((p) => p._id === this.propertyId(paiement)) ?? null;
   }
 
   propertyOf(paiement: Paiement): Propriete | null { return typeof paiement.propriete === 'object' ? paiement.propriete : null; }
@@ -111,6 +125,10 @@ export class PaiementsComponent implements OnInit {
     if (!paiement.periodeDebut) return `Jusqu’au ${this.formatDate(paiement.periodeFin)}`;
     if (!paiement.periodeFin) return `Depuis le ${this.formatDate(paiement.periodeDebut)}`;
     return `${this.formatDate(paiement.periodeDebut)} au ${this.formatDate(paiement.periodeFin)}`;
+  }
+
+  dureeLabel(paiement: Paiement): string {
+    return paiement.dureeMois ? dureeAbonnementLabel(paiement.dureeMois) : '';
   }
 
   async generateReceipt(paiement: Paiement): Promise<void> {
@@ -195,9 +213,5 @@ export class PaiementsComponent implements OnInit {
   private totalByCurrency(currency: DevisePaiement): number {
     return this.paiements.filter((paiement) => paiement.devise === currency)
       .reduce((total, paiement) => total + paiement.montant, 0);
-  }
-
-  private emptyForm(): PaiementPayload {
-    return { propriete: '', montant: 0, devise: 'CDF', modePaiement: 'especes', periodeDebut: null, periodeFin: null, description: '' };
   }
 }
