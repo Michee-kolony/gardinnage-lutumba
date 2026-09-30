@@ -1,0 +1,156 @@
+<div class="fixed inset-0 z-50 grid items-end bg-black/55 p-0 sm:items-center sm:p-5 animate-[fade-in_0.15s_ease-out]" (click)="close()">
+  <section class="mx-auto max-h-[94vh] w-full max-w-2xl overflow-y-auto rounded-t-xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-xl animate-[modal-pop_0.2s_ease-out]" role="dialog" aria-modal="true" aria-labelledby="affectation-modal-title" (click)="$event.stopPropagation()">
+    <header class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-neutral-200 bg-white px-5 py-5 sm:px-6">
+      <div>
+        <p class="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Affectation</p>
+        <h2 id="affectation-modal-title" class="font-serif text-xl font-medium text-black sm:text-2xl">{{ isEdit ? 'Modifier l’affectation' : 'Nouvelle affectation' }}</h2>
+        <p class="mt-1.5 max-w-lg text-xs leading-relaxed text-neutral-500">
+          @if (isEdit) {
+            Le gardien et la propriété ne peuvent pas être changés : supprimez l’affectation et créez-en une nouvelle.
+          } @else {
+            Affectez un gardien à une propriété pour la durée de votre choix. La date de fin est calculée par le serveur.
+          }
+        </p>
+      </div>
+      <button type="button" (click)="close()" aria-label="Fermer" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-neutral-100 text-neutral-600 transition hover:bg-neutral-200 hover:text-black">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>
+    </header>
+
+    <form (ngSubmit)="submit()" #affectationForm="ngForm" class="px-5 pt-5 sm:px-6">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+        @if (isEdit && affectation) {
+          <!-- Gardien et propriété en lecture seule -->
+          <div class="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3 min-w-0">
+            <app-affectation-avatar [src]="affectation.gardien?.photoProfil" [nom]="nomGardien(affectation.gardien)" taille="h-11 w-11"></app-affectation-avatar>
+            <div class="min-w-0">
+              <p class="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Gardien</p>
+              <p class="text-sm font-semibold text-black truncate">{{ nomGardien(affectation.gardien) }}</p>
+              <p class="text-xs text-neutral-500 truncate">{{ affectation.gardien?.matricule }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3 min-w-0">
+            <app-affectation-avatar [src]="affectation.propriete?.photos?.[0]" [nom]="affectation.propriete?.nomReference || ''" [avecInitiales]="false" taille="h-11 w-11" forme="rounded-lg"></app-affectation-avatar>
+            <div class="min-w-0">
+              <p class="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Propriété</p>
+              <p class="text-sm font-semibold text-black truncate">{{ affectation.propriete?.nomReference || 'Propriété supprimée' }}</p>
+              <p class="text-xs text-neutral-500 truncate">{{ affectation.propriete?.commune }} — {{ affectation.propriete?.quartier }}</p>
+            </div>
+          </div>
+        } @else {
+          @if (chargement) {
+            <p class="flex items-center gap-2 text-sm text-neutral-500 sm:col-span-2"><span class="h-4 w-4 animate-spin rounded-full border-2 border-neutral-200 border-t-black"></span> Chargement des propriétés et des gardiens...</p>
+          }
+          @if (chargementErreur) {
+            <p class="flex items-center gap-3 text-sm text-red-700 sm:col-span-2">{{ chargementErreur }} <button type="button" (click)="chargerListes()" class="text-xs font-medium text-black underline">Réessayer</button></p>
+          }
+
+          <label class="grid min-w-0 gap-1.5 sm:col-span-2">
+            <span class="text-xs font-semibold text-neutral-700">Propriété <b class="text-red-700">*</b></span>
+            <select name="propriete" [(ngModel)]="formModel.propriete" required class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
+              <option value="" disabled>Sélectionner une propriété</option>
+              @for (propriete of proprietes; track propriete._id) {
+                <option [value]="propriete._id">{{ propriete.nomReference }} · {{ propriete.commune }}</option>
+              }
+            </select>
+          </label>
+
+          <!-- Sélecteur de gardien avec photo et matricule -->
+          <div class="relative grid min-w-0 gap-1.5 sm:col-span-2">
+            <span class="text-xs font-semibold text-neutral-700">Gardien <b class="text-red-700">*</b></span>
+            <button type="button" (click)="toggleGardienPicker()" [attr.aria-expanded]="gardienPickerOpen"
+              class="flex min-h-11 w-full items-center gap-3 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-left text-sm transition focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10">
+              @if (selectedGardien; as gardien) {
+                <app-affectation-avatar [src]="gardien.photoProfil" [nom]="nomGardien(gardien)" taille="h-8 w-8"></app-affectation-avatar>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate font-medium text-black">{{ nomGardien(gardien) }}</span>
+                  <span class="block truncate text-xs text-neutral-500">{{ gardien.matricule }}</span>
+                </span>
+              } @else {
+                <span class="flex-1 text-neutral-400">Sélectionner un gardien</span>
+              }
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 shrink-0 fill-none stroke-current stroke-2 text-neutral-500"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" /></svg>
+            </button>
+            @if (selectedGardien && occupationLabel(selectedGardien)) {
+              <span class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{{ occupationLabel(selectedGardien) }} — le serveur refusera une période qui chevauche.</span>
+            }
+            @if (gardienPickerOpen) {
+              <div class="absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xl">
+                <div class="border-b border-neutral-100 p-2">
+                  <input name="gardienSearch" type="search" [(ngModel)]="gardienSearchTerm" placeholder="Rechercher (nom, matricule)" class="h-9 w-full rounded-md border border-neutral-300 px-3 text-sm outline-none focus:border-black" />
+                </div>
+                <ul class="max-h-56 overflow-y-auto py-1">
+                  @for (gardien of filteredGardiens; track gardien._id) {
+                    <li>
+                      <button type="button" (click)="selectGardien(gardien)" class="flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-neutral-50" [class.bg-neutral-100]="gardien._id === formModel.gardien">
+                        <app-affectation-avatar [src]="gardien.photoProfil" [nom]="nomGardien(gardien)" taille="h-9 w-9"></app-affectation-avatar>
+                        <span class="min-w-0 flex-1">
+                          <span class="block truncate text-sm font-medium text-black">{{ nomGardien(gardien) }}</span>
+                          <span class="block truncate text-xs text-neutral-500">{{ gardien.matricule }}</span>
+                          @if (occupationLabel(gardien)) {
+                            <span class="block truncate text-[11px] text-amber-700">{{ occupationLabel(gardien) }}</span>
+                          }
+                        </span>
+                        @if (occupation(gardien)) {
+                          <span class="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800">Occupé</span>
+                        } @else {
+                          <span class="shrink-0 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">Libre</span>
+                        }
+                      </button>
+                    </li>
+                  } @empty {
+                    <li class="px-3 py-4 text-center text-sm text-neutral-500">Aucun gardien trouvé.</li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        }
+
+        <label class="grid min-w-0 gap-1.5">
+          <span class="text-xs font-semibold text-neutral-700">Durée <b class="text-red-700">*</b></span>
+          <input name="duree" type="number" min="1" step="1" [(ngModel)]="formModel.duree" required placeholder="1" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black focus:ring-2 focus:ring-black/10" />
+        </label>
+        <label class="grid min-w-0 gap-1.5">
+          <span class="text-xs font-semibold text-neutral-700">Unité</span>
+          <select name="uniteDuree" [(ngModel)]="formModel.uniteDuree" class="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10">
+            @for (unite of unites; track unite) {
+              <option [value]="unite">{{ uniteLabel(unite) }}</option>
+            }
+          </select>
+        </label>
+        <label class="grid min-w-0 gap-1.5">
+          <span class="text-xs font-semibold text-neutral-700">Date de début <span class="font-normal text-neutral-400">{{ isEdit ? '' : '(facultatif)' }}</span></span>
+          <input name="dateDebut" type="date" [(ngModel)]="formModel.dateDebut" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10" />
+          @if (!isEdit) { <span class="text-[11px] text-neutral-500">Laisser vide pour commencer aujourd’hui.</span> }
+        </label>
+        <label class="flex items-start gap-3 self-center rounded-lg border border-neutral-200 px-3 py-3 min-w-0">
+          <input name="estPrincipal" type="checkbox" [(ngModel)]="formModel.estPrincipal" class="mt-0.5 h-4 w-4 accent-black" />
+          <span class="min-w-0">
+            <span class="block text-sm font-medium text-black">Gardien principal</span>
+            @if (!isEdit) { <span class="block text-[11px] text-neutral-500">Non coché : le premier gardien affecté sur la période devient principal.</span> }
+          </span>
+        </label>
+        @if (avertissementPrincipal) {
+          <p class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 sm:col-span-2">{{ avertissementPrincipal }}</p>
+        }
+        <label class="grid min-w-0 gap-1.5 sm:col-span-2">
+          <span class="text-xs font-semibold text-neutral-700">Description <span class="font-normal text-neutral-400">(facultatif)</span></span>
+          <textarea name="description" [(ngModel)]="formModel.description" rows="3" placeholder="Consignes, horaires, remarques..." class="w-full resize-y rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black focus:ring-2 focus:ring-black/10"></textarea>
+        </label>
+      </div>
+
+      @if (apercuPeriode) {
+        <p class="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-800">Période estimée : <span class="font-semibold">{{ apercuPeriode }}</span></p>
+      }
+      @if (formError) { <p class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">{{ formError }}</p> }
+      <footer class="-mx-5 mt-6 flex flex-col-reverse gap-2 border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6">
+        <button type="button" (click)="close()" [disabled]="submitting" class="min-h-11 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">Annuler</button>
+        <button type="submit" [disabled]="!formValide || submitting" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-black px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 active:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50">
+          @if (submitting) { <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span> Enregistrement... } @else { {{ isEdit ? 'Enregistrer les modifications' : 'Créer l’affectation' }} }
+        </button>
+      </footer>
+    </form>
+  </section>
+</div>

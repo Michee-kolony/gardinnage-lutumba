@@ -28,6 +28,11 @@ import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
 import { PaiementFormComponent } from './pages/paiements/paiement-form/paiement-form.component';
 import { PaiementSuppressionComponent } from './pages/paiements/paiement-suppression/paiement-suppression.component';
+import { AffectationsComponent } from './pages/affectations/affectations.component';
+import { AffectationsListeComponent } from './pages/affectations/affectations-liste/affectations-liste.component';
+import { AffectationFormComponent } from './pages/affectations/affectation-form/affectation-form.component';
+import { AffectationConfirmationComponent } from './pages/affectations/affectation-confirmation/affectation-confirmation.component';
+import { AffectationAvatarComponent } from './pages/affectations/affectation-avatar/affectation-avatar.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
 import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
 
@@ -54,6 +59,11 @@ import { AdministrateursComponent } from './pages/administrateurs/administrateur
     PaiementsComponent,
     PaiementFormComponent,
     PaiementSuppressionComponent,
+    AffectationsComponent,
+    AffectationsListeComponent,
+    AffectationFormComponent,
+    AffectationConfirmationComponent,
+    AffectationAvatarComponent,
     ParametresComponent,
     AdministrateursComponent
   ],

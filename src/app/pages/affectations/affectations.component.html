@@ -1,0 +1,70 @@
+<main class="space-y-6 pb-8 text-neutral-900">
+  <header class="flex flex-col gap-4 border-b border-neutral-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Surveillance</p>
+      <h1 class="font-serif text-3xl font-medium leading-tight text-black">Affectations</h1>
+      <p class="mt-2 text-sm text-neutral-500">Gardiens affectés aux propriétés, gardien principal et périodes.</p>
+    </div>
+    @if (estAdmin) {
+      <button type="button" (click)="formOpen = true"
+        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-neutral-800 active:bg-neutral-900">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" d="M12 5v14M5 12h14" /></svg>
+        Nouvelle affectation
+      </button>
+    }
+  </header>
+
+  <!-- Filtres (appliqués par le serveur) -->
+  <section class="flex flex-col gap-3 lg:flex-row lg:items-center" aria-label="Filtres">
+    <div class="inline-flex shrink-0 flex-wrap items-center gap-1 rounded-lg bg-neutral-100 p-1">
+      <button type="button" (click)="setStatut('')" class="rounded-md px-3 py-1.5 text-xs font-medium transition"
+        [class.bg-white]="filtreStatut === ''" [class.shadow-sm]="filtreStatut === ''" [class.text-black]="filtreStatut === ''" [class.text-neutral-500]="filtreStatut !== ''">Tous</button>
+      @for (statut of statuts; track statut) {
+        <button type="button" (click)="setStatut(statut)" class="rounded-md px-3 py-1.5 text-xs font-medium transition"
+          [class.bg-white]="filtreStatut === statut" [class.shadow-sm]="filtreStatut === statut" [class.text-black]="filtreStatut === statut" [class.text-neutral-500]="filtreStatut !== statut">{{ statutLabel(statut) }}</button>
+      }
+    </div>
+    <select [(ngModel)]="filtrePropriete" (ngModelChange)="fetchAffectations()" aria-label="Filtrer par propriété"
+      class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 lg:w-60">
+      <option value="">Toutes les propriétés</option>
+      @for (propriete of proprietes; track propriete._id) {
+        <option [value]="propriete._id">{{ propriete.nomReference }} · {{ propriete.commune }}</option>
+      }
+    </select>
+    <select [(ngModel)]="filtreGardien" (ngModelChange)="fetchAffectations()" aria-label="Filtrer par gardien"
+      class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 lg:w-60">
+      <option value="">Tous les gardiens</option>
+      @for (gardien of gardiens; track gardien._id) {
+        <option [value]="gardien._id">{{ nomGardien(gardien) }} · {{ gardien.matricule }}</option>
+      }
+    </select>
+    @if (filtresActifs) {
+      <button type="button" (click)="reinitialiserFiltres()" class="text-xs font-medium text-neutral-600 underline hover:text-black">Réinitialiser</button>
+    }
+  </section>
+
+  <section class="rounded-lg border border-neutral-200 bg-white px-4 shadow-sm sm:px-5" aria-label="Liste des affectations">
+    <div class="flex items-center justify-between border-b border-neutral-100 py-4">
+      <h2 class="font-serif text-xl font-medium text-black">Liste</h2>
+      <p class="text-xs text-neutral-500">{{ affectations.length }} affectation(s)</p>
+    </div>
+    @if (loading) {
+      <div class="grid min-h-48 place-items-center gap-3 p-8 text-sm text-neutral-500"><span class="h-6 w-6 animate-spin rounded-full border-2 border-neutral-200 border-t-black"></span><p>Chargement des affectations...</p></div>
+    } @else if (loadError) {
+      <div class="flex min-h-48 flex-col items-center justify-center gap-3 p-8 text-center">
+        <p class="text-sm text-red-700">{{ loadError }}</p>
+        <button type="button" class="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800" (click)="fetchAffectations()">Réessayer</button>
+      </div>
+    } @else {
+      <app-affectations-liste
+        [affectations]="affectations"
+        [messageVide]="filtresActifs ? 'Aucune affectation ne correspond à ces filtres.' : 'Aucune affectation enregistrée.'"
+        (changed)="fetchAffectations()"
+      ></app-affectations-liste>
+    }
+  </section>
+</main>
+
+@if (formOpen) {
+  <app-affectation-form (saved)="fetchAffectations()" (closed)="formOpen = false"></app-affectation-form>
+}

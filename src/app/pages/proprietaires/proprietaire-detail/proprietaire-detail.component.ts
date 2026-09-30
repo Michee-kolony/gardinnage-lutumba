@@ -10,6 +10,16 @@ import {
   ProprietairesService,
   UpdateProprietairePayload
 } from '../../../core/proprietaires.service';
+import {
+  Propriete,
+  ProprietesService,
+  formatDateCourte,
+  periodeAbonnementLabel,
+  statutAbonnement,
+  statutAbonnementBadgeClass,
+  statutAbonnementLabel
+} from '../../../core/proprietes.service';
+import { DevisePaiement, ModePaiement, Paiement, PaiementsService, dureeAbonnementLabel } from '../../../core/paiements.service';
 
 @Component({
   selector: 'app-proprietaire-detail',
@@ -38,12 +48,22 @@ export class ProprietaireDetailComponent implements OnInit, OnDestroy {
   toastMessage = '';
   private toastTimer?: ReturnType<typeof setTimeout>;
 
+  // Propriétés de ce propriétaire et historique de ses paiements (lecture seule)
+  proprietes: Propriete[] = [];
+  proprietesLoading = false;
+  proprietesError = '';
+  paiements: Paiement[] = [];
+  paiementsLoading = false;
+  paiementsError = '';
+
   private proprietaireId = '';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private proprietairesService: ProprietairesService
+    private proprietairesService: ProprietairesService,
+    private proprietesService: ProprietesService,
+    private paiementsService: PaiementsService
   ) {}
 
   ngOnInit(): void {
@@ -55,6 +75,8 @@ export class ProprietaireDetailComponent implements OnInit, OnDestroy {
     }
 
     this.fetchProprietaire();
+    this.fetchProprietes();
+    this.fetchPaiements();
   }
 
   ngOnDestroy(): void {
@@ -83,6 +105,82 @@ export class ProprietaireDetailComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     });
+  }
+
+  // L'API ne filtre pas les propriétés par propriétaire : filtrage sur la liste complète
+  fetchProprietes(): void {
+    this.proprietesLoading = true;
+    this.proprietesError = '';
+    this.proprietesService.list().subscribe({
+      next: (res) => {
+        this.proprietes = res.proprietes.filter((p) => p.proprietaire?._id === this.proprietaireId);
+        this.proprietesLoading = false;
+      },
+      error: (err: HttpErrorResponse) => {
+        this.proprietesError = err.error?.message || 'Impossible de charger les propriétés.';
+        this.proprietesLoading = false;
+      }
+    });
+  }
+
+  fetchPaiements(): void {
+    this.paiementsLoading = true;
+    this.paiementsError = '';
+    this.paiementsService.list({ proprietaire: this.proprietaireId }).subscribe({
+      next: (res) => {
+        this.paiements = res.paiements;
+        this.paiementsLoading = false;
+      },
+      error: (err: HttpErrorResponse) => {
+        this.paiementsError = err.error?.message || 'Impossible de charger les paiements.';
+        this.paiementsLoading = false;
+      }
+    });
+  }
+
+  openPropriete(propriete: Propriete): void {
+    this.router.navigate(['/admin/proprietes', propriete._id]);
+  }
+
+  abonnementBadgeClass(propriete: Propriete): string {
+    return statutAbonnementBadgeClass(statutAbonnement(propriete));
+  }
+
+  abonnementLabel(propriete: Propriete): string {
+    return statutAbonnementLabel(statutAbonnement(propriete));
+  }
+
+  periodeAbonnement(propriete: Propriete): string {
+    return periodeAbonnementLabel(propriete);
+  }
+
+  // Totaux encaissés par devise (sans conversion)
+  totalPaiements(devise: DevisePaiement): number {
+    return this.paiements.filter((p) => p.devise === devise).reduce((total, p) => total + p.montant, 0);
+  }
+
+  paiementProprieteNom(paiement: Paiement): string {
+    return typeof paiement.propriete === 'object' && paiement.propriete ? paiement.propriete.nomReference : 'Propriété supprimée';
+  }
+
+  paiementPeriode(paiement: Paiement): string {
+    if (!paiement.periodeDebut || !paiement.periodeFin) {
+      return '—';
+    }
+    return `du ${formatDateCourte(paiement.periodeDebut)} au ${formatDateCourte(paiement.periodeFin)}`;
+  }
+
+  paiementMontant(montant: number, devise: DevisePaiement): string {
+    return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(montant) + ` ${devise}`;
+  }
+
+  paiementDuree(mois: number | null): string {
+    return dureeAbonnementLabel(mois);
+  }
+
+  paiementMode(mode: ModePaiement): string {
+    const labels: Record<ModePaiement, string> = { especes: 'Espèces', mobile_money: 'Mobile Money', virement: 'Virement', carte: 'Carte bancaire', cheque: 'Chèque', autre: 'Autre' };
+    return labels[mode];
   }
 
   goBack(): void {

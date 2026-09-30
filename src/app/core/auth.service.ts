@@ -68,6 +68,12 @@ export class AuthService {
     }
   }
 
+  // Actions d'écriture réservées aux administrateurs (ADMIN / SUPER_ADMIN)
+  isAdmin(): boolean {
+    const role = this.getAdmin()?.role;
+    return role === 'ADMIN' || role === 'SUPER_ADMIN';
+  }
+
   getUsername(): string {
     return this.getAdmin()?.nom ?? '';
   }

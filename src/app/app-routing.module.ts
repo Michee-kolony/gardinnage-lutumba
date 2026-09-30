@@ -13,6 +13,7 @@ import { ProprietesComponent } from './pages/proprietes/proprietes.component';
 import { ProprieteDetailComponent } from './pages/proprietes/propriete-detail/propriete-detail.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
+import { AffectationsComponent } from './pages/affectations/affectations.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
 import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
 import { authGuard } from './core/auth.guard';
@@ -36,6 +37,7 @@ const routes: Routes = [
       { path: 'proprietes/:id', component: ProprieteDetailComponent },
       { path: 'incidents', component: IncidentsComponent },
       { path: 'paiements', component: PaiementsComponent },
+      { path: 'affectations', component: AffectationsComponent },
       { path: 'administrateurs', component: AdministrateursComponent },
       { path: 'parametres', component: ParametresComponent },
     ]

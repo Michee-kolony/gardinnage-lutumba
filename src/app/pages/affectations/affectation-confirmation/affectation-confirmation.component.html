@@ -1,0 +1,27 @@
+<div class="fixed inset-0 z-[60] grid items-end bg-black/55 p-0 sm:items-center sm:p-5 animate-[fade-in_0.15s_ease-out]" (click)="close()">
+  <section class="mx-auto w-full max-w-md rounded-t-xl bg-white shadow-2xl sm:rounded-xl animate-[modal-pop_0.2s_ease-out]" role="alertdialog" aria-modal="true" aria-labelledby="affectation-confirm-title" (click)="$event.stopPropagation()">
+    <div class="px-5 pt-6 sm:px-6">
+      <div class="mb-4 flex items-center gap-3">
+        <app-affectation-avatar [src]="affectation.gardien?.photoProfil" [nom]="gardienNom" taille="h-11 w-11"></app-affectation-avatar>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-black truncate">{{ gardienNom }}</p>
+          <p class="text-xs text-neutral-500 truncate">{{ proprieteNom }}</p>
+        </div>
+      </div>
+      <h2 id="affectation-confirm-title" class="font-serif text-xl font-medium text-black">{{ titre }}</h2>
+      <p class="mt-2 text-sm text-neutral-600">{{ message }}</p>
+      @if (action === 'principal') {
+        <p class="mt-2 text-xs text-neutral-500">Les autres gardiens de la propriété sur la même période perdront le rôle de principal.</p>
+      }
+      @if (error) { <p class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">{{ error }}</p> }
+    </div>
+    <footer class="mt-6 flex flex-col-reverse gap-2 border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:flex-row sm:justify-end sm:rounded-b-xl sm:px-6">
+      <button type="button" (click)="close()" [disabled]="running" class="min-h-11 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">Annuler</button>
+      <button type="button" (click)="confirm()" [disabled]="running"
+        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+        [ngClass]="danger ? 'bg-red-600 hover:bg-red-700' : 'bg-black hover:bg-neutral-800'">
+        @if (running) { <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span> En cours... } @else { {{ boutonLabel }} }
+      </button>
+    </footer>
+  </section>
+</div>

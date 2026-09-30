@@ -293,6 +293,57 @@
           }
         </div>
 
+        <!-- Gardiens affectés -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+            <h2 class="text-sm font-semibold text-black">Gardiens affectés</h2>
+            @if (estAdmin) {
+              <button
+                type="button"
+                (click)="affectationFormOpen = true"
+                class="inline-flex items-center justify-center gap-2 bg-black text-white text-sm font-medium rounded-lg px-4 py-2.5 hover:bg-neutral-800 active:bg-neutral-900 transition shrink-0"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
+                </svg>
+                Affecter un gardien
+              </button>
+            }
+          </div>
+          <div class="inline-flex items-center gap-1 bg-neutral-100 rounded-lg p-1 mb-2">
+            @for (onglet of ongletsAffectations; track onglet.statut) {
+              <button
+                type="button"
+                (click)="changerOngletAffectations(onglet.statut)"
+                class="px-3 py-1.5 rounded-md text-xs font-medium transition"
+                [class.bg-white]="affectationsOnglet === onglet.statut"
+                [class.shadow-sm]="affectationsOnglet === onglet.statut"
+                [class.text-black]="affectationsOnglet === onglet.statut"
+                [class.text-neutral-500]="affectationsOnglet !== onglet.statut"
+              >{{ onglet.label }}</button>
+            }
+          </div>
+          @if (affectationsLoading) {
+            <div class="flex items-center gap-2 py-4 text-sm text-neutral-500">
+              <span class="h-4 w-4 rounded-full border-2 border-neutral-200 border-t-black animate-spin"></span>
+              Chargement des gardiens...
+            </div>
+          } @else if (affectationsError) {
+            <div class="flex items-center gap-3 py-4">
+              <p class="text-sm text-red-600">{{ affectationsError }}</p>
+              <button type="button" (click)="fetchAffectations()" class="text-xs font-medium text-black underline">Réessayer</button>
+            </div>
+          } @else {
+            <app-affectations-liste
+              [affectations]="affectations"
+              masquer="propriete"
+              [afficherTelephone]="true"
+              [messageVide]="messageAffectationsVide"
+              (changed)="fetchAffectations()"
+            ></app-affectations-liste>
+          }
+        </div>
+
         <!-- Documents -->
         @if (propriete.documentPropriete || propriete.autresDocuments.length > 0) {
           <div class="bg-white rounded-2xl border border-neutral-200 p-6">
@@ -1084,4 +1135,11 @@
     (deleted)="onPaiementEnregistre()"
     (closed)="paiementEnSuppression = null"
   ></app-paiement-suppression>
+}
+@if (affectationFormOpen && propriete) {
+  <app-affectation-form
+    [proprieteId]="propriete._id"
+    (saved)="fetchAffectations()"
+    (closed)="affectationFormOpen = false"
+  ></app-affectation-form>
 }

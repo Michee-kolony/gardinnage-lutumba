@@ -269,6 +269,53 @@
           </div>
         </div>
 
+        <!-- Affectations -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+            <h2 class="text-sm font-semibold text-black">Affectations</h2>
+            @if (estAdmin) {
+              <button
+                type="button"
+                (click)="affectationFormOpen = true"
+                class="inline-flex items-center justify-center gap-2 bg-black text-white text-sm font-medium rounded-lg px-4 py-2.5 hover:bg-neutral-800 active:bg-neutral-900 transition shrink-0"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
+                </svg>
+                Affecter à une propriété
+              </button>
+            }
+          </div>
+          @if (affectationsLoading) {
+            <div class="flex items-center gap-2 py-4 text-sm text-neutral-500">
+              <span class="h-4 w-4 rounded-full border-2 border-neutral-200 border-t-black animate-spin"></span>
+              Chargement des affectations...
+            </div>
+          } @else if (affectationsError) {
+            <div class="flex items-center gap-3 py-4">
+              <p class="text-sm text-red-600">{{ affectationsError }}</p>
+              <button type="button" (click)="fetchAffectations()" class="text-xs font-medium text-black underline">Réessayer</button>
+            </div>
+          } @else {
+            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">En cours</h3>
+            <div class="mt-1 mb-4 rounded-xl border border-green-200 bg-green-50/40 px-3">
+              <app-affectations-liste
+                [affectations]="affectationsEnCours"
+                masquer="gardien"
+                messageVide="Ce gardien n'est affecté à aucune propriété en ce moment."
+                (changed)="fetchAffectations()"
+              ></app-affectations-liste>
+            </div>
+            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">À venir et historique</h3>
+            <app-affectations-liste
+              [affectations]="autresAffectations"
+              masquer="gardien"
+              messageVide="Aucune autre affectation."
+              (changed)="fetchAffectations()"
+            ></app-affectations-liste>
+          }
+        </div>
+
         <!-- Carte de service -->
         <div class="bg-white rounded-2xl border border-neutral-200 p-6">
           <div class="flex items-center justify-between mb-4">
@@ -584,4 +631,11 @@
       </div>
     </div>
   }
+}
+@if (affectationFormOpen && gardien) {
+  <app-affectation-form
+    [gardienId]="gardien._id"
+    (saved)="fetchAffectations()"
+    (closed)="affectationFormOpen = false"
+  ></app-affectation-form>
 }

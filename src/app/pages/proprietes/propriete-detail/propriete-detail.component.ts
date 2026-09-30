@@ -23,6 +23,7 @@ import {
 import { DevisePaiement, ModePaiement, Paiement, PaiementsService, dureeAbonnementLabel } from '../../../core/paiements.service';
 import { Proprietaire, ProprietairesService } from '../../../core/proprietaires.service';
 import { AuthService } from '../../../core/auth.service';
+import { Affectation, AffectationsService, StatutAffectation } from '../../../core/affectations.service';
 
 const LOGO_URL = '/images/logo.png';
 
@@ -65,6 +66,18 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
   paiementEnModification: Paiement | null = null;
   paiementEnSuppression: Paiement | null = null;
 
+  // Gardiens affectés (filtrés par le serveur selon l'onglet)
+  readonly ongletsAffectations: { statut: StatutAffectation; label: string }[] = [
+    { statut: 'en cours', label: 'En cours' },
+    { statut: 'a venir', label: 'À venir' },
+    { statut: 'expiree', label: 'Historique' }
+  ];
+  affectations: Affectation[] = [];
+  affectationsOnglet: StatutAffectation = 'en cours';
+  affectationsLoading = false;
+  affectationsError = '';
+  affectationFormOpen = false;
+
   isGeneratingContrat = false;
   contratApercuModalOpen = false;
   private dateEmission = '';
@@ -82,6 +95,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
     private proprietesService: ProprietesService,
     private proprietairesService: ProprietairesService,
     private paiementsService: PaiementsService,
+    private affectationsService: AffectationsService,
     private authService: AuthService
   ) {}
 
@@ -106,6 +120,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
 
     this.fetchPropriete();
     this.fetchPaiements();
+    this.fetchAffectations();
   }
 
   ngOnDestroy(): void {
@@ -168,6 +183,38 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
         this.paiementsLoading = false;
       }
     });
+  }
+
+  // --- Gardiens affectés ---
+
+  get estAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  fetchAffectations(): void {
+    this.affectationsLoading = true;
+    this.affectationsError = '';
+    this.affectationsService.list({ propriete: this.proprieteId, statut: this.affectationsOnglet }).subscribe({
+      next: (res) => {
+        this.affectations = res.affectations;
+        this.affectationsLoading = false;
+      },
+      error: (err: HttpErrorResponse) => {
+        this.affectationsError = err.error?.message || 'Impossible de charger les gardiens affectés.';
+        this.affectationsLoading = false;
+      }
+    });
+  }
+
+  changerOngletAffectations(onglet: StatutAffectation): void {
+    this.affectationsOnglet = onglet;
+    this.fetchAffectations();
+  }
+
+  get messageAffectationsVide(): string {
+    if (this.affectationsOnglet === 'en cours') return 'Aucun gardien affecté en ce moment.';
+    if (this.affectationsOnglet === 'a venir') return 'Aucune affectation à venir.';
+    return 'Aucune affectation passée.';
   }
 
   // --- Abonnement / paiements ---

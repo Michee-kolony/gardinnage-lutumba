@@ -11,6 +11,7 @@ const TITLES: Record<string, string> = {
   proprietes: 'Propriétés sous surveillance',
   incidents: 'Incidents',
   paiements: 'Paiements',
+  affectations: 'Affectations des gardiens',
   parametres: 'Paramètres',
 };
 

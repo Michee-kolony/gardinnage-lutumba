@@ -13,6 +13,7 @@ import {
   UpdateGardienPayload
 } from '../../../core/gardiens.service';
 import { AuthService } from '../../../core/auth.service';
+import { Affectation, AffectationsService } from '../../../core/affectations.service';
 
 const LOGO_URL = '/images/logo.png';
 
@@ -50,13 +51,20 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
   toastMessage = '';
   private toastTimer?: ReturnType<typeof setTimeout>;
 
+  // Affectations du gardien : celle en cours mise en avant, puis l'historique
+  affectations: Affectation[] = [];
+  affectationsLoading = false;
+  affectationsError = '';
+  affectationFormOpen = false;
+
   private gardienId = '';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private gardiensService: GardiensService,
-    private authService: AuthService
+    private authService: AuthService,
+    private affectationsService: AffectationsService
   ) {}
 
   get isSuperAdmin(): boolean {
@@ -78,12 +86,41 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
     }).format(new Date());
 
     this.fetchGardien();
+    this.fetchAffectations();
   }
 
   ngOnDestroy(): void {
     if (this.toastTimer) {
       clearTimeout(this.toastTimer);
     }
+  }
+
+  get estAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  // Statuts calculés par le serveur : toujours rechargés, jamais recalculés ici
+  fetchAffectations(): void {
+    this.affectationsLoading = true;
+    this.affectationsError = '';
+    this.affectationsService.list({ gardien: this.gardienId }).subscribe({
+      next: (res) => {
+        this.affectations = res.affectations;
+        this.affectationsLoading = false;
+      },
+      error: (err: HttpErrorResponse) => {
+        this.affectationsError = err.error?.message || 'Impossible de charger les affectations.';
+        this.affectationsLoading = false;
+      }
+    });
+  }
+
+  get affectationsEnCours(): Affectation[] {
+    return this.affectations.filter((a) => a.statut === 'en cours');
+  }
+
+  get autresAffectations(): Affectation[] {
+    return this.affectations.filter((a) => a.statut !== 'en cours');
   }
 
   fetchGardien(): void {
