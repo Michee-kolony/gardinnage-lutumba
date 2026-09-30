@@ -9,7 +9,9 @@ import {
   ProprietePayload,
   ProprietesService,
   TYPES_PROPRIETE,
-  TypePropriete
+  TypePropriete,
+  messageErreurEnvoi,
+  verifierTailleFichiers
 } from '../../core/proprietes.service';
 import { Proprietaire, ProprietairesService } from '../../core/proprietaires.service';
 
@@ -230,6 +232,12 @@ export class ProprietesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const erreurTaille = verifierTailleFichiers(f);
+    if (erreurTaille) {
+      this.showToast('error', erreurTaille);
+      return;
+    }
+
     this.submitting = true;
 
     this.proprietesService.create(f).subscribe({
@@ -241,7 +249,7 @@ export class ProprietesComponent implements OnInit, OnDestroy {
       },
       error: (err: HttpErrorResponse) => {
         this.submitting = false;
-        this.showToast('error', err.error?.message || "Impossible d'ajouter cette propriété.");
+        this.showToast('error', messageErreurEnvoi(err, "Impossible d'ajouter cette propriété."));
       }
     });
   }

@@ -10,7 +10,9 @@ import {
   ProprietePayload,
   ProprietesService,
   TYPES_PROPRIETE,
-  TypePropriete
+  TypePropriete,
+  messageErreurEnvoi,
+  verifierTailleFichiers
 } from '../../../core/proprietes.service';
 import { Proprietaire, ProprietairesService } from '../../../core/proprietaires.service';
 import { AuthService } from '../../../core/auth.service';
@@ -315,6 +317,12 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const erreurTaille = verifierTailleFichiers(this.editFormModel);
+    if (erreurTaille) {
+      this.showToast('error', erreurTaille);
+      return;
+    }
+
     this.submittingEdit = true;
 
     this.proprietesService.update(this.propriete._id, this.editFormModel).subscribe({
@@ -327,7 +335,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
       },
       error: (err: HttpErrorResponse) => {
         this.submittingEdit = false;
-        this.showToast('error', err.error?.message || 'Impossible de modifier cette propriété.');
+        this.showToast('error', messageErreurEnvoi(err, 'Impossible de modifier cette propriété.'));
       }
     });
   }

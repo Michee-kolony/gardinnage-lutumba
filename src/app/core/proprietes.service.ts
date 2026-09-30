@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -97,6 +97,33 @@ export interface ProprietePayload {
 
 const CHAMPS_BOOLEENS: (keyof ProprietePayload)[] = ['cloture', 'portail', 'garage', 'cameras', 'alarme', 'eclairageSecurite', 'interphone'];
 const CHAMPS_FICHIERS_MULTIPLES: (keyof ProprietePayload)[] = ['photos', 'autresDocuments'];
+
+// Mêmes limites que le backend (middleware/upload.js)
+const TAILLE_MAX_PHOTO = 5 * 1024 * 1024;
+const TAILLE_MAX_DOCUMENT = 10 * 1024 * 1024;
+
+// Vérifie la taille des fichiers avant l'envoi : renvoie un message d'erreur, ou null si tout est bon
+export function verifierTailleFichiers(payload: ProprietePayload): string | null {
+  const photoTropLourde = payload.photos.find((f) => f.size > TAILLE_MAX_PHOTO);
+  if (photoTropLourde) {
+    return `La photo "${photoTropLourde.name}" dépasse 5 Mo.`;
+  }
+  const documents = [...(payload.documentPropriete ? [payload.documentPropriete] : []), ...payload.autresDocuments];
+  const documentTropLourd = documents.find((f) => f.size > TAILLE_MAX_DOCUMENT);
+  if (documentTropLourd) {
+    return `Le document "${documentTropLourd.name}" dépasse 10 Mo.`;
+  }
+  return null;
+}
+
+// Message lisible pour une erreur d'envoi. Le serveur (nginx) répond 413 sans en-têtes CORS
+// quand l'ensemble des fichiers est trop lourd : le navigateur voit alors un statut 0.
+export function messageErreurEnvoi(err: HttpErrorResponse, defaut: string): string {
+  if (err.status === 413 || err.status === 0) {
+    return "Envoi refusé par le serveur : les fichiers sont trop volumineux ou la connexion a échoué. Réduisez la taille ou le nombre de fichiers.";
+  }
+  return err.error?.message || defaut;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ProprietesService {
