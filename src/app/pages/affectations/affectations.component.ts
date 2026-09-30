@@ -5,9 +5,12 @@ import {
   Affectation,
   AffectationFiltres,
   AffectationsService,
+  ROLES_AFFECTATION,
+  RoleAffectation,
   STATUTS_AFFECTATION,
   StatutAffectation,
-  nomCompletGardien,
+  nomComplet,
+  roleLabel,
   statutAffectationLabel
 } from '../../core/affectations.service';
 import { AuthService } from '../../core/auth.service';
@@ -20,6 +23,7 @@ import { Propriete, ProprietesService } from '../../core/proprietes.service';
 })
 export class AffectationsComponent implements OnInit {
   readonly statuts = STATUTS_AFFECTATION;
+  readonly roles = ROLES_AFFECTATION;
 
   affectations: Affectation[] = [];
   loading = true;
@@ -29,6 +33,7 @@ export class AffectationsComponent implements OnInit {
   filtreStatut: StatutAffectation | '' = '';
   filtrePropriete = '';
   filtreGardien = '';
+  filtreRole: RoleAffectation | '' = '';
 
   proprietes: Propriete[] = [];
   gardiens: Gardien[] = [];
@@ -60,7 +65,7 @@ export class AffectationsComponent implements OnInit {
   }
 
   get filtresActifs(): boolean {
-    return !!(this.filtreStatut || this.filtrePropriete || this.filtreGardien);
+    return !!(this.filtreStatut || this.filtrePropriete || this.filtreGardien || this.filtreRole);
   }
 
   fetchAffectations(): void {
@@ -69,7 +74,8 @@ export class AffectationsComponent implements OnInit {
     const filtres: AffectationFiltres = {
       ...(this.filtreStatut ? { statut: this.filtreStatut } : {}),
       ...(this.filtrePropriete ? { propriete: this.filtrePropriete } : {}),
-      ...(this.filtreGardien ? { gardien: this.filtreGardien } : {})
+      ...(this.filtreGardien ? { gardien: this.filtreGardien } : {}),
+      ...(this.filtreRole ? { role: this.filtreRole } : {})
     };
     this.affectationsService.list(filtres).subscribe({
       next: (res) => {
@@ -92,6 +98,7 @@ export class AffectationsComponent implements OnInit {
     this.filtreStatut = '';
     this.filtrePropriete = '';
     this.filtreGardien = '';
+    this.filtreRole = '';
     this.fetchAffectations();
   }
 
@@ -100,6 +107,10 @@ export class AffectationsComponent implements OnInit {
   }
 
   nomGardien(gardien: Gardien): string {
-    return nomCompletGardien(gardien);
+    return nomComplet(gardien);
+  }
+
+  roleLabel(role: RoleAffectation): string {
+    return roleLabel(role);
   }
 }

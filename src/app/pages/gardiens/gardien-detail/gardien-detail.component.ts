@@ -14,6 +14,7 @@ import {
 } from '../../../core/gardiens.service';
 import { AuthService } from '../../../core/auth.service';
 import { Affectation, AffectationsService } from '../../../core/affectations.service';
+import { Presence, PresencesService, TotauxPresence, dateIso } from '../../../core/presences.service';
 
 const LOGO_URL = '/images/logo.png';
 
@@ -51,11 +52,19 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
   toastMessage = '';
   private toastTimer?: ReturnType<typeof setTimeout>;
 
-  // Affectations du gardien : celle en cours mise en avant, puis l'historique
+  // Affectations du gardien : services en cours (plusieurs possibles à des heures
+  // différentes), à venir, puis l'historique chronologique
   affectations: Affectation[] = [];
+  historiqueVersion = 0;
   affectationsLoading = false;
   affectationsError = '';
   affectationFormOpen = false;
+
+  // Présences : résumé des 30 derniers jours + 10 derniers services (calculés par le serveur)
+  presencesTotaux: TotauxPresence | null = null;
+  derniersServices: Presence[] = [];
+  presencesLoading = false;
+  presencesError = '';
 
   private gardienId = '';
 
@@ -64,7 +73,8 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private gardiensService: GardiensService,
     private authService: AuthService,
-    private affectationsService: AffectationsService
+    private affectationsService: AffectationsService,
+    private presencesService: PresencesService
   ) {}
 
   get isSuperAdmin(): boolean {
@@ -87,6 +97,7 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
 
     this.fetchGardien();
     this.fetchAffectations();
+    this.fetchPresences();
   }
 
   ngOnDestroy(): void {
@@ -107,6 +118,7 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.affectations = res.affectations;
         this.affectationsLoading = false;
+        this.historiqueVersion += 1;
       },
       error: (err: HttpErrorResponse) => {
         this.affectationsError = err.error?.message || 'Impossible de charger les affectations.';
@@ -115,12 +127,46 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  fetchPresences(): void {
+    const au = new Date();
+    const du = new Date();
+    du.setDate(au.getDate() - 29);
+    this.presencesLoading = true;
+    this.presencesError = '';
+    let restant = 2;
+    const fin = () => {
+      restant -= 1;
+      if (restant === 0) this.presencesLoading = false;
+    };
+    const echec = (err: HttpErrorResponse) => {
+      this.presencesError = err.error?.message || 'Impossible de charger les présences.';
+      fin();
+    };
+    this.presencesService.rapport({ gardien: this.gardienId, du: dateIso(du), au: dateIso(au) }).subscribe({
+      next: (res) => { this.presencesTotaux = res.totaux; fin(); },
+      error: echec
+    });
+    this.presencesService.list({ gardien: this.gardienId }).subscribe({
+      next: (res) => { this.derniersServices = res.presences.slice(0, 10); fin(); },
+      error: echec
+    });
+  }
+
+  // Après une clôture / suppression : présences et statut du gardien (mis à jour par le pointage)
+  onPresencesChange(): void {
+    this.fetchPresences();
+    this.gardiensService.getById(this.gardienId).subscribe({
+      next: (res) => (this.gardien = res.gardien),
+      error: () => undefined
+    });
+  }
+
   get affectationsEnCours(): Affectation[] {
     return this.affectations.filter((a) => a.statut === 'en cours');
   }
 
-  get autresAffectations(): Affectation[] {
-    return this.affectations.filter((a) => a.statut !== 'en cours');
+  get affectationsAVenir(): Affectation[] {
+    return this.affectations.filter((a) => a.statut === 'a venir');
   }
 
   fetchGardien(): void {

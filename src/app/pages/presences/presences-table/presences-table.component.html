@@ -1,0 +1,134 @@
+@if (presences.length === 0) {
+  <p class="py-6 text-center text-sm text-neutral-500">{{ messageVide }}</p>
+} @else {
+  <div class="-mx-4 overflow-x-auto sm:-mx-5">
+    <table class="w-full min-w-[720px] text-left text-xs">
+      <thead class="bg-neutral-50 text-[10px] font-bold uppercase text-neutral-500">
+        <tr>
+          <th class="px-4 py-2.5 sm:pl-5">Date</th>
+          @if (masquer !== 'gardien') { <th class="px-3 py-2.5">Gardien</th> }
+          @if (masquer !== 'propriete') { <th class="px-3 py-2.5">Propriété</th> }
+          @if (mode === 'complet') {
+            <th class="px-3 py-2.5">Rôle</th>
+            <th class="px-3 py-2.5">Prévu</th>
+            <th class="px-3 py-2.5">Arrivée</th>
+            <th class="px-3 py-2.5">Départ</th>
+            <th class="px-3 py-2.5">Durée</th>
+            <th class="px-3 py-2.5">Retard</th>
+            <th class="px-3 py-2.5">Statut</th>
+            <th class="px-3 py-2.5">Clôture</th>
+          } @else {
+            <th class="px-3 py-2.5">Heure prévue</th>
+            <th class="px-3 py-2.5">Arrivée</th>
+            <th class="px-3 py-2.5">Retard</th>
+          }
+          <th class="px-4 py-2.5 sm:pr-5"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-neutral-100">
+        @for (p of presences; track p._id) {
+          <tr class="transition-colors hover:bg-neutral-50/70">
+            <td class="whitespace-nowrap px-4 py-3 font-medium text-neutral-800 sm:pl-5">{{ jour(p.jourService) }}</td>
+            @if (masquer !== 'gardien') {
+              <td class="px-3 py-3">
+                <div class="flex items-center gap-2">
+                  <app-affectation-avatar [src]="p.gardien?.photoProfil" [nom]="nom(p.gardien)" taille="h-8 w-8"></app-affectation-avatar>
+                  <div class="min-w-0">
+                    <p class="max-w-[160px] truncate font-semibold text-black">{{ nom(p.gardien) }}</p>
+                    <p class="text-[11px] text-neutral-500">{{ p.gardien?.matricule }}</p>
+                  </div>
+                </div>
+              </td>
+            }
+            @if (masquer !== 'propriete') {
+              <td class="px-3 py-3">
+                <p class="max-w-[150px] truncate font-medium text-black">{{ p.propriete?.nomReference || 'Propriété supprimée' }}</p>
+                <p class="max-w-[150px] truncate text-[11px] text-neutral-500">{{ p.propriete?.commune }}</p>
+              </td>
+            }
+            @if (mode === 'complet') {
+              <td class="whitespace-nowrap px-3 py-3 text-neutral-700">{{ role(p) }}</td>
+              <td class="whitespace-nowrap px-3 py-3 text-neutral-700">{{ heure(p.debutPrevu) }} → {{ heure(p.finPrevue) }}</td>
+              <td class="whitespace-nowrap px-3 py-3 text-neutral-800">
+                {{ heure(p.heureArrivee) }}
+                @if (p.positionArrivee?.horsZone) {
+                  <span title="Arrivée hors zone" class="ml-1 inline-block align-middle text-red-600">
+                    <svg viewBox="0 0 24 24" aria-label="Hors zone" class="h-3.5 w-3.5 fill-none stroke-current stroke-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11zM9.5 7.5l5 5m0-5-5 5" /></svg>
+                  </span>
+                }
+              </td>
+              <td class="whitespace-nowrap px-3 py-3 text-neutral-800">
+                {{ p.heureDepart ? heure(p.heureDepart) : '—' }}
+                @if (p.positionDepart?.horsZone) {
+                  <span title="Départ hors zone" class="ml-1 inline-block align-middle text-red-600">
+                    <svg viewBox="0 0 24 24" aria-label="Hors zone" class="h-3.5 w-3.5 fill-none stroke-current stroke-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11zM9.5 7.5l5 5m0-5-5 5" /></svg>
+                  </span>
+                }
+              </td>
+              <td class="whitespace-nowrap px-3 py-3 font-semibold tabular-nums text-black">{{ duree(p) }}</td>
+              <td class="whitespace-nowrap px-3 py-3">
+                @if (p.enRetard) {
+                  <span class="rounded-full border border-orange-200 bg-orange-100 px-2 py-0.5 text-[11px] font-medium text-orange-700">{{ p.retardMinutes }} min</span>
+                } @else if (p.retardMinutes > 0) {
+                  <span class="text-neutral-500">{{ p.retardMinutes }} min</span>
+                } @else {
+                  <span class="text-neutral-400">—</span>
+                }
+              </td>
+              <td class="whitespace-nowrap px-3 py-3"><span class="rounded-full px-2 py-0.5 text-[11px] font-medium" [ngClass]="statutBadge(p)">{{ statut(p) }}</span></td>
+              <td class="whitespace-nowrap px-3 py-3 text-neutral-600">{{ cloture(p) }}</td>
+            } @else {
+              <td class="whitespace-nowrap px-3 py-3 text-neutral-700">{{ heure(p.debutPrevu) }}</td>
+              <td class="whitespace-nowrap px-3 py-3 text-neutral-800">{{ heure(p.heureArrivee) }}</td>
+              <td class="whitespace-nowrap px-3 py-3"><span class="rounded-full border border-orange-200 bg-orange-100 px-2 py-0.5 text-[11px] font-semibold text-orange-700">{{ p.retardMinutes }} min</span></td>
+            }
+            <td class="whitespace-nowrap px-4 py-3 text-right sm:pr-5">
+              <div class="inline-flex items-center gap-1">
+                <button type="button" (click)="enDetail = p" title="Détail" aria-label="Voir le détail du service"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-neutral-100 hover:text-black">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+                </button>
+                @if (peutCloturer(p)) {
+                  <button type="button" (click)="enCloture = p" title="Clôturer" aria-label="Clôturer le service"
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-neutral-100 hover:text-black">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><circle cx="12" cy="12" r="9" /><rect x="9" y="9" width="6" height="6" rx="1" /></svg>
+                  </button>
+                }
+                @if (estSuperAdmin) {
+                  <button type="button" (click)="ouvrirSuppression(p)" title="Supprimer" aria-label="Supprimer ce pointage"
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-red-50 hover:text-red-600">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16zM10 11v6m4-6v6" /></svg>
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (enDetail; as p) {
+  <app-presence-detail [presence]="p" (closed)="enDetail = null"></app-presence-detail>
+}
+@if (enCloture; as p) {
+  <app-presence-cloture [presence]="p" (done)="changed.emit()" (closed)="enCloture = null"></app-presence-cloture>
+}
+@if (enSuppression; as p) {
+  <div class="fixed inset-0 z-[60] grid items-end bg-black/55 p-0 sm:items-center sm:p-5" (click)="fermerSuppression()">
+    <section class="mx-auto w-full max-w-md rounded-t-xl bg-white shadow-2xl sm:rounded-xl" role="alertdialog" aria-modal="true" aria-labelledby="suppression-presence-title" (click)="$event.stopPropagation()">
+      <div class="px-5 pt-6 sm:px-6">
+        <h2 id="suppression-presence-title" class="font-serif text-xl font-medium text-black">Supprimer ce pointage ?</h2>
+        <p class="mt-2 text-sm text-neutral-600">Le service de {{ nom(p.gardien) }} du {{ jour(p.jourService) }} sur {{ p.propriete?.nomReference }} sera définitivement supprimé. À utiliser uniquement pour un pointage erroné.</p>
+        @if (suppressionErreur) { <p class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">{{ suppressionErreur }}</p> }
+      </div>
+      <footer class="mt-6 flex flex-col-reverse gap-2 border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:flex-row sm:justify-end sm:rounded-b-xl sm:px-6">
+        <button type="button" (click)="fermerSuppression()" [disabled]="suppressionEnCours" class="min-h-11 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-50">Annuler</button>
+        <button type="button" (click)="confirmerSuppression()" [disabled]="suppressionEnCours" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-600 px-5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50">
+          @if (suppressionEnCours) { <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span> Suppression... } @else { Supprimer }
+        </button>
+      </footer>
+    </section>
+  </div>
+}

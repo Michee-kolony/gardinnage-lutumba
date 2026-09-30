@@ -1,0 +1,247 @@
+<main class="space-y-6 pb-8 text-neutral-900">
+  <header class="border-b border-neutral-200 pb-5">
+    <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Suivi des gardiens</p>
+    <h1 class="font-serif text-3xl font-medium leading-tight text-black">Présences</h1>
+    <p class="mt-2 text-sm text-neutral-500">Pointages d’arrivée et de départ, absences, retards et heures travaillées.</p>
+  </header>
+
+  <!-- Onglets -->
+  <nav class="-mx-1 flex gap-1 overflow-x-auto px-1" aria-label="Onglets des présences">
+    @for (o of onglets; track o.id) {
+      <button type="button" (click)="changerOnglet(o.id)"
+        class="whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-medium transition"
+        [ngClass]="onglet === o.id ? 'bg-black text-white' : 'bg-white text-neutral-600 border border-neutral-200 hover:border-black hover:text-black'">
+        {{ o.label }}
+      </button>
+    }
+  </nav>
+
+  <!-- Période commune et filtres -->
+  <section class="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm" aria-label="Période et filtres">
+    @if (onglet !== 'direct') {
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+        <div class="grid grid-cols-2 gap-3 lg:w-80">
+          <label class="grid gap-1">
+            <span class="text-[11px] font-semibold text-neutral-600">Du</span>
+            <input type="date" [(ngModel)]="du" (change)="charger()" [max]="au" class="h-10 rounded-lg border border-neutral-300 px-3 text-sm outline-none focus:border-black" />
+          </label>
+          <label class="grid gap-1">
+            <span class="text-[11px] font-semibold text-neutral-600">Au</span>
+            <input type="date" [(ngModel)]="au" (change)="charger()" [min]="du" class="h-10 rounded-lg border border-neutral-300 px-3 text-sm outline-none focus:border-black" />
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          @for (r of [{ id: 'jour', l: 'Aujourd’hui' }, { id: '7j', l: '7 jours' }, { id: '30j', l: '30 jours' }, { id: 'mois', l: 'Ce mois' }, { id: 'moisDernier', l: 'Mois dernier' }]; track r.id) {
+            <button type="button" (click)="raccourci($any(r.id))"
+              class="rounded-full border px-3 py-1.5 text-xs font-medium transition"
+              [ngClass]="raccourciActif($any(r.id)) ? 'border-black bg-black text-white' : 'border-neutral-300 bg-white text-neutral-700 hover:border-black'">{{ r.l }}</button>
+          }
+        </div>
+      </div>
+    } @else {
+      <p class="text-xs text-neutral-500">Situation en temps réel — actualisation automatique toutes les 60 secondes.</p>
+    }
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <select [(ngModel)]="filtreGardien" (ngModelChange)="charger()" aria-label="Filtrer par gardien"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-56">
+        <option value="">Tous les gardiens</option>
+        @for (g of gardiens; track g._id) { <option [value]="g._id">{{ nom(g) }} · {{ g.matricule }}</option> }
+      </select>
+      <select [(ngModel)]="filtrePropriete" (ngModelChange)="charger()" aria-label="Filtrer par propriété"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-56">
+        <option value="">Toutes les propriétés</option>
+        @for (p of proprietes; track p._id) { <option [value]="p._id">{{ p.nomReference }} · {{ p.commune }}</option> }
+      </select>
+      @if (onglet === 'historique') {
+        <select [(ngModel)]="filtreStatut" (ngModelChange)="charger()" aria-label="Filtrer par statut"
+          class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-44">
+          <option value="">Tous les statuts</option>
+          @for (s of statuts; track s) { <option [value]="s">{{ statutLabel(s) }}</option> }
+        </select>
+        <label class="inline-flex items-center gap-2 text-sm text-neutral-700"><input type="checkbox" [(ngModel)]="filtreEnRetard" (ngModelChange)="charger()" class="h-4 w-4 accent-black" /> En retard</label>
+        <label class="inline-flex items-center gap-2 text-sm text-neutral-700"><input type="checkbox" [(ngModel)]="filtreHorsZone" (ngModelChange)="charger()" class="h-4 w-4 accent-black" /> Hors zone</label>
+      }
+      @if (filtresActifs) {
+        <button type="button" (click)="reinitialiserFiltres()" class="text-xs font-medium text-neutral-600 underline hover:text-black">Réinitialiser</button>
+      }
+      <button type="button" (click)="charger()" [disabled]="loading"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700 transition hover:border-black hover:text-black disabled:opacity-50 sm:ml-auto">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2" [class.animate-spin]="loading"><path stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" /></svg>
+        Rafraîchir
+      </button>
+    </div>
+  </section>
+
+  @if (error) {
+    <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">{{ error }}</p>
+  }
+
+  @if (loading && !derniereMiseAJour) {
+    <div class="grid min-h-48 place-items-center gap-3 p-8 text-sm text-neutral-500"><span class="h-6 w-6 animate-spin rounded-full border-2 border-neutral-200 border-t-black"></span><p>Chargement...</p></div>
+  } @else {
+    @switch (onglet) {
+
+      @case ('tableau') {
+        @if (rapport) {
+          <app-presences-resume [totaux]="rapport.totaux"></app-presences-resume>
+          <section class="rounded-lg border border-neutral-200 bg-white px-4 shadow-sm sm:px-5">
+            <div class="flex items-center justify-between border-b border-neutral-100 py-4">
+              <h2 class="font-serif text-xl font-medium text-black">Par gardien</h2>
+              <p class="text-xs text-neutral-500">Tolérance de retard : {{ rapport.reglages.toleranceRetardMinutes }} min · zone : {{ rapport.reglages.rayonZoneMetres }} m</p>
+            </div>
+            @if (lignesTriees.length === 0) {
+              <p class="py-6 text-center text-sm text-neutral-500">Aucun service prévu sur cette période.</p>
+            } @else {
+              <div class="-mx-4 overflow-x-auto sm:-mx-5">
+                <table class="w-full min-w-[640px] text-left text-xs">
+                  <thead class="bg-neutral-50 text-[10px] font-bold uppercase text-neutral-500">
+                    <tr>
+                      @for (c of [{ k: 'nom', l: 'Gardien' }, { k: 'presences', l: 'Présences' }, { k: 'absences', l: 'Absences' }, { k: 'retards', l: 'Retards' }, { k: 'heuresTravaillees', l: 'Heures' }, { k: 'tauxPresence', l: 'Taux' }]; track c.k) {
+                        <th class="px-3 py-2.5 first:pl-4 sm:first:pl-5">
+                          <button type="button" (click)="trier($any(c.k))" class="inline-flex items-center gap-1 uppercase hover:text-black" [class.text-black]="tri === c.k">
+                            {{ c.l }} @if (tri === c.k) { <span aria-hidden="true">{{ triDesc ? '↓' : '↑' }}</span> }
+                          </button>
+                        </th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-neutral-100">
+                    @for (l of lignesTriees; track $index) {
+                      <tr (click)="voirHistoriqueGardien(l)" class="cursor-pointer transition-colors hover:bg-neutral-50" title="Voir l’historique de ce gardien">
+                        <td class="px-4 py-3 sm:pl-5">
+                          <div class="flex items-center gap-2">
+                            <app-affectation-avatar [src]="l.gardien?.photoProfil" [nom]="nom(l.gardien)" taille="h-8 w-8"></app-affectation-avatar>
+                            <div class="min-w-0">
+                              <p class="truncate font-semibold text-black">{{ nom(l.gardien) }}</p>
+                              <p class="text-[11px] text-neutral-500">{{ l.gardien?.matricule }}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-3 py-3 tabular-nums">{{ l.presences }}</td>
+                        <td class="px-3 py-3 tabular-nums" [class.text-red-700]="l.absences > 0">{{ l.absences }}@if (l.pasEncoreArrives) { <span class="text-orange-700"> (+{{ l.pasEncoreArrives }})</span>}</td>
+                        <td class="px-3 py-3 tabular-nums" [class.text-orange-700]="l.retards > 0">{{ l.retards }}@if (l.minutesRetard) { <span class="text-neutral-500"> · {{ l.minutesRetard }} min</span>}</td>
+                        <td class="px-3 py-3 font-semibold tabular-nums">{{ heures(l.heuresTravaillees) }}</td>
+                        <td class="px-3 py-3 tabular-nums">{{ l.tauxPresence === null ? '—' : l.tauxPresence + ' %' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </section>
+        }
+      }
+
+      @case ('direct') {
+        <section class="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <h2 class="font-serif text-xl font-medium text-black">En service maintenant <span class="text-base text-neutral-500">({{ enService.length }})</span></h2>
+            @if (derniereMiseAJour) { <p class="text-[11px] text-neutral-500">Mis à jour à {{ heure(derniereMiseAJour.toISOString()) }}</p> }
+          </div>
+          @if (enService.length === 0) {
+            <p class="py-4 text-sm text-neutral-500">Aucun gardien en service en ce moment.</p>
+          } @else {
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              @for (p of enService; track p._id) {
+                <article class="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50/40 p-3">
+                  <app-affectation-avatar [src]="p.gardien?.photoProfil" [nom]="nom(p.gardien)" taille="h-12 w-12"></app-affectation-avatar>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-semibold text-black">{{ nom(p.gardien) }}</p>
+                    <p class="truncate text-xs text-neutral-600">{{ p.propriete?.nomReference }}</p>
+                    <p class="text-xs text-neutral-600">Arrivé à {{ heure(p.heureArrivee) }} · fin prévue {{ heure(p.finPrevue) }}</p>
+                    <div class="mt-1 flex flex-wrap gap-1">
+                      @if (p.enRetard) { <span class="rounded-full border border-orange-200 bg-orange-100 px-2 py-0.5 text-[10px] font-medium text-orange-700">Retard {{ p.retardMinutes }} min</span> }
+                      @if (p.positionArrivee?.horsZone) { <span class="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700">Hors zone ({{ p.positionArrivee?.distanceMetres }} m)</span> }
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </section>
+        <section class="rounded-lg border border-orange-200 bg-white p-4 shadow-sm sm:p-5">
+          <h2 class="mb-3 font-serif text-xl font-medium text-black">Pas encore arrivés <span class="text-base text-neutral-500">({{ pasEncoreArrives.length }})</span></h2>
+          @if (pasEncoreArrives.length === 0) {
+            <p class="py-2 text-sm text-neutral-500">Aucune alerte : tous les services commencés ont été pointés.</p>
+          } @else {
+            <ul class="divide-y divide-neutral-100">
+              @for (a of pasEncoreArrives; track $index) {
+                <li class="flex items-center gap-3 py-3">
+                  <app-affectation-avatar [src]="a.gardien?.photoProfil" [nom]="nom(a.gardien)" taille="h-10 w-10"></app-affectation-avatar>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-semibold text-black">{{ nom(a.gardien) }} <span class="font-normal text-neutral-500">· {{ role(a.role) }}</span></p>
+                    <p class="truncate text-xs text-neutral-600">{{ a.propriete?.nomReference }} — prévu à {{ heure(a.debutPrevu) }}</p>
+                  </div>
+                  <span class="shrink-0 rounded-full border border-orange-200 bg-orange-100 px-2.5 py-1 text-[11px] font-medium text-orange-700">Pas encore arrivé</span>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+
+      @case ('historique') {
+        <section class="rounded-lg border border-neutral-200 bg-white px-4 shadow-sm sm:px-5">
+          <div class="flex items-center justify-between border-b border-neutral-100 py-4">
+            <h2 class="font-serif text-xl font-medium text-black">Services</h2>
+            <p class="text-xs text-neutral-500">{{ presences.length }} service(s)</p>
+          </div>
+          <app-presences-table [presences]="presences" (changed)="charger()"></app-presences-table>
+        </section>
+      }
+
+      @case ('absences') {
+        <section class="rounded-lg border border-neutral-200 bg-white px-4 shadow-sm sm:px-5">
+          <div class="flex items-center justify-between border-b border-neutral-100 py-4">
+            <h2 class="font-serif text-xl font-medium text-black">Absences</h2>
+            <p class="text-xs text-neutral-500">{{ absences.length }} service(s) non pointé(s)</p>
+          </div>
+          @if (absences.length === 0) {
+            <p class="py-6 text-center text-sm text-neutral-500">Aucune absence sur cette période.</p>
+          } @else {
+            <div class="-mx-4 overflow-x-auto sm:-mx-5">
+              <table class="w-full min-w-[600px] text-left text-xs">
+                <thead class="bg-neutral-50 text-[10px] font-bold uppercase text-neutral-500">
+                  <tr><th class="px-4 py-2.5 sm:pl-5">Date</th><th class="px-3 py-2.5">Gardien</th><th class="px-3 py-2.5">Propriété</th><th class="px-3 py-2.5">Rôle</th><th class="px-3 py-2.5">Horaire prévu</th><th class="px-4 py-2.5 sm:pr-5">État</th></tr>
+                </thead>
+                <tbody class="divide-y divide-neutral-100">
+                  @for (a of absences; track $index) {
+                    <tr>
+                      <td class="whitespace-nowrap px-4 py-3 font-medium sm:pl-5">{{ jour(a.jourService) }}</td>
+                      <td class="px-3 py-3">
+                        <div class="flex items-center gap-2">
+                          <app-affectation-avatar [src]="a.gardien?.photoProfil" [nom]="nom(a.gardien)" taille="h-8 w-8"></app-affectation-avatar>
+                          <div class="min-w-0"><p class="max-w-[160px] truncate font-semibold text-black">{{ nom(a.gardien) }}</p><p class="text-[11px] text-neutral-500">{{ a.gardien?.matricule }}</p></div>
+                        </div>
+                      </td>
+                      <td class="px-3 py-3"><p class="max-w-[150px] truncate font-medium">{{ a.propriete?.nomReference }}</p><p class="text-[11px] text-neutral-500">{{ a.propriete?.commune }}</p></td>
+                      <td class="whitespace-nowrap px-3 py-3">{{ role(a.role) }}</td>
+                      <td class="whitespace-nowrap px-3 py-3">{{ horairePrevu(a) }}</td>
+                      <td class="whitespace-nowrap px-4 py-3 sm:pr-5">
+                        @if (a.etat === 'absent') {
+                          <span class="rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700">Absent</span>
+                        } @else {
+                          <span class="rounded-full border border-orange-200 bg-orange-100 px-2 py-0.5 text-[11px] font-medium text-orange-700">Pas encore arrivé</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      }
+
+      @case ('retards') {
+        <section class="rounded-lg border border-neutral-200 bg-white px-4 shadow-sm sm:px-5">
+          <div class="flex items-center justify-between border-b border-neutral-100 py-4">
+            <h2 class="font-serif text-xl font-medium text-black">Retards</h2>
+            <p class="text-xs text-neutral-500">{{ presences.length }} retard(s)</p>
+          </div>
+          <app-presences-table [presences]="presences" mode="retards" messageVide="Aucun retard sur cette période." (changed)="charger()"></app-presences-table>
+        </section>
+      }
+    }
+  }
+</main>

@@ -297,7 +297,7 @@
               <button type="button" (click)="fetchAffectations()" class="text-xs font-medium text-black underline">Réessayer</button>
             </div>
           } @else {
-            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">En cours</h3>
+            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Services en cours</h3>
             <div class="mt-1 mb-4 rounded-xl border border-green-200 bg-green-50/40 px-3">
               <app-affectations-liste
                 [affectations]="affectationsEnCours"
@@ -306,13 +306,56 @@
                 (changed)="fetchAffectations()"
               ></app-affectations-liste>
             </div>
-            <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">À venir et historique</h3>
-            <app-affectations-liste
-              [affectations]="autresAffectations"
+            @if (affectationsAVenir.length > 0) {
+              <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wide">À venir</h3>
+              <div class="mb-4">
+                <app-affectations-liste
+                  [affectations]="affectationsAVenir"
+                  masquer="gardien"
+                  (changed)="fetchAffectations()"
+                ></app-affectations-liste>
+              </div>
+            }
+          }
+          <h3 class="mb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Historique</h3>
+          <app-affectations-historique
+            [gardien]="gardien._id"
+            statut="expiree"
+            messageVide="Aucune affectation passée."
+            [rafraichir]="historiqueVersion"
+          ></app-affectations-historique>
+        </div>
+
+        <!-- Présences -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 class="text-sm font-semibold text-black">Présences</h2>
+              <p class="text-xs text-neutral-500 mt-0.5">30 derniers jours · statut actuel : <span class="font-medium text-black">{{ gardien.statut }}</span></p>
+            </div>
+            <a routerLink="/admin/presences" class="text-xs font-medium text-neutral-600 underline hover:text-black">Tout le suivi</a>
+          </div>
+          @if (presencesLoading && !presencesTotaux) {
+            <div class="flex items-center gap-2 py-4 text-sm text-neutral-500">
+              <span class="h-4 w-4 rounded-full border-2 border-neutral-200 border-t-black animate-spin"></span>
+              Chargement des présences...
+            </div>
+          } @else if (presencesError) {
+            <div class="flex items-center gap-3 py-4">
+              <p class="text-sm text-red-600">{{ presencesError }}</p>
+              <button type="button" (click)="fetchPresences()" class="text-xs font-medium text-black underline">Réessayer</button>
+            </div>
+          } @else {
+            @if (presencesTotaux) {
+              <app-presences-resume [totaux]="presencesTotaux" [compact]="true"></app-presences-resume>
+            }
+            <h3 class="mt-5 mb-2 text-xs font-semibold text-neutral-500 uppercase tracking-wide">10 derniers services</h3>
+            <app-presences-table
+              [presences]="derniersServices"
               masquer="gardien"
-              messageVide="Aucune autre affectation."
-              (changed)="fetchAffectations()"
-            ></app-affectations-liste>
+              messageVide="Aucun service pointé sur les 30 derniers jours."
+              (changed)="onPresencesChange()"
+            ></app-presences-table>
           }
         </div>
 

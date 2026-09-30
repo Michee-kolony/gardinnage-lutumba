@@ -5,11 +5,16 @@ import {
   Affectation,
   AffectationsService,
   CreateAffectationPayload,
+  JOURS_SERVICE,
+  JourService,
+  RoleAffectation,
   UNITES_DUREE,
   UniteDuree,
   UpdateAffectationPayload,
   ajouterDuree,
-  nomCompletGardien
+  nomComplet,
+  passeMinuit,
+  roleLabel
 } from '../../../core/affectations.service';
 import { Gardien, GardiensService } from '../../../core/gardiens.service';
 import { Propriete, ProprietesService, formatDateCourte } from '../../../core/proprietes.service';
@@ -17,23 +22,29 @@ import { Propriete, ProprietesService, formatDateCourte } from '../../../core/pr
 interface AffectationFormModel {
   propriete: string;
   gardien: string;
+  // '' = Automatique (role non envoyé)
+  role: RoleAffectation | '';
+  heureDebut: string;
+  heureFin: string;
+  joursService: JourService[];
   duree: number | null;
   uniteDuree: UniteDuree;
   // 'AAAA-MM-JJ' ou '' (= aujourd'hui côté serveur)
   dateDebut: string;
-  estPrincipal: boolean;
   description: string;
 }
 
-// Modal de création (affectation = null) ou de modification d'une affectation.
-// Le statut et la date de fin sont toujours calculés par le serveur : ils ne
-// sont jamais envoyés. La propriété et le gardien ne sont pas modifiables.
+const FORMAT_HEURE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// Modal « Affecter un gardien » (affectation = null) ou « Modifier l'affectation ».
+// Le statut, la date de fin et les rôles des autres affectations sont gérés par
+// le serveur : ils ne sont jamais envoyés ni modifiés ici.
 @Component({
   selector: 'app-affectation-form',
   templateUrl: './affectation-form.component.html'
 })
 export class AffectationFormComponent implements OnInit {
-  // Préselection (création depuis la fiche propriété ou la fiche gardien)
+  // Préselection (depuis la fiche propriété ou la fiche gardien)
   @Input() proprieteId = '';
   @Input() gardienId = '';
   // Affectation à modifier ; null = création
@@ -43,18 +54,20 @@ export class AffectationFormComponent implements OnInit {
   @Output() closed = new EventEmitter<void>();
 
   readonly unites = UNITES_DUREE;
+  readonly semaine = JOURS_SERVICE;
+  readonly raccourcis = [
+    { label: 'Nuit', debut: '18:00', fin: '06:00' },
+    { label: 'Jour', debut: '06:00', fin: '18:00' },
+    { label: '24 h', debut: '06:00', fin: '06:00' }
+  ];
   formModel: AffectationFormModel = this.emptyForm();
 
   proprietes: Propriete[] = [];
   gardiens: Gardien[] = [];
-  // Affectations en cours : aide pour signaler les gardiens occupés et le principal actuel
-  // (le serveur reste l'autorité : réponse 409)
+  // Affectations en cours : aide pour le principal actuel et les gardiens déjà en service
   enCours: Affectation[] = [];
   chargement = false;
   chargementErreur = '';
-
-  gardienPickerOpen = false;
-  gardienSearchTerm = '';
 
   submitting = false;
   formError = '';
@@ -71,10 +84,13 @@ export class AffectationFormComponent implements OnInit {
       this.formModel = {
         propriete: a.propriete?._id || '',
         gardien: a.gardien?._id || '',
+        role: a.role,
+        heureDebut: a.heureDebut || '',
+        heureFin: a.heureFin || '',
+        joursService: a.joursService?.length ? [...a.joursService] : [...JOURS_SERVICE],
         duree: a.duree,
         uniteDuree: a.uniteDuree,
         dateDebut: this.toDateInputValue(a.dateDebut),
-        estPrincipal: a.estPrincipal,
         description: a.description || ''
       };
     } else {
@@ -89,10 +105,6 @@ export class AffectationFormComponent implements OnInit {
 
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
-    if (this.gardienPickerOpen) {
-      this.gardienPickerOpen = false;
-      return;
-    }
     this.close();
   }
 
@@ -105,47 +117,46 @@ export class AffectationFormComponent implements OnInit {
     return duree !== null && Number.isInteger(Number(duree)) && Number(duree) >= 1;
   }
 
+  get heuresValides(): boolean {
+    return FORMAT_HEURE.test(this.formModel.heureDebut) && FORMAT_HEURE.test(this.formModel.heureFin);
+  }
+
   get formValide(): boolean {
-    return this.dureeValide && !!this.formModel.propriete && !!this.formModel.gardien;
+    return this.dureeValide && this.heuresValides && this.formModel.joursService.length > 0
+      && !!this.formModel.propriete && !!this.formModel.gardien;
   }
 
-  get selectedGardien(): Gardien | undefined {
-    return this.gardiens.find((g) => g._id === this.formModel.gardien);
+  get selectedPropriete(): Propriete | undefined {
+    return this.proprietes.find((p) => p._id === this.formModel.propriete);
   }
 
-  get filteredGardiens(): Gardien[] {
-    const term = this.gardienSearchTerm.trim().toLowerCase();
-    if (!term) {
-      return this.gardiens;
-    }
-    return this.gardiens.filter((g) =>
-      `${nomCompletGardien(g)} ${g.matricule}`.toLowerCase().includes(term)
-    );
+  get proprietaireNom(): string {
+    const proprietaire = this.affectation ? this.affectation.propriete?.proprietaire : this.selectedPropriete?.proprietaire;
+    return proprietaire ? nomComplet(proprietaire) : '';
   }
 
-  // Affectation en cours du gardien ailleurs (indication seulement)
-  occupation(gardien: Gardien): Affectation | undefined {
-    return this.enCours.find((a) => a.gardien?._id === gardien._id && a._id !== this.affectation?._id);
+  get proprietairePhoto(): string {
+    const proprietaire = this.affectation ? this.affectation.propriete?.proprietaire : this.selectedPropriete?.proprietaire;
+    return proprietaire?.photo || '';
   }
 
-  occupationLabel(gardien: Gardien): string {
-    const a = this.occupation(gardien);
-    return a ? `Occupé : ${a.propriete?.nomReference || 'une propriété'} jusqu'au ${formatDateCourte(a.dateFin)}` : '';
+  get finLendemain(): boolean {
+    return this.heuresValides && passeMinuit(this.formModel.heureDebut, this.formModel.heureFin);
   }
 
-  // Gardien principal actuel de la propriété choisie (autre que cette affectation)
+  // Principal en cours sur la propriété (autre que cette affectation)
   get principalActuel(): Affectation | undefined {
     return this.enCours.find((a) =>
-      a.estPrincipal && a.propriete?._id === this.formModel.propriete && a._id !== this.affectation?._id
+      a.role === 'principal' && a.propriete?._id === this.formModel.propriete && a._id !== this.affectation?._id
     );
   }
 
   get avertissementPrincipal(): string {
     const principal = this.principalActuel;
-    if (!this.formModel.estPrincipal || !principal || principal.gardien?._id === this.formModel.gardien) {
+    if (this.formModel.role !== 'principal' || !principal || principal.gardien?._id === this.formModel.gardien) {
       return '';
     }
-    return `${nomCompletGardien(principal.gardien)} est actuellement le gardien principal ; il sera remplacé.`;
+    return `${nomComplet(principal.gardien)} est le gardien principal actuel ; il deviendra remplaçant.`;
   }
 
   // Aperçu « Du <début> au <fin estimée> », même calcul que le serveur
@@ -163,8 +174,12 @@ export class AffectationFormComponent implements OnInit {
     return `Du ${formatDateCourte(debut)} au ${formatDateCourte(fin)}`;
   }
 
-  nomGardien(gardien: Pick<Gardien, 'prenom' | 'nom' | 'postnom'> | null): string {
-    return nomCompletGardien(gardien);
+  nom(personne: { prenom?: string; nom?: string; postnom?: string } | null | undefined): string {
+    return nomComplet(personne);
+  }
+
+  roleLabel(role: RoleAffectation): string {
+    return roleLabel(role);
   }
 
   uniteLabel(unite: UniteDuree): string {
@@ -172,14 +187,29 @@ export class AffectationFormComponent implements OnInit {
     return labels[unite];
   }
 
-  toggleGardienPicker(): void {
-    this.gardienPickerOpen = !this.gardienPickerOpen;
-    this.gardienSearchTerm = '';
+  appliquerRaccourci(raccourci: { debut: string; fin: string }): void {
+    this.formModel.heureDebut = raccourci.debut;
+    this.formModel.heureFin = raccourci.fin;
   }
 
-  selectGardien(gardien: Gardien): void {
-    this.formModel.gardien = gardien._id;
-    this.gardienPickerOpen = false;
+  raccourciActif(raccourci: { debut: string; fin: string }): boolean {
+    return this.formModel.heureDebut === raccourci.debut && this.formModel.heureFin === raccourci.fin;
+  }
+
+  jourActif(jour: JourService): boolean {
+    return this.formModel.joursService.includes(jour);
+  }
+
+  // Les jours restent dans l'ordre de la semaine
+  basculerJour(jour: JourService): void {
+    const jours = this.jourActif(jour)
+      ? this.formModel.joursService.filter((j) => j !== jour)
+      : [...this.formModel.joursService, jour];
+    this.formModel.joursService = JOURS_SERVICE.filter((j) => jours.includes(j));
+  }
+
+  toutesLesJournees(): void {
+    this.formModel.joursService = [...JOURS_SERVICE];
   }
 
   chargerListes(): void {
@@ -222,7 +252,7 @@ export class AffectationFormComponent implements OnInit {
         this.saved.emit(res.affectation);
         this.closed.emit();
       },
-      // 409 (gardien déjà affecté ailleurs), 400, 404… : message du serveur, formulaire conservé
+      // 409 (service qui se croise), 400, 404… : message du serveur, formulaire conservé
       error: (err: HttpErrorResponse) => {
         this.submitting = false;
         this.formError = err.error?.message || 'Impossible d’enregistrer cette affectation.';
@@ -237,9 +267,12 @@ export class AffectationFormComponent implements OnInit {
       gardien: form.gardien,
       duree: Number(form.duree),
       uniteDuree: form.uniteDuree,
+      heureDebut: form.heureDebut,
+      heureFin: form.heureFin,
+      joursService: form.joursService,
       ...(form.dateDebut ? { dateDebut: form.dateDebut } : {}),
-      // Non coché : le serveur désigne le principal automatiquement s'il n'y en a pas
-      ...(form.estPrincipal ? { estPrincipal: true } : {}),
+      // Automatique : le serveur choisit principal ou remplaçant
+      ...(form.role ? { role: form.role } : {}),
       ...(form.description.trim() ? { description: form.description.trim() } : {})
     };
   }
@@ -248,10 +281,13 @@ export class AffectationFormComponent implements OnInit {
   private buildUpdatePayload(a: Affectation): UpdateAffectationPayload {
     const form = this.formModel;
     const payload: UpdateAffectationPayload = {};
+    if (form.role && form.role !== a.role) payload.role = form.role;
+    if (form.heureDebut !== (a.heureDebut || '')) payload.heureDebut = form.heureDebut;
+    if (form.heureFin !== (a.heureFin || '')) payload.heureFin = form.heureFin;
+    if (form.joursService.join(',') !== (a.joursService || []).join(',')) payload.joursService = form.joursService;
     if (Number(form.duree) !== a.duree) payload.duree = Number(form.duree);
     if (form.uniteDuree !== a.uniteDuree) payload.uniteDuree = form.uniteDuree;
     if (form.dateDebut && form.dateDebut !== this.toDateInputValue(a.dateDebut)) payload.dateDebut = form.dateDebut;
-    if (form.estPrincipal !== a.estPrincipal) payload.estPrincipal = form.estPrincipal;
     if (form.description !== (a.description || '')) payload.description = form.description;
     return payload;
   }
@@ -271,6 +307,17 @@ export class AffectationFormComponent implements OnInit {
   }
 
   private emptyForm(): AffectationFormModel {
-    return { propriete: '', gardien: '', duree: 1, uniteDuree: 'mois', dateDebut: '', estPrincipal: false, description: '' };
+    return {
+      propriete: '',
+      gardien: '',
+      role: '',
+      heureDebut: '',
+      heureFin: '',
+      joursService: [...JOURS_SERVICE],
+      duree: 1,
+      uniteDuree: 'mois',
+      dateDebut: '',
+      description: ''
+    };
   }
 }

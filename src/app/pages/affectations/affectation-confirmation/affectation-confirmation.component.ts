@@ -2,13 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Affectation, AffectationsService, nomCompletGardien } from '../../../core/affectations.service';
+import { Affectation, AffectationsService, nomComplet } from '../../../core/affectations.service';
 
-export type ActionAffectation = 'terminer' | 'supprimer' | 'principal';
+export type ActionAffectation = 'supprimer' | 'principal';
 
-// Confirmation puis exécution d'une action sur une affectation. Le parent doit
-// recharger ses données depuis le serveur (un changement de principal modifie
-// aussi les autres affectations de la propriété).
+// Confirmation puis exécution de « Définir principal » ou « Supprimer ». Le parent
+// doit recharger ses données depuis le serveur (un changement de principal fait
+// passer l'ancien principal en remplaçant).
+// Retirer et Remplacer ont leurs propres modals (motif, nouveau gardien).
 @Component({
   selector: 'app-affectation-confirmation',
   templateUrl: './affectation-confirmation.component.html'
@@ -30,7 +31,7 @@ export class AffectationConfirmationComponent {
   }
 
   get gardienNom(): string {
-    return nomCompletGardien(this.affectation.gardien);
+    return nomComplet(this.affectation.gardien);
   }
 
   get proprieteNom(): string {
@@ -39,7 +40,6 @@ export class AffectationConfirmationComponent {
 
   get titre(): string {
     const titres: Record<ActionAffectation, string> = {
-      terminer: 'Terminer l’affectation',
       supprimer: 'Supprimer l’affectation',
       principal: 'Définir le gardien principal'
     };
@@ -47,9 +47,6 @@ export class AffectationConfirmationComponent {
   }
 
   get message(): string {
-    if (this.action === 'terminer') {
-      return `Mettre fin à l'affectation de ${this.gardienNom} sur ${this.proprieteNom} maintenant ?`;
-    }
     if (this.action === 'principal') {
       return `${this.gardienNom} deviendra le gardien principal de ${this.proprieteNom}.`;
     }
@@ -57,7 +54,7 @@ export class AffectationConfirmationComponent {
   }
 
   get boutonLabel(): string {
-    const labels: Record<ActionAffectation, string> = { terminer: 'Terminer', supprimer: 'Supprimer', principal: 'Confirmer' };
+    const labels: Record<ActionAffectation, string> = { supprimer: 'Supprimer', principal: 'Confirmer' };
     return labels[this.action];
   }
 
@@ -77,7 +74,6 @@ export class AffectationConfirmationComponent {
     }
     const id = this.affectation._id;
     const requetes: Record<ActionAffectation, () => Observable<unknown>> = {
-      terminer: () => this.affectationsService.terminer(id),
       supprimer: () => this.affectationsService.remove(id),
       principal: () => this.affectationsService.definirPrincipal(id)
     };

@@ -3,7 +3,7 @@
     <div>
       <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Surveillance</p>
       <h1 class="font-serif text-3xl font-medium leading-tight text-black">Affectations</h1>
-      <p class="mt-2 text-sm text-neutral-500">Gardiens affectés aux propriétés, gardien principal et périodes.</p>
+      <p class="mt-2 text-sm text-neutral-500">Gardiens affectés aux propriétés : rôles, horaires, jours de service et périodes.</p>
     </div>
     @if (estAdmin) {
       <button type="button" (click)="formOpen = true"
@@ -25,17 +25,24 @@
       }
     </div>
     <select [(ngModel)]="filtrePropriete" (ngModelChange)="fetchAffectations()" aria-label="Filtrer par propriété"
-      class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 lg:w-60">
+      class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 lg:w-56">
       <option value="">Toutes les propriétés</option>
       @for (propriete of proprietes; track propriete._id) {
         <option [value]="propriete._id">{{ propriete.nomReference }} · {{ propriete.commune }}</option>
       }
     </select>
     <select [(ngModel)]="filtreGardien" (ngModelChange)="fetchAffectations()" aria-label="Filtrer par gardien"
-      class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 lg:w-60">
+      class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 lg:w-56">
       <option value="">Tous les gardiens</option>
       @for (gardien of gardiens; track gardien._id) {
         <option [value]="gardien._id">{{ nomGardien(gardien) }} · {{ gardien.matricule }}</option>
+      }
+    </select>
+    <select [(ngModel)]="filtreRole" (ngModelChange)="fetchAffectations()" aria-label="Filtrer par rôle"
+      class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 lg:w-44">
+      <option value="">Tous les rôles</option>
+      @for (role of roles; track role) {
+        <option [value]="role">{{ roleLabel(role) }}</option>
       }
     </select>
     @if (filtresActifs) {

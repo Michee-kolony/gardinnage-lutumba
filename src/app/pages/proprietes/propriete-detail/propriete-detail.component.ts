@@ -23,7 +23,8 @@ import {
 import { DevisePaiement, ModePaiement, Paiement, PaiementsService, dureeAbonnementLabel } from '../../../core/paiements.service';
 import { Proprietaire, ProprietairesService } from '../../../core/proprietaires.service';
 import { AuthService } from '../../../core/auth.service';
-import { Affectation, AffectationsService, StatutAffectation } from '../../../core/affectations.service';
+import { Affectation, AffectationsService } from '../../../core/affectations.service';
+import { Presence, PresencesService } from '../../../core/presences.service';
 
 const LOGO_URL = '/images/logo.png';
 
@@ -66,17 +67,20 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
   paiementEnModification: Paiement | null = null;
   paiementEnSuppression: Paiement | null = null;
 
-  // Gardiens affectés (filtrés par le serveur selon l'onglet)
-  readonly ongletsAffectations: { statut: StatutAffectation; label: string }[] = [
-    { statut: 'en cours', label: 'En cours' },
-    { statut: 'a venir', label: 'À venir' },
-    { statut: 'expiree', label: 'Historique' }
-  ];
-  affectations: Affectation[] = [];
-  affectationsOnglet: StatutAffectation = 'en cours';
+  // Gardiens affectés : équipe en cours (principal en premier, trié par le serveur) et à venir
+  affectationsEnCours: Affectation[] = [];
+  affectationsAVenir: Affectation[] = [];
   affectationsLoading = false;
   affectationsError = '';
   affectationFormOpen = false;
+  historiqueOpen = false;
+  historiqueVersion = 0;
+
+  // Présences : gardiens en service maintenant + services récents (30 derniers jours)
+  presencesEnCours: Presence[] = [];
+  presencesRecentes: Presence[] = [];
+  presencesLoading = false;
+  presencesError = '';
 
   isGeneratingContrat = false;
   contratApercuModalOpen = false;
@@ -96,6 +100,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
     private proprietairesService: ProprietairesService,
     private paiementsService: PaiementsService,
     private affectationsService: AffectationsService,
+    private presencesService: PresencesService,
     private authService: AuthService
   ) {}
 
@@ -121,6 +126,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
     this.fetchPropriete();
     this.fetchPaiements();
     this.fetchAffectations();
+    this.fetchPresences();
   }
 
   ngOnDestroy(): void {
@@ -134,6 +140,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
     this.closeDeleteModal();
     this.closeEditModal();
     this.contratApercuModalOpen = false;
+    this.historiqueOpen = false;
   }
 
   openContratApercuModal(): void {
@@ -191,30 +198,57 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
     return this.authService.isAdmin();
   }
 
+  // Rechargé depuis le serveur après chaque action : définir un principal ou
+  // remplacer un gardien modifie aussi les autres affectations de la propriété
   fetchAffectations(): void {
     this.affectationsLoading = true;
     this.affectationsError = '';
-    this.affectationsService.list({ propriete: this.proprieteId, statut: this.affectationsOnglet }).subscribe({
-      next: (res) => {
-        this.affectations = res.affectations;
-        this.affectationsLoading = false;
-      },
-      error: (err: HttpErrorResponse) => {
-        this.affectationsError = err.error?.message || 'Impossible de charger les gardiens affectés.';
-        this.affectationsLoading = false;
-      }
+    let restant = 2;
+    const fin = () => {
+      restant -= 1;
+      if (restant === 0) this.affectationsLoading = false;
+    };
+    const erreur = (err: HttpErrorResponse) => {
+      this.affectationsError = err.error?.message || 'Impossible de charger les gardiens affectés.';
+      fin();
+    };
+    this.affectationsService.list({ propriete: this.proprieteId, statut: 'en cours' }).subscribe({
+      next: (res) => { this.affectationsEnCours = res.affectations; fin(); },
+      error: erreur
+    });
+    this.affectationsService.list({ propriete: this.proprieteId, statut: 'a venir' }).subscribe({
+      next: (res) => { this.affectationsAVenir = res.affectations; fin(); },
+      error: erreur
+    });
+    this.historiqueVersion += 1;
+  }
+
+  // --- Présences ---
+
+  fetchPresences(): void {
+    this.presencesLoading = true;
+    this.presencesError = '';
+    let restant = 2;
+    const fin = () => {
+      restant -= 1;
+      if (restant === 0) this.presencesLoading = false;
+    };
+    const echec = (err: HttpErrorResponse) => {
+      this.presencesError = err.error?.message || 'Impossible de charger les présences.';
+      fin();
+    };
+    this.presencesService.list({ propriete: this.proprieteId, statut: 'en cours' }).subscribe({
+      next: (res) => { this.presencesEnCours = res.presences; fin(); },
+      error: echec
+    });
+    this.presencesService.list({ propriete: this.proprieteId }).subscribe({
+      next: (res) => { this.presencesRecentes = res.presences.slice(0, 10); fin(); },
+      error: echec
     });
   }
 
-  changerOngletAffectations(onglet: StatutAffectation): void {
-    this.affectationsOnglet = onglet;
-    this.fetchAffectations();
-  }
-
-  get messageAffectationsVide(): string {
-    if (this.affectationsOnglet === 'en cours') return 'Aucun gardien affecté en ce moment.';
-    if (this.affectationsOnglet === 'a venir') return 'Aucune affectation à venir.';
-    return 'Aucune affectation passée.';
+  heurePresence(iso: string | null): string {
+    return iso ? new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : '—';
   }
 
   // --- Abonnement / paiements ---

@@ -3,15 +3,16 @@
 } @else {
   <ul class="divide-y divide-neutral-100">
     @for (affectation of affectations; track affectation._id) {
-      <li class="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center">
+      <li class="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center"
+        [ngClass]="enVedette(affectation) ? 'my-2 rounded-xl border border-amber-200 bg-amber-50/50 px-3 sm:px-4' : ''">
         <div class="flex min-w-0 flex-1 flex-col gap-3 md:flex-row md:items-center md:gap-5">
 
           @if (masquer !== 'gardien') {
             <div class="flex min-w-0 items-center gap-3 md:w-64 md:shrink-0">
-              <app-affectation-avatar [src]="affectation.gardien?.photoProfil" [nom]="nomGardien(affectation)" taille="h-11 w-11"></app-affectation-avatar>
+              <app-affectation-avatar [src]="affectation.gardien?.photoProfil" [nom]="nom(affectation.gardien)" [taille]="enVedette(affectation) ? 'h-16 w-16' : 'h-11 w-11'"></app-affectation-avatar>
               <div class="min-w-0">
                 @if (affectation.gardien) {
-                  <a [routerLink]="['/admin/gardiens', affectation.gardien._id]" class="block truncate text-sm font-semibold text-black hover:underline">{{ nomGardien(affectation) }}</a>
+                  <a [routerLink]="['/admin/gardiens', affectation.gardien._id]" class="block truncate font-semibold text-black hover:underline" [ngClass]="enVedette(affectation) ? 'text-base' : 'text-sm'">{{ nom(affectation.gardien) }}</a>
                   <p class="truncate text-xs text-neutral-500">{{ affectation.gardien.matricule }}</p>
                   @if (afficherTelephone && affectation.gardien.telephonePrincipal) {
                     <p class="truncate text-xs text-neutral-500">{{ affectation.gardien.telephonePrincipal }}</p>
@@ -19,6 +20,12 @@
                 } @else {
                   <p class="text-sm text-neutral-500">Gardien supprimé</p>
                 }
+                <span class="mt-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium" [ngClass]="roleBadgeClass(affectation)">
+                  @if (affectation.role === 'principal') {
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="h-3 w-3 fill-current"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" /></svg>
+                  }
+                  {{ roleLabel(affectation) }}
+                </span>
               </div>
             </div>
           }
@@ -30,59 +37,63 @@
                 @if (affectation.propriete) {
                   <a [routerLink]="['/admin/proprietes', affectation.propriete._id]" class="block truncate text-sm font-semibold text-black hover:underline">{{ affectation.propriete.nomReference }}</a>
                   <p class="truncate text-xs text-neutral-500">{{ affectation.propriete.commune }} — {{ affectation.propriete.quartier }}</p>
+                  @if (affectation.propriete.proprietaire) {
+                    <p class="truncate text-xs text-neutral-500">Propriétaire : {{ nom(affectation.propriete.proprietaire, '') }}</p>
+                  }
                 } @else {
                   <p class="text-sm text-neutral-500">Propriété supprimée</p>
+                }
+                @if (masquer === 'gardien') {
+                  <span class="mt-1 inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium" [ngClass]="roleBadgeClass(affectation)">{{ roleLabel(affectation) }}</span>
                 }
               </div>
             </div>
           }
 
-          <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-center gap-1.5">
-              <span class="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium" [ngClass]="statutBadgeClass(affectation)">{{ statutLabel(affectation) }}</span>
-              @if (affectation.estPrincipal) {
-                <span class="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-amber-300 bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
-                  <svg viewBox="0 0 24 24" aria-hidden="true" class="h-3.5 w-3.5 fill-current"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" /></svg>
-                  Principal
-                </span>
-              }
+          <div class="min-w-0 flex-1 space-y-1.5">
+            <app-affectation-horaire [heureDebut]="affectation.heureDebut" [heureFin]="affectation.heureFin" [joursService]="affectation.joursService"></app-affectation-horaire>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-medium" [ngClass]="statutBadgeClass(affectation)">{{ statutLabel(affectation) }}</span>
+              <span class="text-xs text-neutral-600">{{ periode(affectation) }}</span>
             </div>
-            <p class="mt-1.5 text-xs text-neutral-700">{{ periode(affectation) }} <span class="text-neutral-400">· {{ duree(affectation) }}</span></p>
-            @if (affectation.termineeLe) {
-              <p class="mt-0.5 text-[11px] text-neutral-500">Terminée le {{ dateCourte(affectation.termineeLe) }}</p>
-            }
-            @if (affectation.description) {
-              <p class="mt-0.5 line-clamp-2 text-[11px] text-neutral-500">{{ affectation.description }}</p>
-            }
+            <app-affectation-suivi [affectation]="affectation"></app-affectation-suivi>
           </div>
         </div>
 
-        @if (estAdmin) {
-          <div class="flex shrink-0 items-center gap-1 self-end sm:self-center">
-            @if (peutModifier(affectation)) {
-              <button type="button" (click)="enModification = affectation" title="Modifier" [attr.aria-label]="'Modifier l’affectation de ' + nomGardien(affectation)"
+        <div class="flex shrink-0 items-center gap-1 self-end sm:self-center">
+          @if (!active(affectation)) {
+            <button type="button" (click)="enDetail = affectation" title="Voir le détail" [attr.aria-label]="'Voir le détail de l’affectation de ' + nom(affectation.gardien)"
+              class="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-neutral-100 hover:text-black">
+              <svg viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px" class="fill-none stroke-current stroke-2"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+            </button>
+          }
+          @if (estAdmin) {
+            @if (active(affectation)) {
+              <button type="button" (click)="enModification = affectation" title="Modifier" [attr.aria-label]="'Modifier l’affectation de ' + nom(affectation.gardien)"
                 class="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-neutral-100 hover:text-black">
                 <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5m-1.5-9.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
               </button>
-            }
-            @if (peutDefinirPrincipal(affectation)) {
-              <button type="button" (click)="confirmer(affectation, 'principal')" title="Définir principal" [attr.aria-label]="'Définir ' + nomGardien(affectation) + ' comme gardien principal'"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-amber-50 hover:text-amber-700">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linejoin="round" d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" /></svg>
-              </button>
-            }
-            @if (peutTerminer(affectation)) {
-              <button type="button" (click)="confirmer(affectation, 'terminer')" title="Terminer" [attr.aria-label]="'Terminer l’affectation de ' + nomGardien(affectation)"
+              @if (affectation.role === 'remplacant') {
+                <button type="button" (click)="confirmer(affectation, 'principal')" title="Définir principal" [attr.aria-label]="'Définir ' + nom(affectation.gardien) + ' comme gardien principal'"
+                  class="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-amber-50 hover:text-amber-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linejoin="round" d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" /></svg>
+                </button>
+              }
+              <button type="button" (click)="enRemplacement = affectation" title="Remplacer" [attr.aria-label]="'Remplacer ' + nom(affectation.gardien)"
                 class="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-neutral-100 hover:text-black">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><rect x="9" y="9" width="6" height="6" rx="1" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h11l-3-3m3 3-3 3M17 17H6l3 3m-3-3 3-3" /></svg>
+              </button>
+              <button type="button" (click)="enRetrait = affectation" [title]="affectation.statut === 'a venir' ? 'Annuler l’affectation' : 'Retirer'" [attr.aria-label]="'Retirer ' + nom(affectation.gardien)"
+                class="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-red-50 hover:text-red-600">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm8-1h6" /></svg>
               </button>
             }
-            <button type="button" (click)="confirmer(affectation, 'supprimer')" title="Supprimer" [attr.aria-label]="'Supprimer l’affectation de ' + nomGardien(affectation)"
-              class="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-red-50 hover:text-red-600">
+            <button type="button" (click)="confirmer(affectation, 'supprimer')" title="Supprimer (erreur de saisie)" [attr.aria-label]="'Supprimer l’affectation de ' + nom(affectation.gardien)"
+              class="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-red-50 hover:text-red-600">
               <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16zM10 11v6m4-6v6" /></svg>
             </button>
-          </div>
-        }
+          }
+        </div>
       </li>
     }
   </ul>
@@ -90,6 +101,15 @@
 
 @if (enModification; as affectation) {
   <app-affectation-form [affectation]="affectation" (saved)="changed.emit()" (closed)="enModification = null"></app-affectation-form>
+}
+@if (enRemplacement; as affectation) {
+  <app-affectation-remplacement [affectation]="affectation" (done)="changed.emit()" (closed)="enRemplacement = null"></app-affectation-remplacement>
+}
+@if (enRetrait; as affectation) {
+  <app-affectation-retrait [affectation]="affectation" (done)="changed.emit()" (closed)="enRetrait = null"></app-affectation-retrait>
+}
+@if (enDetail; as affectation) {
+  <app-affectation-detail [affectation]="affectation" (closed)="enDetail = null"></app-affectation-detail>
 }
 @if (confirmation; as c) {
   <app-affectation-confirmation [affectation]="c.affectation" [action]="c.action" (done)="changed.emit()" (closed)="confirmation = null"></app-affectation-confirmation>

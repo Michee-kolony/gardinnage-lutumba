@@ -33,6 +33,18 @@ import { AffectationsListeComponent } from './pages/affectations/affectations-li
 import { AffectationFormComponent } from './pages/affectations/affectation-form/affectation-form.component';
 import { AffectationConfirmationComponent } from './pages/affectations/affectation-confirmation/affectation-confirmation.component';
 import { AffectationAvatarComponent } from './pages/affectations/affectation-avatar/affectation-avatar.component';
+import { AffectationHoraireComponent } from './pages/affectations/affectation-horaire/affectation-horaire.component';
+import { AffectationSuiviComponent } from './pages/affectations/affectation-suivi/affectation-suivi.component';
+import { AffectationDetailComponent } from './pages/affectations/affectation-detail/affectation-detail.component';
+import { AffectationRetraitComponent } from './pages/affectations/affectation-retrait/affectation-retrait.component';
+import { AffectationRemplacementComponent } from './pages/affectations/affectation-remplacement/affectation-remplacement.component';
+import { AffectationsHistoriqueComponent } from './pages/affectations/affectations-historique/affectations-historique.component';
+import { GardienPickerComponent } from './pages/affectations/gardien-picker/gardien-picker.component';
+import { PresencesComponent } from './pages/presences/presences.component';
+import { PresencesTableComponent } from './pages/presences/presences-table/presences-table.component';
+import { PresencesResumeComponent } from './pages/presences/presences-resume/presences-resume.component';
+import { PresenceDetailComponent } from './pages/presences/presence-detail/presence-detail.component';
+import { PresenceClotureComponent } from './pages/presences/presence-cloture/presence-cloture.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
 import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
 
@@ -64,6 +76,18 @@ import { AdministrateursComponent } from './pages/administrateurs/administrateur
     AffectationFormComponent,
     AffectationConfirmationComponent,
     AffectationAvatarComponent,
+    AffectationHoraireComponent,
+    AffectationSuiviComponent,
+    AffectationDetailComponent,
+    AffectationRetraitComponent,
+    AffectationRemplacementComponent,
+    AffectationsHistoriqueComponent,
+    GardienPickerComponent,
+    PresencesComponent,
+    PresencesTableComponent,
+    PresencesResumeComponent,
+    PresenceDetailComponent,
+    PresenceClotureComponent,
     ParametresComponent,
     AdministrateursComponent
   ],

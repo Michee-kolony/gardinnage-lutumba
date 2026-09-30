@@ -74,6 +74,10 @@ export class AuthService {
     return role === 'ADMIN' || role === 'SUPER_ADMIN';
   }
 
+  isSuperAdmin(): boolean {
+    return this.getAdmin()?.role === 'SUPER_ADMIN';
+  }
+
   getUsername(): string {
     return this.getAdmin()?.nom ?? '';
   }
