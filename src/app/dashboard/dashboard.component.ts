@@ -211,6 +211,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pollTimer = setInterval(() => {
       this.fetchGardiens();
       this.fetchRapports();
+      this.fetchFinanceStats();
     }, DashboardComponent.POLL_INTERVAL_MS);
     this.fetchFinanceStats();
     this.fetchProprietairesCount();
@@ -225,6 +226,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
     }
+    this.financeAnimations.forEach((id) => cancelAnimationFrame(id));
     this.map?.remove();
     this.audioContext?.close();
   }
@@ -324,30 +326,105 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private fetchFinanceStats(): void {
     this.paiementsService.list().subscribe({
       next: (response) => {
-        this.paiements = response.paiements;
+        // Évite de redessiner le graphique des paiements à chaque sondage
+        // quand rien n'a changé côté serveur.
+        const signature = response.paiements.map((p) => `${p._id}:${p.updatedAt}`).join('|');
+        if (signature !== this.paiementsSignature) {
+          this.paiementsSignature = signature;
+          this.paiements = response.paiements;
+        }
+
         const maintenant = new Date();
-        const paiementsDuMois = response.paiements.filter((paiement) => {
+        const moisPrecedent = new Date(maintenant.getFullYear(), maintenant.getMonth() - 1, 1);
+        const duMois = (paiement: Paiement, reference: Date) => {
           const date = new Date(paiement.createdAt);
-          return date.getFullYear() === maintenant.getFullYear() && date.getMonth() === maintenant.getMonth();
+          return date.getFullYear() === reference.getFullYear() && date.getMonth() === reference.getMonth();
+        };
+        const paiementsDuMois = response.paiements.filter((p) => duMois(p, maintenant));
+        const paiementsMoisPrecedent = response.paiements.filter((p) => duMois(p, moisPrecedent));
+
+        (['CDF', 'USD'] as DevisePaiement[]).forEach((devise, index) => {
+          const stat = this.financeStats[index + 1];
+          const actuels = paiementsDuMois.filter((p) => p.devise === devise);
+          const total = actuels.reduce((somme, p) => somme + p.montant, 0);
+          const totalPrecedent = paiementsMoisPrecedent
+            .filter((p) => p.devise === devise)
+            .reduce((somme, p) => somme + p.montant, 0);
+
+          this.animateFinanceAmount(index + 1, total, devise);
+
+          const dernier = actuels.reduce<Paiement | null>(
+            (plusRecent, p) => !plusRecent || p.createdAt > plusRecent.createdAt ? p : plusRecent,
+            null
+          );
+          stat.hint = actuels.length === 0
+            ? `Aucun paiement ce mois-ci · mois dernier : ${this.formatDashboardAmount(totalPrecedent, devise)}`
+            : `${actuels.length} paiement(s) ce mois-ci · dernier ${this.dateRapport(dernier!.createdAt).toLowerCase()}`;
+
+          if (totalPrecedent === 0) {
+            stat.trend = total > 0 ? 'up' : 'neutral';
+            stat.trendValue = total > 0 ? 'Nouveau' : '';
+          } else {
+            const variation = Math.round(((total - totalPrecedent) / totalPrecedent) * 100);
+            stat.trend = variation > 0 ? 'up' : variation < 0 ? 'down' : 'neutral';
+            stat.trendValue = `${variation > 0 ? '+' : ''}${variation}% vs mois dernier`;
+          }
         });
-
-        const totalParDevise = (devise: DevisePaiement) => paiementsDuMois
-          .filter((paiement) => paiement.devise === devise)
-          .reduce((total, paiement) => total + paiement.montant, 0);
-
-        this.financeStats[1].value = this.formatDashboardAmount(totalParDevise('CDF'), 'CDF');
-        this.financeStats[1].hint = `${paiementsDuMois.filter((paiement) => paiement.devise === 'CDF').length} paiement(s) ce mois-ci`;
-        this.financeStats[2].value = this.formatDashboardAmount(totalParDevise('USD'), 'USD');
-        this.financeStats[2].hint = `${paiementsDuMois.filter((paiement) => paiement.devise === 'USD').length} paiement(s) ce mois-ci`;
       },
       error: () => {
+        // Comme pour les gardiens : un raté ponctuel pendant le sondage ne
+        // doit pas effacer les montants déjà affichés.
+        if (this.financeLoaded) {
+          return;
+        }
         this.paiements = [];
-        this.financeStats[1].value = '—';
-        this.financeStats[1].hint = 'Données indisponibles';
-        this.financeStats[2].value = '—';
-        this.financeStats[2].hint = 'Données indisponibles';
+        [1, 2].forEach((index) => {
+          this.financeStats[index].value = '—';
+          this.financeStats[index].hint = 'Données indisponibles';
+          this.financeStats[index].trend = 'neutral';
+          this.financeStats[index].trendValue = '';
+        });
       }
     });
+  }
+
+  private paiementsSignature = '';
+  private financeLoaded = false;
+  private financeAmounts = new Map<number, number>();
+  private financeAnimations = new Map<number, number>();
+
+  // Fait défiler le montant affiché de l'ancienne valeur vers la nouvelle
+  // (au premier chargement, puis à chaque nouveau paiement détecté par le sondage).
+  private animateFinanceAmount(index: number, cible: number, devise: DevisePaiement): void {
+    const depart = this.financeAmounts.get(index) ?? 0;
+    this.financeAmounts.set(index, cible);
+    const animationEnCours = this.financeAnimations.get(index);
+    if (animationEnCours !== undefined) {
+      cancelAnimationFrame(animationEnCours);
+    }
+
+    if (depart === cible) {
+      this.financeStats[index].value = this.formatDashboardAmount(cible, devise);
+      this.financeAnimations.delete(index);
+      this.financeLoaded = true;
+      return;
+    }
+
+    const duree = 900;
+    const debut = performance.now();
+    const etape = (instant: number) => {
+      const progression = Math.min((instant - debut) / duree, 1);
+      const adouci = 1 - Math.pow(1 - progression, 3);
+      const valeur = progression < 1 ? Math.round(depart + (cible - depart) * adouci) : cible;
+      this.financeStats[index].value = this.formatDashboardAmount(valeur, devise);
+      if (progression < 1) {
+        this.financeAnimations.set(index, requestAnimationFrame(etape));
+      } else {
+        this.financeAnimations.delete(index);
+      }
+    };
+    this.financeAnimations.set(index, requestAnimationFrame(etape));
+    this.financeLoaded = true;
   }
 
   private formatDashboardAmount(amount: number, devise: DevisePaiement): string {
