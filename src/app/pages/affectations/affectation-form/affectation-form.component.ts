@@ -185,7 +185,19 @@ export class AffectationFormComponent implements OnInit {
     if (date < aujourdhui) {
       return 'Début rétroactif : les services déjà passés depuis cette date apparaîtront comme absences s’ils n’ont pas été pointés.';
     }
+    if (this.serviceDuJourTermine) {
+      return `Le service d’aujourd’hui (${this.formModel.heureDebut} → ${this.formModel.heureFin}) est déjà terminé : le premier service sera le prochain jour coché. Utilisez « Maintenant » pour que le gardien commence tout de suite.`;
+    }
     return '';
+  }
+
+  // Service d'aujourd'hui déjà fini (le jour du service est celui où il commence)
+  private get serviceDuJourTermine(): boolean {
+    if (!this.heuresValides || this.finLendemain) {
+      return false;
+    }
+    const jour = JOURS_SERVICE[(new Date().getDay() + 6) % 7];
+    return this.formModel.joursService.includes(jour) && this.formModel.heureFin <= this.heureActuelle();
   }
 
   // 'AAAA-MM-JJ' → minuit UTC de ce jour, comme le serveur
@@ -212,6 +224,18 @@ export class AffectationFormComponent implements OnInit {
   appliquerRaccourci(raccourci: { debut: string; fin: string }): void {
     this.formModel.heureDebut = raccourci.debut;
     this.formModel.heureFin = raccourci.fin;
+  }
+
+  // Service qui commence à l'heure actuelle, en gardant la durée choisie (12 h par défaut)
+  commencerMaintenant(): void {
+    const debut = this.heureActuelle();
+    const duree = this.heuresValides ? this.minutes(this.formModel.heureFin) - this.minutes(this.formModel.heureDebut) : 12 * 60;
+    const fin = (this.minutes(debut) + (duree > 0 ? duree : duree + 24 * 60)) % (24 * 60);
+    this.formModel.heureDebut = debut;
+    this.formModel.heureFin = `${String(Math.floor(fin / 60)).padStart(2, '0')}:${String(fin % 60).padStart(2, '0')}`;
+    if (!this.isEdit) {
+      this.formModel.dateDebut = this.dateDuJour();
+    }
   }
 
   raccourciActif(raccourci: { debut: string; fin: string }): boolean {
@@ -319,6 +343,17 @@ export class AffectationFormComponent implements OnInit {
   private dateDuJour(): string {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
+
+  // Heure locale actuelle « HH:mm »
+  private heureActuelle(): string {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  }
+
+  private minutes(heure: string): number {
+    const [h, m] = heure.split(':').map(Number);
+    return h * 60 + m;
   }
 
   private toDateInputValue(value: string | null): string {
