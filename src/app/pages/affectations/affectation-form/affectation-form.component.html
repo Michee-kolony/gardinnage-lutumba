@@ -141,9 +141,10 @@
           </select>
         </label>
         <label class="grid min-w-0 gap-1.5">
-          <span class="text-xs font-semibold text-neutral-700">Date de début <span class="font-normal text-neutral-400">{{ isEdit ? '' : '(facultatif)' }}</span></span>
+          <span class="text-xs font-semibold text-neutral-700">Date de début <span class="font-normal text-neutral-400">{{ isEdit ? '' : '(aujourd’hui par défaut)' }}</span></span>
           <input name="dateDebut" type="date" [(ngModel)]="formModel.dateDebut" class="h-11 w-full rounded-lg border border-neutral-300 px-3 text-sm text-black outline-none transition focus:border-black focus:ring-2 focus:ring-black/10" />
-          @if (!isEdit) { <span class="text-[11px] text-neutral-500">Laisser vide pour commencer aujourd’hui.</span> }
+          @if (!isEdit) { <span class="text-[11px] text-neutral-500">Le service de ce jour-là compte, même s’il a déjà commencé.</span> }
+          @if (infoDateDebut) { <span class="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700">{{ infoDateDebut }}</span> }
         </label>
         <div class="hidden sm:block"></div>
         <label class="grid min-w-0 gap-1.5 sm:col-span-2">

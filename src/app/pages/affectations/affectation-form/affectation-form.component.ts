@@ -29,7 +29,7 @@ interface AffectationFormModel {
   joursService: JourService[];
   duree: number | null;
   uniteDuree: UniteDuree;
-  // 'AAAA-MM-JJ' ou '' (= aujourd'hui côté serveur)
+  // 'AAAA-MM-JJ' (aujourd'hui par défaut) ; '' = aujourd'hui côté serveur
   dateDebut: string;
   description: string;
 }
@@ -164,14 +164,36 @@ export class AffectationFormComponent implements OnInit {
     if (!this.dureeValide) {
       return '';
     }
-    const debut = this.formModel.dateDebut
-      ? new Date(this.formModel.dateDebut)
-      : this.affectation ? new Date(this.affectation.dateDebut) : this.aujourdhui();
+    const debut = this.dateDebutChoisie;
     if (Number.isNaN(debut.getTime())) {
       return '';
     }
     const fin = ajouterDuree(debut, Number(this.formModel.duree), this.formModel.uniteDuree);
     return `Du ${formatDateCourte(debut)} au ${formatDateCourte(fin)}`;
+  }
+
+  // Info sur une date de début future ou passée (en modification : seulement si elle a été changée)
+  get infoDateDebut(): string {
+    const date = this.formModel.dateDebut;
+    if (!date || (this.affectation && date === this.toDateInputValue(this.affectation.dateDebut))) {
+      return '';
+    }
+    const aujourdhui = this.dateDuJour();
+    if (date > aujourdhui) {
+      return `L’affectation sera « à venir » jusqu’au ${formatDateCourte(new Date(date))}.`;
+    }
+    if (date < aujourdhui) {
+      return 'Début rétroactif : les services déjà passés depuis cette date apparaîtront comme absences s’ils n’ont pas été pointés.';
+    }
+    return '';
+  }
+
+  // 'AAAA-MM-JJ' → minuit UTC de ce jour, comme le serveur
+  private get dateDebutChoisie(): Date {
+    if (this.formModel.dateDebut) {
+      return new Date(this.formModel.dateDebut);
+    }
+    return this.affectation ? new Date(this.affectation.dateDebut) : new Date(this.dateDuJour());
   }
 
   nom(personne: { prenom?: string; nom?: string; postnom?: string } | null | undefined): string {
@@ -292,10 +314,11 @@ export class AffectationFormComponent implements OnInit {
     return payload;
   }
 
-  // Le serveur prend la date du jour (UTC) quand dateDebut est absente
-  private aujourdhui(): Date {
+  // Date du jour (AAAA-MM-JJ, heure locale) : valeur par défaut, modifiable par l'admin.
+  // Le serveur prend aussi le jour local quand dateDebut est absente.
+  private dateDuJour(): string {
     const now = new Date();
-    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   }
 
   private toDateInputValue(value: string | null): string {
@@ -316,7 +339,7 @@ export class AffectationFormComponent implements OnInit {
       joursService: [...JOURS_SERVICE],
       duree: 1,
       uniteDuree: 'mois',
-      dateDebut: '',
+      dateDebut: this.dateDuJour(),
       description: ''
     };
   }
