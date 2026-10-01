@@ -39,7 +39,7 @@ export class TopbarComponent implements OnInit {
       .pipe(
         filter((event) => event instanceof NavigationEnd),
         startWith(null),
-        map(() => this.router.url.split('/').pop() ?? 'dashboard')
+        map(() => this.router.url.split(/[?#]/)[0].split('/')[2] ?? 'dashboard')
       )
       .subscribe((segment) => {
         this.pageTitle = TITLES[segment] ?? 'Tableau de bord';

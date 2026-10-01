@@ -1,6 +1,8 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
+import { Subscription } from 'rxjs';
 import { BarChartPoint } from './bar-chart/bar-chart.component';
 import { DonutSegment } from './donut-chart/donut-chart.component';
 import { Gardien, GardiensService, StatutGardien } from '../core/gardiens.service';
@@ -10,6 +12,20 @@ import { ProprietesService } from '../core/proprietes.service';
 import { dateIso, heureLocale } from '../core/presences.service';
 import { nomComplet } from '../core/affectations.service';
 import { Rapport, RapportsService, objetRapportBadgeClass } from '../core/rapports.service';
+import { creerClusterIncidents, iconeCluster, iconeIncident, popupIncidentHtml } from '../core/incidents-carte';
+import {
+  FiltresIncidents,
+  Incident,
+  IncidentOptions,
+  IncidentsService,
+  StatutIncident,
+  adresseProprieteIncident,
+  dateHeureIncident,
+  positionIncident,
+  statutIncidentBadgeClass,
+  styleGravite,
+  trierIncidents
+} from '../core/incidents.service';
 
 interface StatDef {
   label: string;
@@ -36,6 +52,12 @@ type PeriodeRapport = 'aujourdhui' | 'hier';
 // /admin/rapports donne accès à l'historique complet.
 const JOURS_RAPPORTS_RECENTS = 7;
 
+// Statuts affichés sur la carte quand « Afficher aussi résolus/classés » est décoché
+const STATUTS_ACTIFS: StatutIncident[] = ['nouveau', 'en_cours'];
+
+// Couleurs du donut « Statut des incidents » (sémantique : critique / en attente / bon / neutre)
+const COULEURS_STATUT_DONUT: Record<string, string> = { nouveau: '#d03b3b', en_cours: '#fab219', resolu: '#0ca30c', classe: '#a3a3a3' };
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
@@ -51,8 +73,31 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     private proprietairesService: ProprietairesService,
     private proprietesService: ProprietesService,
     private rapportsService: RapportsService,
-    private router: Router
+    private incidentsService: IncidentsService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private zone: NgZone
   ) {}
+
+  // --- Incidents sur la carte ---
+  incidentOptions: IncidentOptions | null = null;
+  // Filtres partagés avec la page Incidents
+  filtresIncidents: FiltresIncidents = {};
+  afficherTraites = false;
+  incidentsCarte: Incident[] = [];
+  incidentsLoading = false;
+  incidentsError = '';
+  private incidentsRequete = 0;
+  private incidentsSignature = '';
+  private incidentsLayer?: L.LayerGroup;
+  private incidentsCluster?: L.MarkerClusterGroup;
+  private incidentsCercles?: L.LayerGroup;
+  private marqueursIncidents = new Map<string, L.Marker>();
+  private incidentParMarqueur = new WeakMap<L.Marker, Incident>();
+  private popupIncidentId: string | null = null;
+  private incidentAFocaliser: string | null = null;
+  private gardiensCadres = false;
+  private subscriptions = new Subscription();
 
   isRapportsModalOpen = false;
   rapportsSearchTerm = '';
@@ -84,21 +129,15 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   financeStats: StatDef[] = [
-    { label: 'Incidents signalés', value: '—', hint: 'Données indisponibles', icon: 'alert', emphasis: 'default', trend: 'neutral', trendValue: '' },
+    { label: 'Incidents signalés', value: '—', hint: 'Ce mois-ci', icon: 'alert', emphasis: 'default', trend: 'neutral', trendValue: '' },
     { label: 'Paiements reçus · CDF', value: '—', hint: 'Ce mois-ci', icon: 'cash', emphasis: 'dark', trend: 'neutral', trendValue: '' },
     { label: 'Paiements reçus · USD', value: '—', hint: 'Ce mois-ci', icon: 'cash', emphasis: 'default', trend: 'neutral', trendValue: '' },
   ];
 
   paiements: Paiement[] = [];
 
-  incidentsData: BarChartPoint[] = [
-    { label: 'Avr', value: 4 },
-    { label: 'Mai', value: 6 },
-    { label: 'Juin', value: 3 },
-    { label: 'Juil', value: 7 },
-    { label: 'Août', value: 5 },
-    { label: 'Sep', value: 9 },
-  ];
+  // Calculés dans chargerStatsIncidents (6 derniers mois)
+  incidentsData: BarChartPoint[] = [];
 
   // Répartition réelle des propriétés par statut de contrat (calculée dans
   // fetchProprietesCount, à partir de dateExpirationAbonnement).
@@ -109,11 +148,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   // Palette de statut (sémantique : bon / en attente / critique)
-  incidentsSegments: DonutSegment[] = [
-    { label: 'Résolus', value: 24, strokeColor: '#0ca30c' },
-    { label: 'En cours', value: 7, strokeColor: '#fab219' },
-    { label: 'Non traités', value: 3, strokeColor: '#d03b3b' },
-  ];
+  incidentsSegments: DonutSegment[] = [];
 
   contratsExpirants: ContratExpirant[] = [];
 
@@ -216,6 +251,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fetchFinanceStats();
     this.fetchProprietairesCount();
     this.fetchProprietesCount();
+    this.initIncidents();
   }
 
   ngAfterViewInit(): void {
@@ -227,6 +263,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       clearInterval(this.pollTimer);
     }
     this.financeAnimations.forEach((id) => cancelAnimationFrame(id));
+    this.subscriptions.unsubscribe();
     this.map?.remove();
     this.audioContext?.close();
   }
@@ -530,11 +567,36 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map.attributionControl.setPrefix(false);
 
     this.markersLayer = L.layerGroup().addTo(this.map);
+
+    // Calque « Incidents » séparé des gardiens : marqueurs regroupés + cercles de précision GPS
+    this.incidentsCercles = L.layerGroup();
+    this.incidentsCluster = creerClusterIncidents({
+      maxClusterRadius: 45,
+      showCoverageOnHover: false,
+      iconCreateFunction: (cluster) => {
+        const graviteMax = cluster.getAllChildMarkers()
+          .map((m) => this.incidentParMarqueur.get(m)?.gravite ?? '')
+          .reduce((max, g) => (styleGravite(g).ordre > styleGravite(max).ordre ? g : max), '');
+        return iconeCluster(cluster.getChildCount(), graviteMax);
+      }
+    });
+    this.incidentsLayer = L.layerGroup([this.incidentsCercles, this.incidentsCluster]).addTo(this.map);
+    L.control.layers(undefined, {
+      'Gardiens en service': this.markersLayer,
+      'Incidents': this.incidentsLayer
+    }, { collapsed: true, position: 'topright' }).addTo(this.map);
+
+    this.map.on('popupclose', () => (this.popupIncidentId = null));
     window.addEventListener('resize', () => this.map?.invalidateSize());
 
     // Au cas où les données des gardiens étaient déjà arrivées avant que la
     // carte n'existe (ou inversement), on dessine les marqueurs tout de suite.
     this.renderMarkers();
+    this.renderIncidents();
+    // ?incident=<id> : si la liste est déjà arrivée avant la carte, on centre maintenant
+    if (this.incidentAFocaliser && !this.incidentsLoading) {
+      this.focaliserParId(this.incidentAFocaliser);
+    }
   }
 
   // Reconstruit les marqueurs à partir de gardiensEnService. Appelée à chaque
@@ -579,11 +641,14 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     });
 
-    if (markers.length === 0) {
+    if (markers.length === 0 || this.gardiensCadres || this.incidentAFocaliser) {
       // Aucun gardien localisé pour le moment : on garde la vue par défaut
       // (centrée sur Kinshasa) plutôt que de cadrer sur des bornes vides.
+      // Le cadrage automatique n'a lieu qu'une fois, pour ne pas annuler à
+      // chaque sondage un zoom fait par l'admin (ex. sur un incident).
       return;
     }
+    this.gardiensCadres = true;
 
     const bounds = L.featureGroup(markers).getBounds();
 
@@ -637,6 +702,310 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       // Lecture audio indisponible (permissions navigateur, etc.) : on
       // n'interrompt pas l'affichage pour autant.
     }
+  }
+
+  // ===================== Incidents =====================
+
+  private initIncidents(): void {
+    this.filtresIncidents = { ...this.incidentsService.filtres };
+    this.incidentAFocaliser = this.route.snapshot.queryParamMap.get('incident');
+    this.incidentsService.options().subscribe({
+      next: (options) => {
+        this.incidentOptions = options;
+        this.majDonutIncidents();
+      },
+      error: () => (this.incidentOptions = null)
+    });
+    this.chargerIncidentsCarte();
+    this.chargerStatsIncidents();
+
+    // Suivi (polling 30 s) tant que le dashboard est affiché
+    this.subscriptions.add(this.incidentsService.suivi$.subscribe());
+    this.subscriptions.add(this.incidentsService.rafraichissement$.subscribe(() => {
+      this.chargerIncidentsCarte(true);
+      this.chargerStatsIncidents();
+    }));
+    // Après un PATCH / DELETE / POST : carte (couleur, pulsation) mise à jour sans recharger
+    this.subscriptions.add(this.incidentsService.modification$.subscribe((m) => {
+      if (m.type === 'suppression') {
+        this.incidentsCarte = this.incidentsCarte.filter((i) => i._id !== m.id);
+      } else if (m.type === 'maj') {
+        this.incidentsCarte = this.incidentsCarte.map((i) => (i._id === m.incident._id ? m.incident : i));
+      } else {
+        this.chargerIncidentsCarte(true);
+        return;
+      }
+      this.renderIncidents();
+      this.chargerStatsIncidents();
+    }));
+    // Filtres modifiés depuis la page Incidents
+    this.subscriptions.add(this.incidentsService.filtres$.subscribe((f) => {
+      if (JSON.stringify(f) !== JSON.stringify(this.filtresIncidents)) {
+        this.filtresIncidents = { ...f };
+        this.chargerIncidentsCarte();
+      }
+    }));
+  }
+
+  chargerIncidentsCarte(silencieux = false): void {
+    if (!silencieux) {
+      this.incidentsLoading = true;
+      this.incidentsError = '';
+    }
+    const numero = ++this.incidentsRequete;
+    this.incidentsService.list(this.filtresIncidents).subscribe({
+      next: (res) => {
+        if (numero !== this.incidentsRequete) return;
+        this.incidentsCarte = res.incidents;
+        this.incidentsError = '';
+        this.incidentsLoading = false;
+        this.renderIncidents();
+        if (this.incidentAFocaliser) this.focaliserParId(this.incidentAFocaliser);
+      },
+      error: (err: HttpErrorResponse) => {
+        if (numero !== this.incidentsRequete) return;
+        if (!silencieux || this.incidentsCarte.length === 0) {
+          this.incidentsError = err.error?.message || 'Impossible de charger les incidents.';
+        }
+        this.incidentsLoading = false;
+      }
+    });
+  }
+
+  appliquerFiltresIncidents(): void {
+    this.incidentsService.setFiltres(this.filtresIncidents);
+    this.chargerIncidentsCarte();
+  }
+
+  basculerTraites(): void {
+    this.afficherTraites = !this.afficherTraites;
+    this.renderIncidents();
+  }
+
+  get filtresIncidentsActifs(): boolean {
+    return Object.values(this.filtresIncidents).some(Boolean);
+  }
+
+  reinitialiserFiltresIncidents(): void {
+    this.filtresIncidents = {};
+    this.appliquerFiltresIncidents();
+  }
+
+  // Incidents retenus pour la carte et la liste latérale (même tri que la page Incidents)
+  get incidentsVisibles(): Incident[] {
+    const tous = !!this.filtresIncidents.statut || this.afficherTraites;
+    return trierIncidents(this.incidentsCarte.filter((i) => tous || STATUTS_ACTIFS.includes(i.statut)));
+  }
+
+  get incidentsSansPosition(): number {
+    return this.incidentsVisibles.filter((i) => !positionIncident(i)).length;
+  }
+
+  voirIncidentsSansPosition(): void {
+    this.router.navigate(['/admin/incidents'], { queryParams: { sansPosition: 1 } });
+  }
+
+  voirIncident(incident: Incident): void {
+    this.router.navigate(['/admin/incidents', incident._id]);
+  }
+
+  private renderIncidents(): void {
+    if (!this.map || !this.incidentsCluster || !this.incidentsCercles) {
+      return;
+    }
+    const visibles = this.incidentsVisibles;
+    // Rien n'a changé depuis le dernier sondage : on ne redessine pas (popup ouvert conservé)
+    const signature = visibles.map((i) => `${i._id}:${i.updatedAt}`).join('|');
+    if (signature === this.incidentsSignature) {
+      return;
+    }
+    this.incidentsSignature = signature;
+
+    // clearLayers ferme le popup (popupclose remet popupIncidentId à null) : on le mémorise avant
+    const idPopupOuvert = this.popupIncidentId;
+    this.incidentsCluster.clearLayers();
+    this.incidentsCercles.clearLayers();
+    this.marqueursIncidents.clear();
+
+    const marqueurs: L.Marker[] = [];
+    visibles.forEach((incident) => {
+      const position = positionIncident(incident);
+      if (!position) return;
+      const marqueur = L.marker([position.lat, position.lng], {
+        icon: iconeIncident(incident),
+        zIndexOffset: incident.statut === 'nouveau' ? 1000 : 0
+      }).bindPopup(popupIncidentHtml(incident), { minWidth: 230 });
+      marqueur.on('popupopen', (e: L.PopupEvent) => this.brancherPopup(e.popup, incident));
+      this.incidentParMarqueur.set(marqueur, incident);
+      this.marqueursIncidents.set(incident._id, marqueur);
+      marqueurs.push(marqueur);
+
+      if (position.source === 'gps' && position.precision) {
+        const couleur = styleGravite(incident.gravite).couleur;
+        L.circle([position.lat, position.lng], {
+          radius: position.precision, color: couleur, fillColor: couleur, fillOpacity: 0.12, weight: 1, interactive: false
+        }).addTo(this.incidentsCercles!);
+      }
+    });
+    this.incidentsCluster.addLayers(marqueurs);
+
+    // Réouvre le popup de l'incident qui était consulté avant la mise à jour
+    const ouvert = idPopupOuvert ? this.marqueursIncidents.get(idPopupOuvert) : undefined;
+    if (ouvert && this.incidentsCluster.getVisibleParent(ouvert) === ouvert) {
+      ouvert.openPopup();
+    }
+  }
+
+  // Boutons du popup (HTML hors Angular) : branchés à chaque ouverture
+  private brancherPopup(popup: L.Popup, incident: Incident): void {
+    this.popupIncidentId = incident._id;
+    const element = popup.getElement();
+    if (!element) return;
+    element.querySelector<HTMLButtonElement>('[data-incident-action="detail"]')?.addEventListener('click', () => {
+      this.zone.run(() => this.voirIncident(incident));
+    });
+    const prendre = element.querySelector<HTMLButtonElement>('[data-incident-action="prendre"]');
+    prendre?.addEventListener('click', () => {
+      prendre.disabled = true;
+      prendre.textContent = 'En cours...';
+      this.zone.run(() => {
+        this.incidentsService.update(incident._id, { statut: 'en_cours' }).subscribe({
+          error: (err: HttpErrorResponse) => {
+            prendre.disabled = false;
+            prendre.textContent = 'Prendre en charge';
+            this.incidentsError = err.error?.message || 'Impossible de prendre en charge cet incident.';
+          }
+        });
+      });
+    });
+  }
+
+  // Clic dans la liste : carte centrée / zoomée sur l'incident, popup ouvert
+  focaliserIncident(incident: Incident): void {
+    const marqueur = this.marqueursIncidents.get(incident._id);
+    if (!this.map || !this.incidentsCluster || !this.incidentsLayer || !marqueur) {
+      return;
+    }
+    if (!this.map.hasLayer(this.incidentsLayer)) {
+      this.incidentsLayer.addTo(this.map);
+    }
+    // Le cadrage automatique sur les gardiens ne doit plus déplacer la vue
+    this.gardiensCadres = true;
+    this.mapContainer?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    this.incidentsCluster.zoomToShowLayer(marqueur, () => {
+      this.map?.setView(marqueur.getLatLng(), Math.max(this.map.getZoom(), 16));
+      marqueur.openPopup();
+    });
+  }
+
+  // Arrivée depuis la page Incidents (?incident=<id>) : l'incident peut être hors des filtres actuels
+  private focaliserParId(id: string): void {
+    if (!this.map) return;
+    this.incidentAFocaliser = null;
+    const present = this.incidentsVisibles.find((i) => i._id === id);
+    if (present) {
+      setTimeout(() => this.focaliserIncident(present));
+      return;
+    }
+    this.incidentsService.getById(id).subscribe({
+      next: (res) => {
+        this.incidentsCarte = [res.incident, ...this.incidentsCarte.filter((i) => i._id !== id)];
+        if (!STATUTS_ACTIFS.includes(res.incident.statut)) this.afficherTraites = true;
+        this.renderIncidents();
+        setTimeout(() => this.focaliserIncident(res.incident));
+      },
+      error: (err: HttpErrorResponse) => (this.incidentsError = err.error?.message || 'Incident introuvable.')
+    });
+  }
+
+  // Bouton « Recentrer » : cadre tous les marqueurs affichés (incidents et gardiens)
+  recentrer(): void {
+    if (!this.map) return;
+    const points: L.LatLng[] = [];
+    if (this.incidentsLayer && this.map.hasLayer(this.incidentsLayer)) {
+      this.marqueursIncidents.forEach((m) => points.push(m.getLatLng()));
+    }
+    if (this.markersLayer && this.map.hasLayer(this.markersLayer)) {
+      this.markersLayer.eachLayer((l) => {
+        if (l instanceof L.Marker) points.push(l.getLatLng());
+      });
+    }
+    if (points.length === 0) {
+      this.map.setView([-4.3372, 15.3225], 12);
+      return;
+    }
+    this.map.fitBounds(L.latLngBounds(points), { padding: [50, 50], maxZoom: 15 });
+  }
+
+  // Stat « Incidents signalés », graphique mensuel et donut des statuts (6 derniers mois)
+  private statsIncidents: Incident[] = [];
+  private statsIncidentsChargees = false;
+
+  private chargerStatsIncidents(): void {
+    const debut = new Date();
+    debut.setMonth(debut.getMonth() - 5, 1);
+    this.incidentsService.list({ du: dateIso(debut) }).subscribe({
+      next: (res) => {
+        this.statsIncidents = res.incidents;
+        this.statsIncidentsChargees = true;
+        const maintenant = new Date();
+        const memeMois = (iso: string, mois: Date) => {
+          const d = new Date(iso);
+          return d.getFullYear() === mois.getFullYear() && d.getMonth() === mois.getMonth();
+        };
+        this.financeStats[0].value = res.incidents.filter((i) => memeMois(i.dateIncident, maintenant)).length;
+        this.financeStats[0].hint = `Ce mois-ci · ${res.nonTraites} non traité(s)`;
+        this.financeStats[0].trend = res.nonTraites > 0 ? 'down' : 'neutral';
+        this.financeStats[0].trendValue = res.nonTraites > 0 ? 'À traiter' : '';
+
+        // Nouvelle référence de tableau : les graphiques ne se mettent à jour que dans ngOnChanges
+        this.incidentsData = Array.from({ length: 6 }, (_, index) => {
+          const mois = new Date(maintenant.getFullYear(), maintenant.getMonth() - 5 + index, 1);
+          const label = new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(mois).replace('.', '');
+          return {
+            label: label.charAt(0).toUpperCase() + label.slice(1),
+            value: res.incidents.filter((i) => memeMois(i.dateIncident, mois)).length
+          };
+        });
+        this.majDonutIncidents();
+      },
+      error: () => {
+        if (!this.statsIncidentsChargees) {
+          this.financeStats[0].value = '—';
+          this.financeStats[0].hint = 'Données indisponibles';
+        }
+      }
+    });
+  }
+
+  private majDonutIncidents(): void {
+    if (!this.incidentOptions || !this.statsIncidentsChargees) return;
+    this.incidentsSegments = this.incidentOptions.statuts.map((s) => ({
+      label: s.libelle,
+      value: this.statsIncidents.filter((i) => i.statut === s.valeur).length,
+      strokeColor: COULEURS_STATUT_DONUT[s.valeur] ?? '#737373'
+    }));
+  }
+
+  // Affichage (liste à côté de la carte)
+  dateHeureIncident(iso: string): string {
+    return dateHeureIncident(iso);
+  }
+
+  adresseIncident(incident: Incident): string {
+    return adresseProprieteIncident(incident.propriete);
+  }
+
+  graviteBadge(gravite: string): string {
+    return styleGravite(gravite).badge;
+  }
+
+  statutIncidentBadge(statut: string): string {
+    return statutIncidentBadgeClass(statut);
+  }
+
+  aPosition(incident: Incident): boolean {
+    return !!positionIncident(incident);
   }
 
   private buildAgentPopup(gardien: Gardien): string {

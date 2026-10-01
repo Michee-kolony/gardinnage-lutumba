@@ -59,3 +59,86 @@
 .leaflet-control-attribution {
   display: none !important;
 }
+/* --- Incidents : marqueurs Leaflet (HTML des L.divIcon, hors composants Angular) --- */
+.incident-marker {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+}
+
+.incident-marker--traite {
+  opacity: 0.55;
+}
+
+.incident-marker__pastille {
+  position: relative;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.incident-marker__propriete {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  border: 2px solid #111111;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Halo pulsé des incidents "nouveau" ; plus ample et plus rapide pour les critiques */
+.incident-pulse {
+  position: absolute;
+  inset: 2px;
+  border-radius: 9999px;
+  background: var(--incident-couleur, #dc2626);
+  animation: incident-pulse 1.8s ease-out infinite;
+}
+
+.incident-pulse--fort {
+  animation: incident-pulse-fort 1s ease-out infinite;
+}
+
+@keyframes incident-pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+
+@keyframes incident-pulse-fort {
+  0% { transform: scale(1); opacity: 0.85; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+.incident-cluster {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  background: var(--incident-couleur, #737373);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--incident-couleur, #737373) 35%, transparent), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Contrôle des calques de la carte, assorti au thème sombre */
+.leaflet-control-layers {
+  background: #1f1f1f !important;
+  color: #e5e5e5 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

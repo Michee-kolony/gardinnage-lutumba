@@ -25,6 +25,10 @@ import { ProprietaireDetailComponent } from './pages/proprietaires/proprietaire-
 import { ProprietesComponent } from './pages/proprietes/proprietes.component';
 import { ProprieteDetailComponent } from './pages/proprietes/propriete-detail/propriete-detail.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
+import { IncidentDetailComponent } from './pages/incidents/incident-detail/incident-detail.component';
+import { IncidentFormComponent } from './pages/incidents/incident-form/incident-form.component';
+import { IncidentIconeComponent } from './pages/incidents/incident-icone/incident-icone.component';
+import { IncidentsAlertesComponent } from './layout/incidents-alertes/incidents-alertes.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
 import { PaiementFormComponent } from './pages/paiements/paiement-form/paiement-form.component';
 import { PaiementSuppressionComponent } from './pages/paiements/paiement-suppression/paiement-suppression.component';
@@ -69,6 +73,10 @@ import { AdministrateursComponent } from './pages/administrateurs/administrateur
     ProprietesComponent,
     ProprieteDetailComponent,
     IncidentsComponent,
+    IncidentDetailComponent,
+    IncidentFormComponent,
+    IncidentIconeComponent,
+    IncidentsAlertesComponent,
     PaiementsComponent,
     PaiementFormComponent,
     PaiementSuppressionComponent,

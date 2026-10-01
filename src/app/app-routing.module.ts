@@ -12,6 +12,7 @@ import { ProprietaireDetailComponent } from './pages/proprietaires/proprietaire-
 import { ProprietesComponent } from './pages/proprietes/proprietes.component';
 import { ProprieteDetailComponent } from './pages/proprietes/propriete-detail/propriete-detail.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
+import { IncidentDetailComponent } from './pages/incidents/incident-detail/incident-detail.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
 import { AffectationsComponent } from './pages/affectations/affectations.component';
 import { PresencesComponent } from './pages/presences/presences.component';
@@ -38,6 +39,7 @@ const routes: Routes = [
       { path: 'proprietes', component: ProprietesComponent },
       { path: 'proprietes/:id', component: ProprieteDetailComponent },
       { path: 'incidents', component: IncidentsComponent },
+      { path: 'incidents/:id', component: IncidentDetailComponent },
       { path: 'paiements', component: PaiementsComponent },
       { path: 'affectations', component: AffectationsComponent },
       { path: 'presences', component: PresencesComponent },

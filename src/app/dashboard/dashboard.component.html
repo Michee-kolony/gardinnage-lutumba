@@ -44,11 +44,98 @@
     </div>
   </section>
 
-  <!-- Carte des gardiens actifs -->
+  <!-- Carte : gardiens actifs et incidents -->
   <section>
-    <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Localisation des gardiens actifs</h2>
-    <div class="bg-white rounded-2xl border border-neutral-200 p-4">
-      <div #gardiensMap class="relative isolate z-0 h-[28rem] sm:h-[36rem] w-full rounded-xl overflow-hidden"></div>
+    <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Carte des gardiens et des incidents</h2>
+    <div class="bg-white rounded-2xl border border-neutral-200 p-4 space-y-3">
+      <!-- Filtres des incidents (partagés avec la page Incidents) -->
+      <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <select [(ngModel)]="filtresIncidents.type" (ngModelChange)="appliquerFiltresIncidents()" aria-label="Filtrer les incidents par type"
+          class="h-9 w-full rounded-lg border border-neutral-300 bg-white px-2.5 text-sm text-black outline-none focus:border-black sm:w-44">
+          <option [ngValue]="undefined">Tous les types</option>
+          @for (o of incidentOptions?.types ?? []; track o.valeur) { <option [ngValue]="o.valeur">{{ o.libelle }}</option> }
+        </select>
+        <select [(ngModel)]="filtresIncidents.gravite" (ngModelChange)="appliquerFiltresIncidents()" aria-label="Filtrer les incidents par gravité"
+          class="h-9 w-full rounded-lg border border-neutral-300 bg-white px-2.5 text-sm text-black outline-none focus:border-black sm:w-36">
+          <option [ngValue]="undefined">Toutes gravités</option>
+          @for (o of incidentOptions?.gravites ?? []; track o.valeur) { <option [ngValue]="o.valeur">{{ o.libelle }}</option> }
+        </select>
+        <select [(ngModel)]="filtresIncidents.statut" (ngModelChange)="appliquerFiltresIncidents()" aria-label="Filtrer les incidents par statut"
+          class="h-9 w-full rounded-lg border border-neutral-300 bg-white px-2.5 text-sm text-black outline-none focus:border-black sm:w-36">
+          <option [ngValue]="undefined">Tous les statuts</option>
+          @for (o of incidentOptions?.statuts ?? []; track o.valeur) { <option [ngValue]="o.valeur">{{ o.libelle }}</option> }
+        </select>
+        <div class="grid grid-cols-2 gap-2 sm:flex">
+          <input type="date" [(ngModel)]="filtresIncidents.du" (change)="appliquerFiltresIncidents()" [max]="filtresIncidents.au ?? ''" aria-label="Incidents du"
+            class="h-9 rounded-lg border border-neutral-300 px-2.5 text-sm outline-none focus:border-black" />
+          <input type="date" [(ngModel)]="filtresIncidents.au" (change)="appliquerFiltresIncidents()" [min]="filtresIncidents.du ?? ''" aria-label="Incidents au"
+            class="h-9 rounded-lg border border-neutral-300 px-2.5 text-sm outline-none focus:border-black" />
+        </div>
+        @if (!filtresIncidents.statut) {
+          <label class="inline-flex items-center gap-2 text-xs font-medium text-neutral-700">
+            <input type="checkbox" [checked]="afficherTraites" (change)="basculerTraites()" class="h-4 w-4 accent-black" />
+            Afficher aussi résolus/classés
+          </label>
+        }
+        @if (filtresIncidentsActifs) {
+          <button type="button" (click)="reinitialiserFiltresIncidents()" class="text-xs font-medium text-neutral-600 underline hover:text-black">Réinitialiser</button>
+        }
+        <button type="button" (click)="recentrer()"
+          class="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700 transition hover:border-black hover:text-black sm:ml-auto">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5M12 12h.01" /></svg>
+          Recentrer
+        </button>
+      </div>
+
+      @if (incidentsError) {
+        <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">{{ incidentsError }}</p>
+      }
+      @if (incidentsSansPosition > 0) {
+        <button type="button" (click)="voirIncidentsSansPosition()"
+          class="flex w-full items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs font-medium text-amber-900 transition hover:border-amber-400">
+          <span>{{ incidentsSansPosition }} incident(s) sans position : non affiché(s) sur la carte</span>
+          <span class="underline">Voir la liste</span>
+        </button>
+      }
+
+      <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div #gardiensMap class="relative isolate z-0 h-[28rem] sm:h-[36rem] w-full rounded-xl overflow-hidden"></div>
+
+        <!-- Liste des incidents de la carte : clic = carte centrée sur l'incident -->
+        <div class="flex max-h-[28rem] flex-col overflow-hidden rounded-xl border border-neutral-200 sm:max-h-[36rem]">
+          <div class="flex items-center justify-between border-b border-neutral-200 px-3 py-2.5">
+            <p class="text-sm font-semibold text-black">Incidents</p>
+            <a routerLink="/admin/incidents" class="text-xs font-medium text-neutral-600 underline hover:text-black">Tout voir</a>
+          </div>
+          <div class="flex-1 overflow-y-auto">
+            @if (incidentsLoading && incidentsCarte.length === 0) {
+              <div class="flex justify-center py-8"><span class="h-6 w-6 animate-spin rounded-full border-2 border-neutral-200 border-t-black"></span></div>
+            } @else {
+              @for (i of incidentsVisibles; track i._id) {
+                <button type="button" (click)="aPosition(i) ? focaliserIncident(i) : voirIncident(i)"
+                  class="flex w-full items-start gap-2.5 border-b border-neutral-100 px-3 py-2.5 text-left transition last:border-b-0 hover:bg-neutral-50"
+                  [ngClass]="{ 'bg-blue-50/50': i.statut === 'nouveau' }">
+                  <app-incident-icone [type]="i.type" [gravite]="i.gravite" taille="h-8 w-8"></app-incident-icone>
+                  <span class="min-w-0 flex-1">
+                    <span class="flex items-center justify-between gap-2">
+                      <span class="truncate text-sm font-semibold text-black">{{ i.typeLibelle }}</span>
+                      <span class="shrink-0 text-[10px] text-neutral-400">{{ dateHeureIncident(i.dateIncident) }}</span>
+                    </span>
+                    <span class="mt-0.5 block truncate text-xs text-neutral-600">{{ i.propriete?.nomReference || 'Propriété supprimée' }}</span>
+                    <span class="mt-1 flex flex-wrap gap-1">
+                      <span class="rounded-full px-1.5 py-0.5 text-[10px] font-semibold" [ngClass]="graviteBadge(i.gravite)">{{ i.graviteLibelle }}</span>
+                      <span class="rounded-full px-1.5 py-0.5 text-[10px] font-semibold" [ngClass]="statutIncidentBadge(i.statut)">{{ i.statutLibelle }}</span>
+                      @if (!aPosition(i)) { <span class="rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-500">Sans position</span> }
+                    </span>
+                  </span>
+                </button>
+              } @empty {
+                <p class="px-4 py-8 text-center text-sm text-neutral-500">{{ filtresIncidentsActifs ? 'Aucun incident pour ces filtres.' : 'Aucun incident en cours.' }}</p>
+              }
+            }
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
