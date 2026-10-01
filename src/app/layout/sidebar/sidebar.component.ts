@@ -24,6 +24,7 @@ export class SidebarComponent {
     { label: 'Propriétés', route: '/admin/proprietes', icon: 'home' },
     { label: 'Affectations', route: '/admin/affectations', icon: 'assign' },
     { label: 'Présences', route: '/admin/presences', icon: 'clock' },
+    { label: 'Rapports', route: '/admin/rapports', icon: 'report' },
     { label: 'Incidents', route: '/admin/incidents', icon: 'alert' },
     { label: 'Paiements', route: '/admin/paiements', icon: 'card' },
     { label: 'Administrateurs', route: '/admin/administrateurs', icon: 'badge' },

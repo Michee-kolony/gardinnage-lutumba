@@ -200,6 +200,11 @@
   <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a9 9 0 1 1-4.06-7.52L21 3l-1.06 4.94A8.96 8.96 0 0 1 21 12Z" />
   </svg>
+  @if (rapportsNonLus > 0) {
+    <span class="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full bg-red-600 text-white text-[11px] font-semibold flex items-center justify-center border-2 border-white" [attr.aria-label]="rapportsNonLus + ' rapport(s) non lu(s)'">
+      {{ rapportsNonLus > 99 ? '99+' : rapportsNonLus }}
+    </span>
+  }
 </button>
 
 <!-- Popover : rapports des gardiens (ancré au bouton) -->
@@ -212,7 +217,7 @@
     <div class="flex items-center justify-between px-6 py-5 border-b border-neutral-200/60 shrink-0">
       <div>
         <h2 class="text-lg font-semibold text-black">Rapports des gardiens</h2>
-        <p class="text-xs text-neutral-500 mt-0.5">Derniers comptes-rendus envoyés par les gardiens</p>
+        <p class="text-xs text-neutral-500 mt-0.5">Comptes-rendus des 7 derniers jours@if (rapportsNonLus > 0) { · <span class="font-medium text-red-600">{{ rapportsNonLus }} non lu(s)</span>}</p>
       </div>
       <button
         (click)="closeRapportsModal()"
@@ -233,7 +238,7 @@
         <input
           type="text"
           [(ngModel)]="rapportsSearchTerm"
-          placeholder="Rechercher un gardien ou un mot-clé..."
+          placeholder="Rechercher un gardien, une propriété, un mot-clé..."
           class="w-full rounded-lg border border-neutral-300/70 bg-white/70 pl-9 pr-3 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
         />
       </div>
@@ -242,31 +247,54 @@
         [(ngModel)]="rapportsDateFilter"
         class="shrink-0 rounded-lg border border-neutral-300/70 bg-white/70 px-2.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
       >
-        <option value="toutes">Toutes les dates</option>
+        <option value="toutes">7 derniers jours</option>
         <option value="aujourdhui">Aujourd'hui</option>
         <option value="hier">Hier</option>
       </select>
     </div>
 
     <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-      @for (rapport of filteredRapports; track $index) {
-        <div class="flex items-start gap-3">
-          <img
-            [src]="rapport.photoUrl"
-            [alt]="rapport.nom"
-            class="h-10 w-10 rounded-full object-cover border border-neutral-200 shrink-0"
-          />
-          <div class="flex-1 min-w-0 bg-neutral-100/60 rounded-xl px-4 py-2.5">
-            <div class="flex items-center justify-between gap-2">
-              <p class="text-sm font-semibold text-black truncate">{{ rapport.nom }}</p>
-              <span class="text-[11px] text-neutral-400 shrink-0">{{ rapport.date }}</span>
+      @if (rapportsLoading) {
+        <div class="flex justify-center py-6"><span class="h-6 w-6 animate-spin rounded-full border-2 border-neutral-200 border-t-black"></span></div>
+      } @else if (rapportsError) {
+        <p class="text-sm text-red-700 text-center py-6">{{ rapportsError }}</p>
+      } @else {
+        @for (rapport of filteredRapports; track rapport._id) {
+          <button type="button" (click)="ouvrirRapport(rapport)" class="w-full flex items-start gap-3 text-left group">
+            <app-affectation-avatar [src]="rapport.gardien?.photoProfil" [nom]="nomGardien(rapport)" taille="h-10 w-10"></app-affectation-avatar>
+            <div class="flex-1 min-w-0 bg-neutral-100/60 rounded-xl px-4 py-2.5 transition group-hover:bg-neutral-200/60" [class.ring-1]="rapport.statut === 'nouveau'" [class.ring-blue-300]="rapport.statut === 'nouveau'">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-sm font-semibold text-black truncate">{{ nomGardien(rapport) }}</p>
+                <span class="text-[11px] text-neutral-400 shrink-0">{{ dateRapport(rapport.createdAt) }}</span>
+              </div>
+              <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                <span class="rounded-full px-2 py-0.5 text-[10px] font-medium" [ngClass]="objetBadge(rapport)">{{ rapport.objetLibelle }}</span>
+                @if (rapport.propriete) {
+                  <span class="text-[11px] text-neutral-500 truncate">{{ rapport.propriete.nomReference }}</span>
+                }
+              </div>
+              <p class="text-sm text-neutral-600 mt-1 line-clamp-3 whitespace-pre-line">{{ rapport.description }}</p>
             </div>
-            <p class="text-sm text-neutral-600 mt-1">{{ rapport.message }}</p>
-          </div>
-        </div>
-      } @empty {
-        <p class="text-sm text-neutral-400 text-center py-6">Aucun rapport ne correspond à votre recherche.</p>
+          </button>
+        } @empty {
+          <p class="text-sm text-neutral-400 text-center py-6">
+            {{ rapports.length === 0 ? 'Aucun rapport reçu ces 7 derniers jours.' : 'Aucun rapport ne correspond à votre recherche.' }}
+          </p>
+        }
       }
+    </div>
+
+    <div class="px-6 py-4 border-t border-neutral-200/60 shrink-0">
+      <button
+        type="button"
+        (click)="voirTousLesRapports()"
+        class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 active:bg-neutral-900 transition"
+      >
+        Voir tous les rapports
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+        </svg>
+      </button>
     </div>
   </div>
 }

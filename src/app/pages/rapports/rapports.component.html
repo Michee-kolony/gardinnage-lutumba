@@ -1,0 +1,207 @@
+<main class="space-y-6 pb-8 text-neutral-900">
+  <header class="flex flex-col gap-2 border-b border-neutral-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Suivi des gardiens</p>
+      <h1 class="font-serif text-3xl font-medium leading-tight text-black">Rapports</h1>
+      <p class="mt-2 text-sm text-neutral-500">Comptes-rendus et signalements envoyés par les gardiens après leur service.</p>
+    </div>
+    @if (nonLus > 0) {
+      <button type="button" (click)="filtreStatut = 'nouveau'; charger()"
+        class="self-start rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:border-blue-400 sm:self-auto">
+        {{ nonLus }} rapport(s) non lu(s)
+      </button>
+    }
+  </header>
+
+  <!-- Période et filtres -->
+  <section class="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm" aria-label="Période et filtres">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+      <div class="grid grid-cols-2 gap-3 lg:w-80">
+        <label class="grid gap-1">
+          <span class="text-[11px] font-semibold text-neutral-600">Du</span>
+          <input type="date" [(ngModel)]="du" (change)="charger()" [max]="au" class="h-10 rounded-lg border border-neutral-300 px-3 text-sm outline-none focus:border-black" />
+        </label>
+        <label class="grid gap-1">
+          <span class="text-[11px] font-semibold text-neutral-600">Au</span>
+          <input type="date" [(ngModel)]="au" (change)="charger()" [min]="du" class="h-10 rounded-lg border border-neutral-300 px-3 text-sm outline-none focus:border-black" />
+        </label>
+      </div>
+      <div class="flex flex-wrap gap-1.5">
+        @for (r of raccourcis; track r.id) {
+          <button type="button" (click)="raccourci(r.id)"
+            class="rounded-full border px-3 py-1.5 text-xs font-medium transition"
+            [ngClass]="raccourciActif(r.id) ? 'border-black bg-black text-white' : 'border-neutral-300 bg-white text-neutral-700 hover:border-black'">{{ r.label }}</button>
+        }
+      </div>
+    </div>
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <input type="search" [(ngModel)]="recherche" placeholder="Rechercher un gardien, une propriété, un mot-clé..." aria-label="Rechercher"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-72" />
+      <select [(ngModel)]="filtreGardien" (ngModelChange)="charger()" aria-label="Filtrer par gardien"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-56">
+        <option value="">Tous les gardiens</option>
+        @for (g of gardiens; track g._id) { <option [value]="g._id">{{ nom(g) }} · {{ g.matricule }}</option> }
+      </select>
+      <select [(ngModel)]="filtrePropriete" (ngModelChange)="charger()" aria-label="Filtrer par propriété"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-56">
+        <option value="">Toutes les propriétés</option>
+        @for (p of proprietes; track p._id) { <option [value]="p._id">{{ p.nomReference }} · {{ p.commune }}</option> }
+      </select>
+      <select [(ngModel)]="filtreObjet" (ngModelChange)="charger()" aria-label="Filtrer par objet"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-48">
+        <option value="">Tous les objets</option>
+        @for (o of objets; track o.valeur) { <option [value]="o.valeur">{{ o.libelle }}</option> }
+      </select>
+      <select [(ngModel)]="filtreStatut" (ngModelChange)="charger()" aria-label="Filtrer par statut"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-40">
+        <option value="">Tous les statuts</option>
+        @for (s of statuts; track s) { <option [value]="s">{{ statutLabel(s) }}</option> }
+      </select>
+      @if (filtresActifs) {
+        <button type="button" (click)="reinitialiserFiltres()" class="text-xs font-medium text-neutral-600 underline hover:text-black">Réinitialiser</button>
+      }
+      <button type="button" (click)="charger()" [disabled]="loading"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700 transition hover:border-black hover:text-black disabled:opacity-50 sm:ml-auto">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2" [class.animate-spin]="loading"><path stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" /></svg>
+        Rafraîchir
+      </button>
+    </div>
+  </section>
+
+  @if (error) {
+    <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">{{ error }}</p>
+  }
+
+  <section class="rounded-lg border border-neutral-200 bg-white px-4 shadow-sm sm:px-5">
+    <div class="flex items-center justify-between border-b border-neutral-100 py-4">
+      <h2 class="font-serif text-xl font-medium text-black">Tous les rapports</h2>
+      <p class="text-xs text-neutral-500">{{ rapportsFiltres.length }} rapport(s)</p>
+    </div>
+
+    @if (loading && rapports.length === 0) {
+      <div class="grid min-h-48 place-items-center gap-3 p-8 text-sm text-neutral-500"><span class="h-6 w-6 animate-spin rounded-full border-2 border-neutral-200 border-t-black"></span><p>Chargement...</p></div>
+    } @else if (rapportsFiltres.length === 0) {
+      <p class="py-6 text-center text-sm text-neutral-500">Aucun rapport ne correspond à ces critères.</p>
+    } @else {
+      <ul class="divide-y divide-neutral-100">
+        @for (r of rapportsFiltres; track r._id) {
+          <li>
+            <button type="button" (click)="ouvrir(r)" class="-mx-4 flex w-[calc(100%+2rem)] items-start gap-3 px-4 py-4 text-left transition-colors hover:bg-neutral-50 sm:-mx-5 sm:w-[calc(100%+2.5rem)] sm:px-5"
+              [ngClass]="{ 'bg-blue-50/40': r.statut === 'nouveau' }">
+              <app-affectation-avatar [src]="r.gardien?.photoProfil" [nom]="nom(r.gardien)" taille="h-10 w-10"></app-affectation-avatar>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                  <p class="truncate text-sm font-semibold text-black">
+                    {{ nom(r.gardien) }} <span class="font-normal text-neutral-500">· {{ r.gardien?.matricule }}</span>
+                  </p>
+                  <span class="shrink-0 text-[11px] text-neutral-500">{{ date(r.createdAt) }} à {{ heure(r.createdAt) }}</span>
+                </div>
+                <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                  <span class="rounded-full px-2 py-0.5 text-[10px] font-medium" [ngClass]="objetBadge(r.objet)">{{ r.objetLibelle }}</span>
+                  <span class="rounded-full px-2 py-0.5 text-[10px] font-medium" [ngClass]="statutBadge(r.statut)">{{ statutLabel(r.statut) }}</span>
+                  <span class="truncate text-xs text-neutral-500">{{ r.propriete?.nomReference || 'Propriété supprimée' }}@if (r.propriete?.commune) { · {{ r.propriete?.commune }}}</span>
+                </div>
+                <p class="mt-1.5 line-clamp-2 whitespace-pre-line text-sm text-neutral-600">{{ r.description }}</p>
+              </div>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</main>
+
+<!-- Détail d'un rapport -->
+@if (selection; as r) {
+  <div class="fixed inset-0 z-50 grid items-end bg-black/55 p-0 sm:items-center sm:p-5 animate-[fade-in_0.15s_ease-out]" (click)="fermer()">
+    <section class="mx-auto max-h-[94vh] w-full max-w-lg overflow-y-auto rounded-t-xl bg-white shadow-2xl sm:rounded-xl animate-[modal-pop_0.2s_ease-out]" role="dialog" aria-modal="true" aria-labelledby="rapport-detail-title" (click)="$event.stopPropagation()">
+      <header class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-neutral-200 bg-white px-5 py-4 sm:px-6">
+        <div>
+          <p class="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Envoyé le {{ date(r.createdAt) }} à {{ heure(r.createdAt) }}</p>
+          <h2 id="rapport-detail-title" class="font-serif text-xl font-medium text-black">{{ r.objetLibelle }}</h2>
+          <div class="mt-2 flex flex-wrap gap-1.5">
+            <span class="rounded-full px-2.5 py-1 text-xs font-medium" [ngClass]="objetBadge(r.objet)">{{ r.objetLibelle }}</span>
+            <span class="rounded-full px-2.5 py-1 text-xs font-medium" [ngClass]="statutBadge(r.statut)">{{ statutLabel(r.statut) }}</span>
+          </div>
+        </div>
+        <button type="button" (click)="fermer()" aria-label="Fermer" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-neutral-100 text-neutral-600 transition hover:bg-neutral-200 hover:text-black">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
+      </header>
+
+      <div class="space-y-4 px-5 py-5 sm:px-6">
+        <div class="flex items-center gap-3">
+          <app-affectation-avatar [src]="r.gardien?.photoProfil" [nom]="nom(r.gardien)" taille="h-12 w-12"></app-affectation-avatar>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-black">{{ nom(r.gardien) }}</p>
+            <p class="text-xs text-neutral-500">{{ r.gardien?.matricule }}@if (r.gardien?.telephonePrincipal) { · {{ r.gardien?.telephonePrincipal }}}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <app-affectation-avatar [src]="r.propriete?.photos?.[0]" [nom]="r.propriete?.nomReference || ''" [avecInitiales]="false" taille="h-12 w-12" forme="rounded-lg"></app-affectation-avatar>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-black">{{ r.propriete?.nomReference || 'Propriété supprimée' }}</p>
+            <p class="text-xs text-neutral-500">{{ adresse(r.propriete) }}</p>
+            @if (r.propriete?.proprietaire) {
+              <p class="text-xs text-neutral-500">Propriétaire : {{ nom(r.propriete?.proprietaire, '') }}@if (r.propriete?.proprietaire?.telephone) { · {{ r.propriete?.proprietaire?.telephone }}}</p>
+            }
+          </div>
+        </div>
+
+        @if (r.presence) {
+          <dl class="divide-y divide-neutral-100 rounded-lg border border-neutral-200 px-3">
+            <div class="flex justify-between gap-4 py-2.5"><dt class="text-xs text-neutral-500">Service</dt><dd class="text-right text-xs font-semibold text-neutral-800">{{ date(r.presence.debutPrevu) }} {{ heure(r.presence.debutPrevu) }} → {{ heure(r.presence.finPrevue) }}</dd></div>
+            <div class="flex justify-between gap-4 py-2.5"><dt class="text-xs text-neutral-500">Arrivée / départ</dt><dd class="text-right text-xs font-semibold text-neutral-800">{{ heure(r.presence.heureArrivee) }} → {{ r.presence.heureDepart ? heure(r.presence.heureDepart) : 'en cours' }}</dd></div>
+          </dl>
+        }
+
+        <div>
+          <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500">Rapport du gardien</p>
+          <p class="whitespace-pre-line rounded-lg bg-neutral-50 px-3 py-3 text-sm text-neutral-800">{{ r.description }}</p>
+        </div>
+
+        <div class="space-y-2">
+          <label for="rapport-commentaire" class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Commentaire de l’entreprise</label>
+          <textarea id="rapport-commentaire" [(ngModel)]="commentaire" rows="3" placeholder="Suite donnée, remarques..."
+            class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"></textarea>
+          @if (r.traitePar && r.traiteLe) {
+            <p class="text-[11px] text-neutral-500">{{ statutLabel(r.statut) }} par {{ r.traitePar.nom }} le {{ date(r.traiteLe) }} à {{ heure(r.traiteLe) }}</p>
+          }
+        </div>
+
+        @if (erreurDetail) {
+          <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">{{ erreurDetail }}</p>
+        }
+
+        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+          @if (estSuperAdmin) {
+            @if (!confirmationSuppression) {
+              <button type="button" (click)="confirmationSuppression = true" [disabled]="enregistrement" class="text-xs font-medium text-red-700 underline hover:text-red-900 disabled:opacity-50">Supprimer</button>
+            } @else {
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-red-700">Supprimer définitivement ?</span>
+                <button type="button" (click)="supprimer()" [disabled]="enregistrement" class="rounded-md bg-red-600 px-2.5 py-1 font-medium text-white hover:bg-red-700 disabled:opacity-50">Oui</button>
+                <button type="button" (click)="confirmationSuppression = false" class="rounded-md border border-neutral-300 px-2.5 py-1 font-medium text-neutral-700 hover:border-black">Non</button>
+              </div>
+            }
+          } @else {
+            <span></span>
+          }
+          <div class="flex gap-2">
+            @if (r.statut === 'traite') {
+              <button type="button" (click)="enregistrer('lu')" [disabled]="enregistrement"
+                class="h-10 flex-1 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-black hover:text-black disabled:opacity-50 sm:flex-none">Rouvrir</button>
+              <button type="button" (click)="enregistrer('traite')" [disabled]="enregistrement"
+                class="h-10 flex-1 rounded-lg bg-black px-4 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50 sm:flex-none">Enregistrer</button>
+            } @else {
+              <button type="button" (click)="enregistrer(r.statut)" [disabled]="enregistrement"
+                class="h-10 flex-1 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:border-black hover:text-black disabled:opacity-50 sm:flex-none">Enregistrer</button>
+              <button type="button" (click)="enregistrer('traite')" [disabled]="enregistrement"
+                class="h-10 flex-1 rounded-lg bg-black px-4 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-50 sm:flex-none">Marquer comme traité</button>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+}

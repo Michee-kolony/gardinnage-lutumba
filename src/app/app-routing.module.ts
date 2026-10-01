@@ -15,6 +15,7 @@ import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
 import { AffectationsComponent } from './pages/affectations/affectations.component';
 import { PresencesComponent } from './pages/presences/presences.component';
+import { RapportsComponent } from './pages/rapports/rapports.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
 import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
 import { authGuard } from './core/auth.guard';
@@ -40,6 +41,7 @@ const routes: Routes = [
       { path: 'paiements', component: PaiementsComponent },
       { path: 'affectations', component: AffectationsComponent },
       { path: 'presences', component: PresencesComponent },
+      { path: 'rapports', component: RapportsComponent },
       { path: 'administrateurs', component: AdministrateursComponent },
       { path: 'parametres', component: ParametresComponent },
     ]

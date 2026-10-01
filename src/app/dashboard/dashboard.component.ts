@@ -7,6 +7,9 @@ import { Gardien, GardiensService, StatutGardien } from '../core/gardiens.servic
 import { DevisePaiement, Paiement, PaiementsService } from '../core/paiements.service';
 import { ProprietairesService } from '../core/proprietaires.service';
 import { ProprietesService } from '../core/proprietes.service';
+import { dateIso, heureLocale } from '../core/presences.service';
+import { nomComplet } from '../core/affectations.service';
+import { Rapport, RapportsService, objetRapportBadgeClass } from '../core/rapports.service';
 
 interface StatDef {
   label: string;
@@ -29,13 +32,9 @@ interface ContratExpirant {
 
 type PeriodeRapport = 'aujourdhui' | 'hier';
 
-interface RapportGardien {
-  nom: string;
-  photoUrl: string;
-  message: string;
-  date: string;
-  periode: PeriodeRapport;
-}
+// Le popover du dashboard n'affiche que les rapports récents ; la page
+// /admin/rapports donne accès à l'historique complet.
+const JOURS_RAPPORTS_RECENTS = 7;
 
 @Component({
   selector: 'app-dashboard',
@@ -51,6 +50,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     private paiementsService: PaiementsService,
     private proprietairesService: ProprietairesService,
     private proprietesService: ProprietesService,
+    private rapportsService: RapportsService,
     private router: Router
   ) {}
 
@@ -58,14 +58,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   rapportsSearchTerm = '';
   rapportsDateFilter: 'toutes' | PeriodeRapport = 'toutes';
 
-  rapports: RapportGardien[] = [
-    { nom: 'Karim Benali', photoUrl: 'https://i.pravatar.cc/150?img=12', message: "Ronde de nuit effectuée sans incident sur le secteur Villa Les Pins. RAS.", date: "Aujourd'hui, 06:12", periode: 'aujourdhui' },
-    { nom: 'Julien Moreau', photoUrl: 'https://i.pravatar.cc/150?img=13', message: "Portail d'accès de la Résidence Bellevue signalé difficile à fermer, à vérifier par la maintenance.", date: "Aujourd'hui, 05:47", periode: 'aujourdhui' },
-    { nom: 'Sophie Girard', photoUrl: 'https://i.pravatar.cc/150?img=45', message: "Passage effectué au Domaine du Lac, tout est en ordre. Aucune anomalie constatée.", date: "Hier, 23:30", periode: 'hier' },
-    { nom: 'Mehdi Cherif', photoUrl: 'https://i.pravatar.cc/150?img=14', message: "Alarme déclenchée par erreur à la Maison Rosier (animal domestique), fausse alerte confirmée.", date: 'Hier, 22:05', periode: 'hier' },
-    { nom: 'Thomas Lefevre', photoUrl: 'https://i.pravatar.cc/150?img=15', message: "Absence justifiée aujourd'hui, remplacement assuré par Nicolas Faure.", date: 'Hier, 18:00', periode: 'hier' },
-    { nom: 'Camille Bernard', photoUrl: 'https://i.pravatar.cc/150?img=48', message: "Ronde Croisette terminée. Un véhicule suspect stationné a été signalé aux autorités.", date: 'Hier, 21:15', periode: 'hier' },
-  ];
+  rapports: Rapport[] = [];
+  rapportsNonLus = 0;
+  rapportsLoading = false;
+  rapportsError = '';
 
   // Gardiens réellement "en service" (chargés depuis le backend dans ngOnInit),
   // utilisés à la fois pour la rangée d'avatars et les marqueurs de la carte.
@@ -138,14 +134,20 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     return `${jours} j`;
   }
 
-  get filteredRapports(): RapportGardien[] {
+  get filteredRapports(): Rapport[] {
     const term = this.rapportsSearchTerm.trim().toLowerCase();
+    const aujourdhui = dateIso(new Date());
+    const hier = new Date();
+    hier.setDate(hier.getDate() - 1);
+    const jourCible = this.rapportsDateFilter === 'aujourdhui' ? aujourdhui : this.rapportsDateFilter === 'hier' ? dateIso(hier) : '';
 
     return this.rapports.filter((r) => {
       const matchesTerm = !term ||
-        r.nom.toLowerCase().includes(term) ||
-        r.message.toLowerCase().includes(term);
-      const matchesDate = this.rapportsDateFilter === 'toutes' || r.periode === this.rapportsDateFilter;
+        this.nomGardien(r).toLowerCase().includes(term) ||
+        r.description.toLowerCase().includes(term) ||
+        r.objetLibelle.toLowerCase().includes(term) ||
+        (r.propriete?.nomReference ?? '').toLowerCase().includes(term);
+      const matchesDate = !jourCible || dateIso(new Date(r.createdAt)) === jourCible;
       return matchesTerm && matchesDate;
     });
   }
@@ -154,10 +156,39 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.rapportsSearchTerm = '';
     this.rapportsDateFilter = 'toutes';
     this.isRapportsModalOpen = true;
+    this.fetchRapports();
   }
 
   closeRapportsModal(): void {
     this.isRapportsModalOpen = false;
+  }
+
+  voirTousLesRapports(): void {
+    this.closeRapportsModal();
+    this.router.navigate(['/admin/rapports']);
+  }
+
+  ouvrirRapport(rapport: Rapport): void {
+    this.closeRapportsModal();
+    this.router.navigate(['/admin/rapports'], { queryParams: { id: rapport._id } });
+  }
+
+  nomGardien(rapport: Rapport): string {
+    return nomComplet(rapport.gardien);
+  }
+
+  dateRapport(iso: string): string {
+    const jour = dateIso(new Date(iso));
+    const hier = new Date();
+    hier.setDate(hier.getDate() - 1);
+    const heure = heureLocale(iso);
+    if (jour === dateIso(new Date())) return `Aujourd'hui, ${heure}`;
+    if (jour === dateIso(hier)) return `Hier, ${heure}`;
+    return `${new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' }).format(new Date(iso))}, ${heure}`;
+  }
+
+  objetBadge(rapport: Rapport): string {
+    return objetRapportBadgeClass(rapport.objet);
   }
 
   // Sondage périodique : permet de détecter automatiquement, sans rechargement
@@ -176,7 +207,11 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.fetchGardiens();
-    this.pollTimer = setInterval(() => this.fetchGardiens(), DashboardComponent.POLL_INTERVAL_MS);
+    this.fetchRapports();
+    this.pollTimer = setInterval(() => {
+      this.fetchGardiens();
+      this.fetchRapports();
+    }, DashboardComponent.POLL_INTERVAL_MS);
     this.fetchFinanceStats();
     this.fetchProprietairesCount();
     this.fetchProprietesCount();
@@ -248,6 +283,29 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // La carte reste utilisable (vide) même si le chargement échoue.
         this.tryInitMap();
+      }
+    });
+  }
+
+  // Rapports des 7 derniers jours pour le popover, plus le nombre total de
+  // rapports non lus (badge du bouton flottant), renvoyé par le serveur.
+  private fetchRapports(): void {
+    const debut = new Date();
+    debut.setDate(debut.getDate() - (JOURS_RAPPORTS_RECENTS - 1));
+    this.rapportsLoading = this.rapports.length === 0;
+    this.rapportsService.list({ du: dateIso(debut), au: dateIso(new Date()) }).subscribe({
+      next: (res) => {
+        this.rapports = res.rapports;
+        this.rapportsNonLus = res.nonLus;
+        this.rapportsError = '';
+        this.rapportsLoading = false;
+      },
+      error: () => {
+        // Comme pour les gardiens : on garde les données déjà affichées en cas de raté ponctuel.
+        if (this.rapports.length === 0) {
+          this.rapportsError = 'Impossible de charger les rapports.';
+        }
+        this.rapportsLoading = false;
       }
     });
   }

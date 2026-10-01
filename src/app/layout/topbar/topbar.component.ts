@@ -13,6 +13,7 @@ const TITLES: Record<string, string> = {
   paiements: 'Paiements',
   affectations: 'Affectations des gardiens',
   presences: 'Suivi de présence',
+  rapports: 'Rapports des gardiens',
   parametres: 'Paramètres',
 };
 

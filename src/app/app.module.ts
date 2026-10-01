@@ -45,6 +45,7 @@ import { PresencesTableComponent } from './pages/presences/presences-table/prese
 import { PresencesResumeComponent } from './pages/presences/presences-resume/presences-resume.component';
 import { PresenceDetailComponent } from './pages/presences/presence-detail/presence-detail.component';
 import { PresenceClotureComponent } from './pages/presences/presence-cloture/presence-cloture.component';
+import { RapportsComponent } from './pages/rapports/rapports.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
 import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
 
@@ -88,6 +89,7 @@ import { AdministrateursComponent } from './pages/administrateurs/administrateur
     PresencesResumeComponent,
     PresenceDetailComponent,
     PresenceClotureComponent,
+    RapportsComponent,
     ParametresComponent,
     AdministrateursComponent
   ],
