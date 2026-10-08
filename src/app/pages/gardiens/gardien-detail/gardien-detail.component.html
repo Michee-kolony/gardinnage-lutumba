@@ -512,7 +512,7 @@
                 Changer la photo
               </label>
               <input
-                id="editPhotoFile" name="editPhotoFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif"
+                id="editPhotoFile" name="editPhotoFile" type="file" [accept]="formatsImage"
                 (change)="onEditPhotoSelected($event)"
                 class="hidden"
               />

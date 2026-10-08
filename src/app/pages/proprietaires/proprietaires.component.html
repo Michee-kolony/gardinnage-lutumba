@@ -231,7 +231,7 @@
               Choisir une photo
             </label>
             <input
-              id="photoFile" name="photoFile" type="file" accept="image/*"
+              id="photoFile" name="photoFile" type="file" [accept]="formatsImage"
               (change)="onPhotoSelected($event)"
               class="hidden"
             />
@@ -405,7 +405,7 @@
               Changer la photo
             </label>
             <input
-              id="editPhotoFile" name="editPhotoFile" type="file" accept="image/*"
+              id="editPhotoFile" name="editPhotoFile" type="file" [accept]="formatsImage"
               (change)="onEditPhotoSelected($event)"
               class="hidden"
             />

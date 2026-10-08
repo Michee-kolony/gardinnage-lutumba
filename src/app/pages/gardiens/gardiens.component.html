@@ -216,12 +216,12 @@
               Choisir une photo
             </label>
             <input
-              id="photoFile" name="photoFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif" required
+              id="photoFile" name="photoFile" type="file" [accept]="formatsImage" required
               (change)="onPhotoSelected($event)"
               class="hidden"
             />
             <p class="text-xs text-neutral-400 mt-1 truncate">
-              {{ selectedFileName || 'JPEG, PNG, WEBP ou AVIF, 5 Mo max.' }}
+              {{ selectedFileName || formatsImageLibelle }}
             </p>
           </div>
         </div>

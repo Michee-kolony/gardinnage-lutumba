@@ -25,6 +25,7 @@ import { Proprietaire, ProprietairesService } from '../../../core/proprietaires.
 import { AuthService } from '../../../core/auth.service';
 import { Affectation, AffectationsService } from '../../../core/affectations.service';
 import { Presence, PresencesService } from '../../../core/presences.service';
+import { FORMATS_IMAGE_ACCEPT } from '../../../core/images';
 
 const LOGO_URL = '/images/logo.png';
 
@@ -53,6 +54,8 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
   editModalOpen = false;
   submittingEdit = false;
   photosPreviews: string[] = [];
+  formatsImage = FORMATS_IMAGE_ACCEPT;
+  formatsDocument = `${FORMATS_IMAGE_ACCEPT},.pdf,application/pdf`;
   documentSelectedName = '';
   autresDocumentsNames: string[] = [];
   editFormModel: ProprietePayload = this.buildEmptyForm();

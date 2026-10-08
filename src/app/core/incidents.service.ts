@@ -249,7 +249,7 @@ export function trierIncidents(incidents: Incident[]): Incident[] {
 // Mêmes limites que le backend
 export const MAX_PHOTOS_INCIDENT = 5;
 export const MAX_VIDEOS_INCIDENT = 2;
-export const TAILLE_MAX_PHOTO_INCIDENT = 5 * 1024 * 1024;
+export const TAILLE_MAX_PHOTO_INCIDENT = 20 * 1024 * 1024;
 export const TAILLE_MAX_VIDEO_INCIDENT = 30 * 1024 * 1024;
 export const FORMATS_VIDEO_INCIDENT = ['video/mp4', 'video/quicktime', 'video/webm', 'video/3gpp'];
 

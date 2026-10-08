@@ -13,6 +13,7 @@ import {
   Sexe,
   StatutGardien
 } from '../../core/gardiens.service';
+import { FORMATS_IMAGE_ACCEPT, FORMATS_IMAGE_LIBELLE, verifierImage } from '../../core/images';
 
 @Component({
   selector: 'app-gardiens',
@@ -29,6 +30,8 @@ export class GardiensComponent implements OnInit, OnDestroy {
   isModalOpen = false;
   submitting = false;
   selectedFileName = '';
+  formatsImage = FORMATS_IMAGE_ACCEPT;
+  formatsImageLibelle = FORMATS_IMAGE_LIBELLE;
   photoPreview = '';
 
   sexesDisponibles = SEXES;
@@ -163,6 +166,12 @@ export class GardiensComponent implements OnInit, OnDestroy {
   onPhotoSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) {
+      return;
+    }
+    const erreurImage = verifierImage(file);
+    if (erreurImage) {
+      (event.target as HTMLInputElement).value = '';
+      this.showToast('error', erreurImage);
       return;
     }
     this.formModel.photo = file;

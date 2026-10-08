@@ -1099,7 +1099,7 @@
                 </svg>
                 Choisir des photos
               </label>
-              <input id="editPhotosFile" name="editPhotosFile" type="file" accept="image/*" multiple (change)="onPhotosSelected($event)" class="hidden" />
+              <input id="editPhotosFile" name="editPhotosFile" type="file" [accept]="formatsImage" multiple (change)="onPhotosSelected($event)" class="hidden" />
               <p class="text-xs text-neutral-400 mt-1">Laisser vide pour conserver les {{ propriete.photos.length }} photo(s) actuelle(s).</p>
               @if (photosPreviews.length > 0) {
                 <div class="flex gap-2 mt-2 flex-wrap">
@@ -1121,7 +1121,7 @@
                   </svg>
                   Choisir un fichier
                 </label>
-                <input id="editDocumentFile" name="editDocumentFile" type="file" accept="image/*,.pdf" (change)="onDocumentSelected($event)" class="hidden" />
+                <input id="editDocumentFile" name="editDocumentFile" type="file" [accept]="formatsDocument" (change)="onDocumentSelected($event)" class="hidden" />
                 <p class="text-xs text-neutral-400 mt-1 truncate">{{ documentSelectedName || 'Aucun nouveau fichier.' }}</p>
               </div>
               <div>
@@ -1135,7 +1135,7 @@
                   </svg>
                   Choisir des fichiers
                 </label>
-                <input id="editAutresDocumentsFile" name="editAutresDocumentsFile" type="file" accept="image/*,.pdf" multiple (change)="onAutresDocumentsSelected($event)" class="hidden" />
+                <input id="editAutresDocumentsFile" name="editAutresDocumentsFile" type="file" [accept]="formatsDocument" multiple (change)="onAutresDocumentsSelected($event)" class="hidden" />
                 <p class="text-xs text-neutral-400 mt-1 truncate">{{ autresDocumentsNames.join(', ') || 'Aucun nouveau fichier.' }}</p>
               </div>
             </div>

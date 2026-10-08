@@ -11,6 +11,7 @@ import {
   ProprietairesService,
   UpdateProprietairePayload
 } from '../../core/proprietaires.service';
+import { FORMATS_IMAGE_ACCEPT, FORMATS_IMAGE_LIBELLE, verifierImage } from '../../core/images';
 
 @Component({
   selector: 'app-proprietaires',
@@ -37,6 +38,8 @@ export class ProprietairesComponent implements OnInit, OnDestroy {
   submittingEdit = false;
   editSelectedFileName = '';
   editPhotoPreview = '';
+  formatsImage = FORMATS_IMAGE_ACCEPT;
+  formatsImageLibelle = FORMATS_IMAGE_LIBELLE;
   editFormModel: UpdateProprietairePayload = this.buildEmptyEditForm();
   private editingId = '';
 
@@ -152,6 +155,12 @@ export class ProprietairesComponent implements OnInit, OnDestroy {
     if (!file) {
       return;
     }
+    const erreurImage = verifierImage(file);
+    if (erreurImage) {
+      (event.target as HTMLInputElement).value = '';
+      this.showToast('error', erreurImage);
+      return;
+    }
     this.formModel.photo = file;
     this.selectedFileName = file.name;
 
@@ -216,6 +225,12 @@ export class ProprietairesComponent implements OnInit, OnDestroy {
   onEditPhotoSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) {
+      return;
+    }
+    const erreurImage = verifierImage(file);
+    if (erreurImage) {
+      (event.target as HTMLInputElement).value = '';
+      this.showToast('error', erreurImage);
       return;
     }
     this.editFormModel.photo = file;

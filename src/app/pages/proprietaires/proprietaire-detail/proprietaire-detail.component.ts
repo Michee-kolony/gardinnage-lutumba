@@ -20,6 +20,7 @@ import {
   statutAbonnementLabel
 } from '../../../core/proprietes.service';
 import { DevisePaiement, ModePaiement, Paiement, PaiementsService, dureeAbonnementLabel } from '../../../core/paiements.service';
+import { FORMATS_IMAGE_ACCEPT, FORMATS_IMAGE_LIBELLE, verifierImage } from '../../../core/images';
 
 @Component({
   selector: 'app-proprietaire-detail',
@@ -40,6 +41,8 @@ export class ProprietaireDetailComponent implements OnInit, OnDestroy {
   editModalOpen = false;
   submittingEdit = false;
   editSelectedFileName = '';
+  formatsImage = FORMATS_IMAGE_ACCEPT;
+  formatsImageLibelle = FORMATS_IMAGE_LIBELLE;
   editPhotoPreview = '';
   editFormModel: UpdateProprietairePayload = this.buildEmptyEditForm();
 
@@ -263,6 +266,12 @@ export class ProprietaireDetailComponent implements OnInit, OnDestroy {
   onEditPhotoSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) {
+      return;
+    }
+    const erreurImage = verifierImage(file);
+    if (erreurImage) {
+      (event.target as HTMLInputElement).value = '';
+      this.showToast('error', erreurImage);
       return;
     }
     this.editFormModel.photo = file;

@@ -582,7 +582,7 @@
               </svg>
               Choisir des photos
             </label>
-            <input id="photosFile" name="photosFile" type="file" accept="image/*" multiple (change)="onPhotosSelected($event)" class="hidden" />
+            <input id="photosFile" name="photosFile" type="file" [accept]="formatsImage" multiple (change)="onPhotosSelected($event)" class="hidden" />
             @if (photosPreviews.length > 0) {
               <div class="flex gap-2 mt-2 flex-wrap">
                 @for (preview of photosPreviews; track $index) {
@@ -603,7 +603,7 @@
                 </svg>
                 Choisir un fichier
               </label>
-              <input id="documentFile" name="documentFile" type="file" accept="image/*,.pdf" (change)="onDocumentSelected($event)" class="hidden" />
+              <input id="documentFile" name="documentFile" type="file" [accept]="formatsDocument" (change)="onDocumentSelected($event)" class="hidden" />
               <p class="text-xs text-neutral-400 mt-1 truncate">{{ documentSelectedName || 'Aucun fichier choisi.' }}</p>
             </div>
             <div>
@@ -617,7 +617,7 @@
                 </svg>
                 Choisir des fichiers
               </label>
-              <input id="autresDocumentsFile" name="autresDocumentsFile" type="file" accept="image/*,.pdf" multiple (change)="onAutresDocumentsSelected($event)" class="hidden" />
+              <input id="autresDocumentsFile" name="autresDocumentsFile" type="file" [accept]="formatsDocument" multiple (change)="onAutresDocumentsSelected($event)" class="hidden" />
               <p class="text-xs text-neutral-400 mt-1 truncate">{{ autresDocumentsNames.join(', ') || 'Aucun fichier choisi.' }}</p>
             </div>
           </div>

@@ -66,6 +66,7 @@ const COULEURS_STATUT_DONUT: Record<string, string> = { nouveau: '#d03b3b', en_c
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('gardiensMap') mapContainer?: ElementRef<HTMLDivElement>;
   private map?: L.Map;
+  private readonly onWindowResize = (): void => { this.map?.invalidateSize(); };
 
   constructor(
     private gardiensService: GardiensService,
@@ -264,7 +265,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.financeAnimations.forEach((id) => cancelAnimationFrame(id));
     this.subscriptions.unsubscribe();
+    // Retire l'écouteur resize avant de détruire la carte : sinon, une fois sur
+    // une autre page, il appelle invalidateSize() sur une carte supprimée
+    // (erreur « Cannot read properties of undefined (reading '_leaflet_pos') »).
+    window.removeEventListener('resize', this.onWindowResize);
     this.map?.remove();
+    this.map = undefined;
     this.audioContext?.close();
   }
 
@@ -587,7 +593,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     }, { collapsed: true, position: 'topright' }).addTo(this.map);
 
     this.map.on('popupclose', () => (this.popupIncidentId = null));
-    window.addEventListener('resize', () => this.map?.invalidateSize());
+    window.addEventListener('resize', this.onWindowResize);
 
     // Au cas où les données des gardiens étaient déjà arrivées avant que la
     // carte n'existe (ou inversement), on dessine les marqueurs tout de suite.

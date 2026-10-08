@@ -82,10 +82,10 @@
 
         <div class="grid gap-2 sm:col-span-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-neutral-700">Photos ({{ photos.length }}/{{ maxPhotos }}, 5 Mo max)</span>
+            <span class="text-xs font-semibold text-neutral-700">Photos ({{ photos.length }}/{{ maxPhotos }}, 20 Mo max)</span>
             <label class="cursor-pointer text-xs font-medium text-black underline" [class.pointer-events-none]="photos.length >= maxPhotos" [class.opacity-40]="photos.length >= maxPhotos">
               Ajouter
-              <input type="file" accept="image/*" multiple class="hidden" (change)="onPhotos($event)" />
+              <input type="file" [accept]="formatsImage" multiple class="hidden" (change)="onPhotos($event)" />
             </label>
           </div>
           @if (photos.length) {

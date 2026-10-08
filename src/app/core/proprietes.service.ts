@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import { verifierImage } from './images';
 import { Proprietaire } from './proprietaires.service';
 
 export type TypePropriete = 'maison' | 'villa' | 'appartement' | 'immeuble' | 'bureau' | 'commerce' | 'autre';
@@ -104,19 +105,28 @@ const CHAMPS_BOOLEENS: (keyof ProprietePayload)[] = ['cloture', 'portail', 'gara
 const CHAMPS_FICHIERS_MULTIPLES: (keyof ProprietePayload)[] = ['photos', 'autresDocuments'];
 
 // Mêmes limites que le backend (middleware/upload.js)
-const TAILLE_MAX_PHOTO = 5 * 1024 * 1024;
-const TAILLE_MAX_DOCUMENT = 10 * 1024 * 1024;
+const TAILLE_MAX_DOCUMENT = 20 * 1024 * 1024;
 
-// Vérifie la taille des fichiers avant l'envoi : renvoie un message d'erreur, ou null si tout est bon
+// Vérifie le format et la taille des fichiers avant l'envoi : renvoie un message d'erreur, ou null si tout est bon
 export function verifierTailleFichiers(payload: ProprietePayload): string | null {
-  const photoTropLourde = payload.photos.find((f) => f.size > TAILLE_MAX_PHOTO);
-  if (photoTropLourde) {
-    return `La photo "${photoTropLourde.name}" dépasse 5 Mo.`;
+  for (const photo of payload.photos) {
+    const erreur = verifierImage(photo);
+    if (erreur) {
+      return erreur;
+    }
   }
   const documents = [...(payload.documentPropriete ? [payload.documentPropriete] : []), ...payload.autresDocuments];
-  const documentTropLourd = documents.find((f) => f.size > TAILLE_MAX_DOCUMENT);
-  if (documentTropLourd) {
-    return `Le document "${documentTropLourd.name}" dépasse 10 Mo.`;
+  for (const document of documents) {
+    if (document.name.toLowerCase().endsWith('.pdf') || document.type === 'application/pdf') {
+      if (document.size > TAILLE_MAX_DOCUMENT) {
+        return `Le document "${document.name}" dépasse 20 Mo.`;
+      }
+      continue;
+    }
+    const erreur = verifierImage(document);
+    if (erreur) {
+      return erreur;
+    }
   }
   return null;
 }

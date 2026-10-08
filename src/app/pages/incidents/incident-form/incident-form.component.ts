@@ -9,10 +9,10 @@ import {
   IncidentsService,
   MAX_PHOTOS_INCIDENT,
   MAX_VIDEOS_INCIDENT,
-  TAILLE_MAX_PHOTO_INCIDENT,
   TAILLE_MAX_VIDEO_INCIDENT,
   nomPersonne
 } from '../../../core/incidents.service';
+import { FORMATS_IMAGE_ACCEPT, verifierImage } from '../../../core/images';
 import { Propriete, messageErreurEnvoi } from '../../../core/proprietes.service';
 
 interface IncidentFormModel {
@@ -46,6 +46,7 @@ export class IncidentFormComponent implements OnDestroy {
   @Output() closed = new EventEmitter<void>();
 
   readonly maxPhotos = MAX_PHOTOS_INCIDENT;
+  readonly formatsImage = FORMATS_IMAGE_ACCEPT;
   readonly maxVideos = MAX_VIDEOS_INCIDENT;
 
   form: IncidentFormModel = {
@@ -129,8 +130,8 @@ export class IncidentFormComponent implements OnDestroy {
     this.formError = '';
     for (const f of fichiers) {
       if (this.photos.length >= MAX_PHOTOS_INCIDENT) { this.formError = `${MAX_PHOTOS_INCIDENT} photos maximum.`; break; }
-      if (!f.type.startsWith('image/')) { this.formError = `« ${f.name} » n’est pas une image.`; continue; }
-      if (f.size > TAILLE_MAX_PHOTO_INCIDENT) { this.formError = `La photo « ${f.name} » dépasse 5 Mo.`; continue; }
+      const erreurImage = verifierImage(f);
+      if (erreurImage) { this.formError = erreurImage; continue; }
       this.photos = [...this.photos, { fichier: f, url: URL.createObjectURL(f) }];
     }
   }

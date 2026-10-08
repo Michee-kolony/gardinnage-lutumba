@@ -19,6 +19,7 @@ import {
   verifierTailleFichiers
 } from '../../core/proprietes.service';
 import { Proprietaire, ProprietairesService } from '../../core/proprietaires.service';
+import { FORMATS_IMAGE_ACCEPT } from '../../core/images';
 
 @Component({
   selector: 'app-proprietes',
@@ -45,6 +46,8 @@ export class ProprietesComponent implements OnInit, OnDestroy {
   isModalOpen = false;
   submitting = false;
   photosPreviews: string[] = [];
+  formatsImage = FORMATS_IMAGE_ACCEPT;
+  formatsDocument = `${FORMATS_IMAGE_ACCEPT},.pdf,application/pdf`;
   documentSelectedName = '';
   autresDocumentsNames: string[] = [];
   formModel: ProprietePayload = this.buildEmptyForm();
