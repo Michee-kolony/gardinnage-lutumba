@@ -52,6 +52,7 @@ import { PresenceClotureComponent } from './pages/presences/presence-cloture/pre
 import { RapportsComponent } from './pages/rapports/rapports.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
 import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
+import { MessagerieComponent } from './pages/messagerie/messagerie.component';
 
 @NgModule({
   declarations: [
@@ -99,7 +100,8 @@ import { AdministrateursComponent } from './pages/administrateurs/administrateur
     PresenceClotureComponent,
     RapportsComponent,
     ParametresComponent,
-    AdministrateursComponent
+    AdministrateursComponent,
+    MessagerieComponent
   ],
   imports: [
     BrowserModule,

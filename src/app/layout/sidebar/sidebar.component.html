@@ -57,6 +57,9 @@
             @case ('alert') {
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.3A1.5 1.5 0 0 0 4 19.5h16a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z" />
             }
+            @case ('chat') {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h6m-9 8 2.6-2.6A2 2 0 0 1 8 17h11a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14z" />
+            }
             @case ('card') {
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7zM3 10h18M7 15h4" />
             }
@@ -85,9 +88,9 @@
         }
         @if (badge(item) > 0) {
           @if (collapsed) {
-            <span class="absolute right-2 top-1.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-black" [attr.aria-label]="badge(item) + ' incident(s) non traité(s)'"></span>
+            <span class="absolute right-2 top-1.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-black" [attr.aria-label]="badgeLibelle(item)"></span>
           } @else {
-            <span class="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-red-600 text-white text-[11px] font-semibold flex items-center justify-center" [attr.aria-label]="badge(item) + ' incident(s) non traité(s)'">
+            <span class="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-red-600 text-white text-[11px] font-semibold flex items-center justify-center" [attr.aria-label]="badgeLibelle(item)">
               {{ badge(item) > 99 ? '99+' : badge(item) }}
             </span>
           }

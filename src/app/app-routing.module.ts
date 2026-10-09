@@ -19,6 +19,7 @@ import { PresencesComponent } from './pages/presences/presences.component';
 import { RapportsComponent } from './pages/rapports/rapports.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
 import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
+import { MessagerieComponent } from './pages/messagerie/messagerie.component';
 import { authGuard } from './core/auth.guard';
 
 const routes: Routes = [
@@ -40,6 +41,7 @@ const routes: Routes = [
       { path: 'proprietes/:id', component: ProprieteDetailComponent },
       { path: 'incidents', component: IncidentsComponent },
       { path: 'incidents/:id', component: IncidentDetailComponent },
+      { path: 'messagerie', component: MessagerieComponent },
       { path: 'paiements', component: PaiementsComponent },
       { path: 'affectations', component: AffectationsComponent },
       { path: 'presences', component: PresencesComponent },

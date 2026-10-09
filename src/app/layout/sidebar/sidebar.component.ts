@@ -2,6 +2,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AdminData, AuthService } from '../../core/auth.service';
+import { ChatService } from '../../core/chat.service';
 import { IncidentsService } from '../../core/incidents.service';
 import { LayoutService } from '../../core/layout.service';
 
@@ -21,7 +22,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   // Incidents au statut "nouveau" (badge du menu Incidents)
   incidentsNonTraites = 0;
+  // Messages non lus (badge du menu Messagerie)
+  messagesNonLus = 0;
   private subscription?: Subscription;
+  private subscriptionChat?: Subscription;
 
   navItems: NavItem[] = [
     { label: 'Tableau de bord', route: '/admin/dashboard', icon: 'grid' },
@@ -32,6 +36,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { label: 'Présences', route: '/admin/presences', icon: 'clock' },
     { label: 'Rapports', route: '/admin/rapports', icon: 'report' },
     { label: 'Incidents', route: '/admin/incidents', icon: 'alert' },
+    { label: 'Messagerie', route: '/admin/messagerie', icon: 'chat' },
     { label: 'Paiements', route: '/admin/paiements', icon: 'card' },
     { label: 'Administrateurs', route: '/admin/administrateurs', icon: 'badge' },
     { label: 'Paramètres', route: '/admin/parametres', icon: 'settings' },
@@ -41,19 +46,29 @@ export class SidebarComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     public layout: LayoutService,
-    private incidentsService: IncidentsService
+    private incidentsService: IncidentsService,
+    private chatService: ChatService
   ) {}
 
   ngOnInit(): void {
     this.subscription = this.incidentsService.etat$.subscribe((etat) => (this.incidentsNonTraites = etat.nonTraites));
+    this.subscriptionChat = this.chatService.nonLus$.subscribe((n) => (this.messagesNonLus = n));
   }
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
+    this.subscriptionChat?.unsubscribe();
   }
 
   badge(item: NavItem): number {
-    return item.route === '/admin/incidents' ? this.incidentsNonTraites : 0;
+    if (item.route === '/admin/incidents') return this.incidentsNonTraites;
+    if (item.route === '/admin/messagerie') return this.messagesNonLus;
+    return 0;
+  }
+
+  badgeLibelle(item: NavItem): string {
+    const n = this.badge(item);
+    return item.route === '/admin/messagerie' ? `${n} message(s) non lu(s)` : `${n} incident(s) non traité(s)`;
   }
 
   get admin(): AdminData | null {

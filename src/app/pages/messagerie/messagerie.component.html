@@ -1,0 +1,417 @@
+<main class="flex h-full flex-col gap-4 text-neutral-900">
+  <header class="flex flex-col gap-2 border-b border-neutral-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Communication</p>
+      <h1 class="font-serif text-3xl font-medium leading-tight text-black">Messagerie</h1>
+      <p class="mt-2 text-sm text-neutral-500">Discussions des propriétés et échanges privés avec les gardiens, les propriétaires et l’équipe.</p>
+    </div>
+    <button type="button" (click)="nouvelleDiscussion()"
+      class="self-start rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 sm:self-auto">
+      Nouvelle discussion
+    </button>
+  </header>
+
+  <div class="grid min-h-[560px] flex-1 gap-4 lg:grid-cols-[minmax(300px,380px)_1fr]" style="height: calc(100vh - 230px)">
+
+    <!-- ================= LISTE ================= -->
+    <section class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm"
+      [ngClass]="selection ? 'hidden lg:flex' : 'flex'">
+
+      @if (superAdmin) {
+        <div class="grid grid-cols-2 border-b border-neutral-200 text-sm font-medium">
+          <button type="button" (click)="changerOnglet('conversations')" class="py-3 transition"
+            [ngClass]="onglet === 'conversations' ? 'border-b-2 border-black text-black' : 'text-neutral-500 hover:text-black'">
+            Mes conversations
+            @if (nonLusTotal > 0) { <span class="ml-1 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{{ nonLusTotal }}</span> }
+          </button>
+          <button type="button" (click)="changerOnglet('supervision')" class="py-3 transition"
+            [ngClass]="onglet === 'supervision' ? 'border-b-2 border-black text-black' : 'text-neutral-500 hover:text-black'">
+            Supervision
+          </button>
+        </div>
+      }
+
+      @if (onglet === 'conversations') {
+        <div class="flex flex-col gap-2 border-b border-neutral-100 p-3">
+          <input type="search" [(ngModel)]="recherche" placeholder="Rechercher une conversation..." aria-label="Rechercher une conversation"
+            class="h-9 w-full rounded-lg border border-neutral-300 px-3 text-sm outline-none focus:border-black" />
+          <div class="flex gap-1.5">
+            @for (f of [{ v: '', l: 'Toutes' }, { v: 'propriete', l: 'Propriétés' }, { v: 'directe', l: 'Privées' }]; track f.v) {
+              <button type="button" (click)="filtreType = $any(f.v)"
+                class="rounded-full border px-3 py-1 text-xs font-medium transition"
+                [ngClass]="filtreType === f.v ? 'border-black bg-black text-white' : 'border-neutral-300 text-neutral-700 hover:border-black'">{{ f.l }}</button>
+            }
+          </div>
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto">
+          @if (chargementListe && !conversations.length) {
+            @for (i of [1, 2, 3, 4]; track i) {
+              <div class="flex animate-pulse items-center gap-3 border-b border-neutral-100 p-3">
+                <div class="h-11 w-11 rounded-full bg-neutral-200"></div>
+                <div class="flex-1 space-y-2"><div class="h-3 w-1/2 rounded bg-neutral-200"></div><div class="h-3 w-3/4 rounded bg-neutral-100"></div></div>
+              </div>
+            }
+          } @else if (erreurListe) {
+            <div class="p-6 text-center text-sm text-red-600">
+              {{ erreurListe }}
+              <button type="button" (click)="chargerConversations()" class="mt-2 block w-full text-xs font-medium text-black underline">Réessayer</button>
+            </div>
+          } @else if (!conversationsFiltrees.length) {
+            <p class="p-6 text-center text-sm text-neutral-500">Aucune conversation.</p>
+          }
+
+          @for (c of conversationsFiltrees; track c._id) {
+            <ng-container *ngTemplateOutlet="ligneConversation; context: { $implicit: c, supervision: false }"></ng-container>
+          }
+        </div>
+      }
+
+      @if (onglet === 'supervision') {
+        <div class="flex flex-col gap-2 border-b border-neutral-100 p-3">
+          <form class="flex gap-2" (ngSubmit)="rechercherSupervision()">
+            <input type="search" name="q" [(ngModel)]="supRecherche" placeholder="Rechercher dans tous les messages..." aria-label="Rechercher dans les messages"
+              class="h-9 min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 text-sm outline-none focus:border-black" />
+            <button type="submit" class="rounded-lg bg-black px-3 text-xs font-medium text-white">Chercher</button>
+          </form>
+          <div class="flex flex-wrap items-center gap-3 text-xs text-neutral-700">
+            <label class="flex items-center gap-1.5"><input type="checkbox" [(ngModel)]="supModifies" (change)="rechercherSupervision()" class="accent-black" /> Modifiés</label>
+            <label class="flex items-center gap-1.5"><input type="checkbox" [(ngModel)]="supSupprimes" (change)="rechercherSupervision()" class="accent-black" /> Supprimés</label>
+            @if (supMessages) {
+              <button type="button" (click)="effacerRechercheSupervision()" class="ml-auto font-medium underline">Effacer</button>
+            } @else {
+              <select [(ngModel)]="supType" (ngModelChange)="chargerSupervision()" aria-label="Type de conversation"
+                class="ml-auto h-8 rounded-lg border border-neutral-300 px-2 text-xs outline-none focus:border-black">
+                <option value="">Tous les types</option>
+                <option value="propriete">Propriétés</option>
+                <option value="directe">Privées</option>
+              </select>
+            }
+          </div>
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto">
+          @if (supErreur) { <p class="p-4 text-center text-sm text-red-600">{{ supErreur }}</p> }
+
+          @if (supMessages) {
+            <p class="px-3 pt-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{{ supMessagesTotal }} message(s)</p>
+            @for (m of supMessages; track m._id) {
+              <button type="button" (click)="ouvrirResultat(m)" class="block w-full border-b border-neutral-100 p-3 text-left transition hover:bg-neutral-50">
+                <div class="flex items-center gap-2 text-xs">
+                  <strong class="truncate">{{ m.auteurNom }}</strong>
+                  <span class="text-neutral-500">{{ role(m.auteurRole) }}</span>
+                  <span class="ml-auto shrink-0 text-neutral-400">{{ dateHeure(m.createdAt) }}</span>
+                </div>
+                <p class="mt-1 line-clamp-2 text-sm" [ngClass]="m.supprime ? 'text-red-700 line-through' : 'text-neutral-800'">{{ m.contenu || (m.photos.length ? '📷 Photo' : '') }}</p>
+                <div class="mt-1 flex flex-wrap gap-1.5 text-[10px] font-semibold">
+                  <span class="rounded bg-neutral-100 px-1.5 py-0.5 text-neutral-600">{{ conversationDuResultat(m) }}</span>
+                  @if (m.modifie) { <span class="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">Modifié</span> }
+                  @if (m.supprime) { <span class="rounded bg-red-100 px-1.5 py-0.5 text-red-700">Supprimé</span> }
+                </div>
+              </button>
+            }
+            @if (supMessages.length < supMessagesTotal) {
+              <button type="button" (click)="rechercherSupervision(true)" [disabled]="supChargement" class="w-full p-3 text-xs font-medium underline">Afficher plus</button>
+            }
+          } @else {
+            @if (supChargement && !supConversations.length) { <p class="p-6 text-center text-sm text-neutral-500">Chargement…</p> }
+            @for (c of supConversations; track c._id) {
+              <ng-container *ngTemplateOutlet="ligneConversation; context: { $implicit: c, supervision: true }"></ng-container>
+            }
+            @if (supConversations.length < supTotal) {
+              <button type="button" (click)="chargerSupervision(true)" [disabled]="supChargement" class="w-full p-3 text-xs font-medium underline">Afficher plus</button>
+            }
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ================= DISCUSSION ================= -->
+    <section class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm"
+      [ngClass]="selection || chargementFil ? 'flex' : 'hidden lg:flex'">
+
+      @if (!selection && !chargementFil) {
+        <div class="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center text-neutral-500">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-neutral-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a9 9 0 1 1-4.06-7.52L21 3l-1.06 4.94A8.96 8.96 0 0 1 21 12Z" />
+          </svg>
+          <p class="text-sm">Sélectionnez une conversation pour l’afficher.</p>
+        </div>
+      } @else {
+        <!-- En-tête -->
+        <div class="flex items-center gap-3 border-b border-neutral-200 px-4 py-3">
+          <button type="button" (click)="fermer()" class="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 lg:hidden" aria-label="Retour à la liste">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6" /></svg>
+          </button>
+          @if (selection) {
+            <ng-container *ngTemplateOutlet="avatar; context: { photo: selection.photo, nom: selection.titre, carre: selection.type === 'propriete' }"></ng-container>
+            <div class="min-w-0 flex-1">
+              <h2 class="truncate text-sm font-semibold text-black">{{ selection.titre || 'Discussion' }}</h2>
+              <p class="truncate text-xs text-neutral-500">{{ sousTitre }}</p>
+            </div>
+            @if (selection.acces === 'supervision') {
+              <span class="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">Supervision · lecture seule</span>
+            }
+            @if (selection.type === 'propriete' && selection.propriete) {
+              <a [routerLink]="['/admin/proprietes', selection.propriete._id]" class="shrink-0 text-xs font-medium text-neutral-600 underline hover:text-black">Voir la propriété</a>
+            }
+          }
+        </div>
+
+        @if (selection?.membres?.length) {
+          <div class="flex flex-wrap gap-1.5 border-b border-neutral-100 px-4 py-2">
+            @for (m of selection!.membres!; track $index) {
+              <span class="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-700">
+                {{ m.nom }}<span class="text-neutral-400"> · {{ m.modele === 'Gardien' ? 'Gardien' : m.modele === 'Proprietaire' ? role(m.role) : 'Équipe' }}</span>
+              </span>
+            }
+          </div>
+        }
+
+        <!-- Fil -->
+        <div #fil class="min-h-0 flex-1 overflow-y-auto bg-neutral-50 px-4 py-3">
+          @if (chargementFil) {
+            <p class="py-10 text-center text-sm text-neutral-500">Chargement…</p>
+          }
+          @if (erreurFil) {
+            <p class="mb-2 rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-700">{{ erreurFil }}</p>
+          }
+          @if (plusAnciens && !chargementFil) {
+            <div class="mb-2 text-center">
+              <button type="button" (click)="chargerPlusAnciens()" [disabled]="chargementAnciens" class="text-xs font-medium text-neutral-600 underline hover:text-black">
+                {{ chargementAnciens ? 'Chargement…' : 'Messages plus anciens' }}
+              </button>
+            </div>
+          }
+          @if (!chargementFil && !erreurFil && !messages.length) {
+            <p class="py-10 text-center text-sm text-neutral-500">Aucun message pour l’instant.</p>
+          }
+
+          @for (l of lignes; track l.cle) {
+            @if (l.type === 'jour') {
+              <div class="my-3 text-center">
+                <span class="rounded-full bg-neutral-200/70 px-3 py-1 text-[11px] font-medium capitalize text-neutral-600">{{ l.libelle }}</span>
+              </div>
+            }
+            @if (l.type === 'message') {
+              <div class="flex items-end gap-2" [ngClass]="[l.moi ? 'justify-end' : '', l.suite ? 'mt-0.5' : 'mt-2']">
+                @if (!l.moi) {
+                  <div class="w-8 shrink-0" [class.invisible]="l.suite">
+                    <ng-container *ngTemplateOutlet="avatar; context: { photo: l.message.auteurPhoto, nom: l.message.auteurNom, petit: true }"></ng-container>
+                  </div>
+                }
+
+                <div class="group flex max-w-[75%] flex-col" [ngClass]="l.moi ? 'items-end' : 'items-start'">
+                  <div class="rounded-2xl px-3 py-2 text-sm shadow-sm"
+                    [ngClass]="[
+                      l.moi ? 'rounded-br-md bg-black text-white' : 'rounded-bl-md border border-neutral-200 bg-white text-neutral-900',
+                      l.message.supprime ? 'opacity-75 ring-1 ring-red-300' : ''
+                    ]">
+                    @if (!l.moi && !l.suite) {
+                      <p class="mb-0.5 text-[11px] font-semibold text-amber-700">
+                        {{ l.message.auteurNom }} <span class="font-normal text-neutral-400">{{ role(l.message.auteurRole) }}</span>
+                      </p>
+                    }
+
+                    @if (l.message.supprime && !l.message.contenu && !l.message.photos.length) {
+                      <p class="italic opacity-70">Message supprimé</p>
+                    } @else {
+                      @if (l.message.photos.length) {
+                        <div class="mb-1 grid gap-1" [ngClass]="l.message.photos.length > 1 ? 'grid-cols-2' : ''">
+                          @for (p of l.message.photos; track p) {
+                            <button type="button" (click)="photoOuverte = p" class="overflow-hidden rounded-lg">
+                              <img [src]="p" alt="Photo" loading="lazy" class="aspect-square max-h-56 w-full object-cover" />
+                            </button>
+                          }
+                        </div>
+                      }
+                      @if (editionId === l.message._id) {
+                        <textarea [(ngModel)]="texteEdition" rows="3" [maxlength]="contenuMax" aria-label="Modifier le message"
+                          class="w-64 max-w-full rounded-lg border border-neutral-300 p-2 text-sm text-black outline-none focus:border-black"></textarea>
+                        <div class="mt-1 flex justify-end gap-2 text-xs">
+                          <button type="button" (click)="editionId = null" class="underline opacity-80">Annuler</button>
+                          <button type="button" (click)="enregistrerEdition(l.message)" class="font-semibold underline">Enregistrer</button>
+                        </div>
+                      } @else if (l.message.contenu) {
+                        <p class="whitespace-pre-wrap break-words" [class.line-through]="l.message.supprime">{{ l.message.contenu }}</p>
+                      }
+                    }
+
+                    <p class="mt-0.5 flex items-center justify-end gap-1 text-[10px] opacity-60">
+                      @if (l.message.modifie && !l.message.supprime) { <span>modifié ·</span> }
+                      {{ heure(l.message.createdAt) }}
+                      @if (l.moi && dernierDeMoi(l.message) && lu(l.message)) { <span>· Lu</span> }
+                    </p>
+                  </div>
+
+                  <!-- Supervision : traces conservées -->
+                  @if (l.message.supprime && (l.message.contenu || l.message.photos.length)) {
+                    <span class="mt-0.5 text-[10px] font-semibold text-red-700">Supprimé par l’auteur le {{ dateHeure(l.message.supprimeLe) }}</span>
+                  }
+                  @if (l.message.historique?.length) {
+                    <button type="button" (click)="basculerHistorique(l.message._id)" class="mt-0.5 text-[10px] font-semibold text-amber-700 underline">
+                      {{ historiqueOuvert.has(l.message._id) ? 'Masquer' : 'Voir' }} les versions précédentes ({{ l.message.historique!.length }})
+                    </button>
+                    @if (historiqueOuvert.has(l.message._id)) {
+                      <div class="mt-1 w-full space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-neutral-800">
+                        @for (h of l.message.historique!; track $index) {
+                          <p><span class="text-[10px] text-neutral-500">Remplacé le {{ dateHeure(h.remplaceLe) }} :</span><br />{{ h.contenu || '(vide)' }}</p>
+                        }
+                      </div>
+                    }
+                  }
+
+                  <!-- Mes messages : correction / suppression dans le délai -->
+                  @if (l.moi && modifiable(l.message) && editionId !== l.message._id) {
+                    @if (suppression === l.message._id) {
+                      <div class="mt-0.5 flex gap-2 text-[11px]">
+                        <span class="text-neutral-600">Supprimer pour tous ?</span>
+                        <button type="button" (click)="suppression = null" class="underline">Non</button>
+                        <button type="button" (click)="confirmerSuppression(l.message)" class="font-semibold text-red-700 underline">Oui</button>
+                      </div>
+                    } @else {
+                      <div class="mt-0.5 flex gap-2 text-[11px] text-neutral-500 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
+                        <button type="button" (click)="commencerEdition(l.message)" class="hover:text-black hover:underline">Modifier</button>
+                        <button type="button" (click)="suppression = l.message._id" class="hover:text-red-700 hover:underline">Supprimer</button>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          @if (ecrit) { <p class="ml-10 mt-2 text-xs italic text-neutral-500">{{ ecrit }}</p> }
+        </div>
+
+        <!-- Saisie -->
+        @if (selection && !chargementFil) {
+          @if (selection.acces === 'supervision') {
+            <p class="border-t border-neutral-200 px-4 py-3 text-xs text-neutral-500">Vous consultez cette discussion en supervision : vous ne pouvez pas y écrire.</p>
+          } @else if (!selection.peutEcrire) {
+            <p class="border-t border-neutral-200 px-4 py-3 text-xs text-neutral-500">Discussion fermée : la relation entre les participants n’existe plus. L’historique reste consultable.</p>
+          } @else {
+            <div class="border-t border-neutral-200 p-3">
+              @if (erreurEnvoi) { <p class="mb-2 text-xs text-red-600">{{ erreurEnvoi }}</p> }
+              @if (photos.length) {
+                <div class="mb-2 flex gap-2 overflow-x-auto">
+                  @for (p of photos; track p.url) {
+                    <div class="relative shrink-0">
+                      <img [src]="p.url" alt="" class="h-16 w-16 rounded-lg object-cover" />
+                      <button type="button" (click)="retirerPhoto(p)" [disabled]="envoi" aria-label="Retirer la photo"
+                        class="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white">×</button>
+                    </div>
+                  }
+                </div>
+              }
+              <div class="flex items-end gap-2">
+                <label class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-neutral-300 text-neutral-600 transition hover:border-black hover:text-black"
+                  [class.opacity-40]="envoi || photos.length >= photosMax" title="Joindre des photos" aria-label="Joindre des photos">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="2" /><path stroke-linecap="round" stroke-linejoin="round" d="m21 16-5-5-8 8" />
+                  </svg>
+                  <input type="file" [accept]="formatsImage" multiple (change)="onPhotos($event)" [disabled]="envoi || photos.length >= photosMax" class="hidden" />
+                </label>
+                <textarea [(ngModel)]="texte" (input)="saisie()" (keydown)="touche($event)" rows="1" [maxlength]="contenuMax" [disabled]="envoi"
+                  placeholder="Votre message… (Entrée pour envoyer, Maj + Entrée pour aller à la ligne)" aria-label="Votre message"
+                  class="max-h-36 min-h-10 flex-1 resize-y rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"></textarea>
+                <button type="button" (click)="envoyer()" [disabled]="!peutEnvoyer"
+                  class="h-10 shrink-0 rounded-lg bg-black px-4 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:opacity-40">
+                  {{ envoi ? 'Envoi…' : 'Envoyer' }}
+                </button>
+              </div>
+            </div>
+          }
+        }
+      }
+    </section>
+  </div>
+</main>
+
+<!-- Ligne de la liste -->
+<ng-template #ligneConversation let-c let-supervision="supervision">
+  <button type="button" (click)="ouvrir(c)"
+    class="flex w-full items-center gap-3 border-b border-neutral-100 p-3 text-left transition hover:bg-neutral-50"
+    [ngClass]="selection?._id === c._id ? 'bg-neutral-100' : ''">
+    <ng-container *ngTemplateOutlet="avatar; context: { photo: c.photo, nom: c.titre, carre: c.type === 'propriete' }"></ng-container>
+    <div class="min-w-0 flex-1">
+      <div class="flex items-baseline gap-2">
+        <strong class="min-w-0 flex-1 truncate text-sm" [ngClass]="c.nonLus ? 'font-bold text-black' : 'font-medium text-neutral-900'">{{ c.titre || 'Discussion' }}</strong>
+        <span class="shrink-0 text-[11px]" [ngClass]="c.nonLus ? 'font-semibold text-black' : 'text-neutral-400'">{{ dateListe(c.dernierMessage?.date) }}</span>
+      </div>
+      <p class="truncate text-[11px] text-neutral-500">{{ c.type === 'propriete' ? 'Propriété' : 'Discussion privée' }}</p>
+      <div class="mt-0.5 flex items-center gap-2">
+        <span class="min-w-0 flex-1 truncate text-xs" [ngClass]="c.nonLus ? 'font-semibold text-neutral-900' : 'text-neutral-500'">{{ apercu(c) }}</span>
+        @if (c.nonLus) { <span class="shrink-0 rounded-full bg-black px-1.5 py-0.5 text-[10px] font-bold text-white">{{ c.nonLus }}</span> }
+      </div>
+      @if (supervision && c.statistiques) {
+        <div class="mt-1 flex gap-1.5 text-[10px] font-semibold">
+          <span class="rounded bg-neutral-100 px-1.5 py-0.5 text-neutral-600">{{ c.statistiques.messages }} msg</span>
+          @if (c.statistiques.modifies) { <span class="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">{{ c.statistiques.modifies }} modifié(s)</span> }
+          @if (c.statistiques.supprimes) { <span class="rounded bg-red-100 px-1.5 py-0.5 text-red-700">{{ c.statistiques.supprimes }} supprimé(s)</span> }
+        </div>
+      }
+    </div>
+  </button>
+</ng-template>
+
+<!-- Avatar : photo, sinon initiales -->
+<ng-template #avatar let-photo="photo" let-nom="nom" let-carre="carre" let-petit="petit">
+  <div class="flex shrink-0 items-center justify-center overflow-hidden bg-neutral-900 font-semibold text-white"
+    [ngClass]="[petit ? 'h-8 w-8 text-[10px]' : 'h-11 w-11 text-xs', carre ? 'rounded-lg' : 'rounded-full']">
+    @if (photo) {
+      <img [src]="photo" alt="" class="h-full w-full object-cover" />
+    } @else {
+      {{ initiales(nom || '') }}
+    }
+  </div>
+</ng-template>
+
+<!-- Nouvelle discussion -->
+@if (choixOuvert) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="choixOuvert = false">
+    <div class="flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow-xl" (click)="$event.stopPropagation()" role="dialog" aria-label="Nouvelle discussion">
+      <div class="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
+        <h2 class="text-base font-semibold">Nouvelle discussion</h2>
+        <button type="button" (click)="choixOuvert = false" class="rounded p-1 text-neutral-500 hover:bg-neutral-100" aria-label="Fermer">✕</button>
+      </div>
+      <div class="grid grid-cols-3 border-b border-neutral-200 text-xs font-medium">
+        @for (o of [{ v: 'Gardien', l: 'Gardiens' }, { v: 'Proprietaire', l: 'Propriétaires' }, { v: 'Administrateur', l: 'Équipe' }]; track o.v) {
+          <button type="button" (click)="choixOnglet = $any(o.v)" class="py-2.5 transition"
+            [ngClass]="choixOnglet === o.v ? 'border-b-2 border-black text-black' : 'text-neutral-500 hover:text-black'">{{ o.l }}</button>
+        }
+      </div>
+      <div class="p-3">
+        <input type="search" [(ngModel)]="choixRecherche" placeholder="Rechercher..." aria-label="Rechercher un destinataire"
+          class="h-9 w-full rounded-lg border border-neutral-300 px-3 text-sm outline-none focus:border-black" />
+        @if (choixErreur) { <p class="mt-2 text-xs text-red-600">{{ choixErreur }}</p> }
+      </div>
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        @if (!destinatairesCharges) {
+          <p class="p-6 text-center text-sm text-neutral-500">Chargement…</p>
+        } @else if (!destinatairesFiltres.length) {
+          <p class="p-6 text-center text-sm text-neutral-500">Aucun résultat.</p>
+        }
+        @for (d of destinatairesFiltres; track d.id) {
+          <button type="button" (click)="ouvrirDestinataire(d)" [disabled]="!!ouverture"
+            class="flex w-full items-center gap-3 border-b border-neutral-100 px-4 py-2.5 text-left transition hover:bg-neutral-50 disabled:opacity-60">
+            <ng-container *ngTemplateOutlet="avatar; context: { photo: d.photo, nom: d.nom }"></ng-container>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-medium">{{ d.nom }}</p>
+              <p class="truncate text-xs text-neutral-500">{{ d.detail }}</p>
+            </div>
+            @if (ouverture === d.id) { <span class="text-xs text-neutral-500">Ouverture…</span> }
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Visionneuse -->
+@if (photoOuverte) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" (click)="photoOuverte = null">
+    <img [src]="photoOuverte" alt="Photo" class="max-h-full max-w-full rounded-lg" />
+    <button type="button" class="absolute right-4 top-4 text-3xl text-white" aria-label="Fermer">✕</button>
+  </div>
+}
