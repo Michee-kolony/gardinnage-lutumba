@@ -574,8 +574,16 @@
       <h2 class="text-base font-semibold text-black">Supprimer ce propriétaire ?</h2>
       <p class="text-sm text-neutral-500 mt-2 leading-relaxed">
         Cette action est irréversible. <strong class="text-black">{{ deletingTargetName }}</strong>
-        sera définitivement supprimé.
+        sera définitivement supprimé, ainsi que :
       </p>
+      <ul class="text-sm text-neutral-500 mt-2 list-disc pl-5 space-y-0.5">
+        <li>toutes ses propriétés</li>
+        <li>leurs affectations, présences et rapports</li>
+        <li>leurs incidents avec leurs photos et vidéos</li>
+        <li>toutes leurs photos et documents</li>
+        <li>sa photo de profil</li>
+      </ul>
+      <p class="text-xs text-neutral-400 mt-2">Les paiements sont conservés comme trace comptable.</p>
 
       <div class="flex items-center justify-end gap-3 mt-6">
         <button

@@ -20,6 +20,7 @@ import {
 } from '../../core/proprietes.service';
 import { Proprietaire, ProprietairesService } from '../../core/proprietaires.service';
 import { FORMATS_IMAGE_ACCEPT } from '../../core/images';
+import { IncidentsService } from '../../core/incidents.service';
 
 @Component({
   selector: 'app-proprietes',
@@ -64,6 +65,7 @@ export class ProprietesComponent implements OnInit, OnDestroy {
   constructor(
     private proprietesService: ProprietesService,
     private proprietairesService: ProprietairesService,
+    private incidentsService: IncidentsService,
     private router: Router
   ) {}
 
@@ -290,6 +292,8 @@ export class ProprietesComponent implements OnInit, OnDestroy {
         this.deleting = false;
         this.deleteModalOpen = false;
         this.proprietes = this.proprietes.filter((p) => p._id !== id);
+        // Ses incidents ont été supprimés côté serveur
+        this.incidentsService.rafraichirMaintenant();
         this.showToast('success', 'Propriété supprimée avec succès.');
       },
       error: (err: HttpErrorResponse) => {

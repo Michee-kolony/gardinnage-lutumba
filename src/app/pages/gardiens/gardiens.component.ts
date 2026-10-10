@@ -39,6 +39,10 @@ export class GardiensComponent implements OnInit, OnDestroy {
   statutsDisponibles = STATUTS_GARDIEN;
 
   formModel: CreateGardienPayload = this.buildEmptyForm();
+  // Erreurs par champ (bordure rouge + message sous le champ) et erreur globale
+  // affichée dans la modale, pour que l'utilisateur voie toujours pourquoi l'ajout échoue.
+  erreurs: Partial<Record<keyof CreateGardienPayload, string>> = {};
+  formError = '';
 
   toastVisible = false;
   toastType: 'success' | 'error' | 'info' = 'success';
@@ -153,6 +157,8 @@ export class GardiensComponent implements OnInit, OnDestroy {
     this.formModel = this.buildEmptyForm();
     this.selectedFileName = '';
     this.photoPreview = '';
+    this.erreurs = {};
+    this.formError = '';
     this.isModalOpen = true;
   }
 
@@ -176,6 +182,7 @@ export class GardiensComponent implements OnInit, OnDestroy {
     }
     this.formModel.photo = file;
     this.selectedFileName = file.name;
+    this.effacerErreur('photo');
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -185,7 +192,17 @@ export class GardiensComponent implements OnInit, OnDestroy {
   }
 
   submitGardien(): void {
-    if (this.submitting || !this.formModel.photo) {
+    if (this.submitting) {
+      return;
+    }
+
+    this.formError = '';
+    this.erreurs = this.validerFormulaire();
+    const nbErreurs = Object.keys(this.erreurs).length;
+    if (nbErreurs) {
+      this.formError = nbErreurs === 1
+        ? Object.values(this.erreurs)[0]!
+        : `${nbErreurs} champs sont à corriger avant d'ajouter le gardien.`;
       return;
     }
 
@@ -195,14 +212,81 @@ export class GardiensComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.submitting = false;
         this.gardiens = [res.gardien, ...this.gardiens];
+        this.knownStatuts.set(res.gardien._id, res.gardien.statut);
         this.isModalOpen = false;
-        this.showToast('success', 'Gardien ajouté avec succès.');
+        this.showToast('success', `${res.gardien.nom} ${res.gardien.postnom} a été ajouté (matricule ${res.gardien.matricule}).`);
       },
       error: (err: HttpErrorResponse) => {
         this.submitting = false;
-        this.showToast('error', err.error?.message || "Impossible d'ajouter ce gardien.");
+        this.formError = this.messageErreurHttp(err);
+        if (err.status === 409) {
+          this.erreurs = { ...this.erreurs, email: this.formError };
+        }
       }
     });
+  }
+
+  effacerErreur(champ: keyof CreateGardienPayload): void {
+    if (this.erreurs[champ]) {
+      const { [champ]: _, ...reste } = this.erreurs;
+      this.erreurs = reste;
+      if (!Object.keys(reste).length) {
+        this.formError = '';
+      }
+    }
+  }
+
+  private validerFormulaire(): Partial<Record<keyof CreateGardienPayload, string>> {
+    const f = this.formModel;
+    const erreurs: Partial<Record<keyof CreateGardienPayload, string>> = {};
+    const obligatoires: [keyof CreateGardienPayload, string][] = [
+      ['nom', 'Le nom'], ['postnom', 'Le postnom'], ['prenom', 'Le prénom'],
+      ['lieuNaissance', 'Le lieu de naissance'], ['nationalite', 'La nationalité'],
+      ['telephonePrincipal', 'Le téléphone principal'], ['email', "L'email"],
+      ['password', 'Le mot de passe'], ['adresseActuelle', "L'adresse actuelle"],
+      ['commune', 'La commune'], ['quartier', 'Le quartier'], ['avenue', "L'avenue"]
+    ];
+
+    obligatoires.forEach(([champ, libelle]) => {
+      if (!String(f[champ] ?? '').trim()) {
+        erreurs[champ] = `${libelle} est obligatoire.`;
+      }
+    });
+
+    if (!f.photo) {
+      erreurs.photo = 'La photo de profil est obligatoire.';
+    }
+
+    if (!f.dateNaissance) {
+      erreurs.dateNaissance = 'La date de naissance est obligatoire.';
+    } else if (new Date(f.dateNaissance) > new Date()) {
+      erreurs.dateNaissance = 'La date de naissance ne peut pas être dans le futur.';
+    }
+
+    if (f.taille === null || f.taille === undefined || String(f.taille) === '') {
+      erreurs.taille = 'La taille est obligatoire.';
+    } else if (f.taille < 100 || f.taille > 250) {
+      erreurs.taille = 'La taille doit être comprise entre 100 et 250 cm.';
+    }
+
+    if (!erreurs.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) {
+      erreurs.email = 'Adresse email invalide.';
+    }
+
+    return erreurs;
+  }
+
+  private messageErreurHttp(err: HttpErrorResponse): string {
+    if (err.status === 0) {
+      return 'Serveur injoignable. Vérifiez votre connexion internet puis réessayez.';
+    }
+    if (err.status === 403) {
+      return err.error?.message || "Vous n'avez pas les droits pour ajouter un gardien.";
+    }
+    if (err.status === 413) {
+      return 'La photo est trop lourde pour le serveur. Choisissez une image plus légère.';
+    }
+    return err.error?.message || `Impossible d'ajouter ce gardien (erreur ${err.status}).`;
   }
 
   closeToast(): void {

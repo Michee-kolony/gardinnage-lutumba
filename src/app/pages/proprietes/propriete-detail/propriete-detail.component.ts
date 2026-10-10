@@ -26,6 +26,7 @@ import { AuthService } from '../../../core/auth.service';
 import { Affectation, AffectationsService } from '../../../core/affectations.service';
 import { Presence, PresencesService } from '../../../core/presences.service';
 import { FORMATS_IMAGE_ACCEPT } from '../../../core/images';
+import { IncidentsService } from '../../../core/incidents.service';
 
 const LOGO_URL = '/images/logo.png';
 
@@ -104,7 +105,8 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
     private paiementsService: PaiementsService,
     private affectationsService: AffectationsService,
     private presencesService: PresencesService,
-    private authService: AuthService
+    private authService: AuthService,
+    private incidentsService: IncidentsService
   ) {}
 
   ngOnInit(): void {
@@ -539,6 +541,8 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
 
     this.proprietesService.remove(this.propriete._id).subscribe({
       next: () => {
+        // Ses incidents ont été supprimés côté serveur
+        this.incidentsService.rafraichirMaintenant();
         this.router.navigate(['/admin/proprietes']);
       },
       error: (err: HttpErrorResponse) => {

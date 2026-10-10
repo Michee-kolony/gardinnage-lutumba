@@ -12,6 +12,7 @@ import {
   UpdateProprietairePayload
 } from '../../core/proprietaires.service';
 import { FORMATS_IMAGE_ACCEPT, FORMATS_IMAGE_LIBELLE, verifierImage } from '../../core/images';
+import { IncidentsService } from '../../core/incidents.service';
 
 @Component({
   selector: 'app-proprietaires',
@@ -52,7 +53,11 @@ export class ProprietairesComponent implements OnInit, OnDestroy {
   toastMessage = '';
   private toastTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(private proprietairesService: ProprietairesService, private router: Router) {}
+  constructor(
+    private proprietairesService: ProprietairesService,
+    private incidentsService: IncidentsService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.fetchProprietaires();
@@ -298,7 +303,9 @@ export class ProprietairesComponent implements OnInit, OnDestroy {
         this.deleting = false;
         this.deleteModalOpen = false;
         this.proprietaires = this.proprietaires.filter((p) => p._id !== id);
-        this.showToast('success', 'Propriétaire supprimé avec succès.');
+        // Ses propriétés et leurs incidents ont été supprimés côté serveur
+        this.incidentsService.rafraichirMaintenant();
+        this.showToast('success', 'Propriétaire et ses propriétés supprimés avec succès.');
       },
       error: (err: HttpErrorResponse) => {
         this.deleting = false;

@@ -438,8 +438,13 @@
         <h2 class="text-base font-semibold text-black">Supprimer ce gardien ?</h2>
         <p class="text-sm text-neutral-500 mt-2 leading-relaxed">
           Cette action est irréversible. <strong class="text-black">{{ gardien.nom }} {{ gardien.postnom }}</strong>
-          sera définitivement supprimé, avec tous ses commentaires associés.
+          sera définitivement supprimé, ainsi que :
         </p>
+        <ul class="text-sm text-neutral-500 mt-2 list-disc pl-5 space-y-0.5">
+          <li>ses affectations, présences et rapports</li>
+          <li>ses commentaires</li>
+          <li>sa photo de profil et les photos des commentaires</li>
+        </ul>
 
         <div class="flex items-center justify-end gap-3 mt-6">
           <button

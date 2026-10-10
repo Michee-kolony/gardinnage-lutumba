@@ -2,7 +2,7 @@
 
   <!-- Toast -->
   <div
-    class="fixed top-5 right-5 left-5 sm:left-auto z-50 sm:w-full sm:max-w-sm transition-all duration-300 ease-out"
+    class="fixed top-5 right-5 left-5 sm:left-auto z-[60] sm:w-full sm:max-w-sm transition-all duration-300 ease-out"
     [class.opacity-100]="toastVisible"
     [class.translate-x-0]="toastVisible"
     [class.opacity-0]="!toastVisible"
@@ -208,6 +208,7 @@
             <label class="block text-sm font-medium text-black mb-1.5">Photo de profil *</label>
             <label
               for="photoFile"
+              [class.border-red-400]="erreurs.photo"
               class="inline-flex items-center gap-2 border border-neutral-300 rounded-lg px-3.5 py-2 text-sm text-black cursor-pointer hover:bg-neutral-50 transition"
             >
               <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -223,6 +224,7 @@
             <p class="text-xs text-neutral-400 mt-1 truncate">
               {{ selectedFileName || formatsImageLibelle }}
             </p>
+            @if (erreurs.photo) { <p class="text-xs text-red-600 mt-1">{{ erreurs.photo }}</p> }
           </div>
         </div>
 
@@ -232,20 +234,23 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="nom">Nom</label>
-              <input id="nom" name="nom" type="text" required [(ngModel)]="formModel.nom"
+              <input id="nom" name="nom" type="text" required [(ngModel)]="formModel.nom" (ngModelChange)="effacerErreur('nom')" [class.border-red-400]="erreurs.nom"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.nom) { <p class="text-xs text-red-600 mt-1">{{ erreurs.nom }}</p> }
             </div>
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="postnom">Postnom</label>
-              <input id="postnom" name="postnom" type="text" required [(ngModel)]="formModel.postnom"
+              <input id="postnom" name="postnom" type="text" required [(ngModel)]="formModel.postnom" (ngModelChange)="effacerErreur('postnom')" [class.border-red-400]="erreurs.postnom"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.postnom) { <p class="text-xs text-red-600 mt-1">{{ erreurs.postnom }}</p> }
             </div>
           </div>
           <div class="grid grid-cols-2 gap-4 mt-4">
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="prenom">Prénom</label>
-              <input id="prenom" name="prenom" type="text" required [(ngModel)]="formModel.prenom"
+              <input id="prenom" name="prenom" type="text" required [(ngModel)]="formModel.prenom" (ngModelChange)="effacerErreur('prenom')" [class.border-red-400]="erreurs.prenom"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.prenom) { <p class="text-xs text-red-600 mt-1">{{ erreurs.prenom }}</p> }
             </div>
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="sexe">Sexe</label>
@@ -260,21 +265,24 @@
           <div class="grid grid-cols-2 gap-4 mt-4">
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="dateNaissance">Date de naissance</label>
-              <input id="dateNaissance" name="dateNaissance" type="date" required [(ngModel)]="formModel.dateNaissance"
+              <input id="dateNaissance" name="dateNaissance" type="date" required [(ngModel)]="formModel.dateNaissance" (ngModelChange)="effacerErreur('dateNaissance')" [class.border-red-400]="erreurs.dateNaissance"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.dateNaissance) { <p class="text-xs text-red-600 mt-1">{{ erreurs.dateNaissance }}</p> }
             </div>
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="lieuNaissance">Lieu de naissance</label>
-              <input id="lieuNaissance" name="lieuNaissance" type="text" required [(ngModel)]="formModel.lieuNaissance"
+              <input id="lieuNaissance" name="lieuNaissance" type="text" required [(ngModel)]="formModel.lieuNaissance" (ngModelChange)="effacerErreur('lieuNaissance')" [class.border-red-400]="erreurs.lieuNaissance"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.lieuNaissance) { <p class="text-xs text-red-600 mt-1">{{ erreurs.lieuNaissance }}</p> }
             </div>
           </div>
           <div class="grid grid-cols-2 gap-4 mt-4">
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="nationalite">Nationalité</label>
-              <input id="nationalite" name="nationalite" type="text" required [(ngModel)]="formModel.nationalite"
+              <input id="nationalite" name="nationalite" type="text" required [(ngModel)]="formModel.nationalite" (ngModelChange)="effacerErreur('nationalite')" [class.border-red-400]="erreurs.nationalite"
                 placeholder="Congolaise"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.nationalite) { <p class="text-xs text-red-600 mt-1">{{ erreurs.nationalite }}</p> }
             </div>
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="etatCivil">État civil</label>
@@ -289,9 +297,10 @@
           <div class="grid grid-cols-2 gap-4 mt-4">
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="taille">Taille (cm)</label>
-              <input id="taille" name="taille" type="number" min="100" max="250" required [(ngModel)]="formModel.taille"
+              <input id="taille" name="taille" type="number" min="100" max="250" required [(ngModel)]="formModel.taille" (ngModelChange)="effacerErreur('taille')" [class.border-red-400]="erreurs.taille"
                 placeholder="178"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.taille) { <p class="text-xs text-red-600 mt-1">{{ erreurs.taille }}</p> }
             </div>
           </div>
         </div>
@@ -302,9 +311,10 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="telephonePrincipal">Téléphone principal</label>
-              <input id="telephonePrincipal" name="telephonePrincipal" type="tel" required [(ngModel)]="formModel.telephonePrincipal"
+              <input id="telephonePrincipal" name="telephonePrincipal" type="tel" required [(ngModel)]="formModel.telephonePrincipal" (ngModelChange)="effacerErreur('telephonePrincipal')" [class.border-red-400]="erreurs.telephonePrincipal"
                 placeholder="+243 000 000 000"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.telephonePrincipal) { <p class="text-xs text-red-600 mt-1">{{ erreurs.telephonePrincipal }}</p> }
             </div>
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="telephoneSecondaire">Téléphone secondaire</label>
@@ -314,14 +324,16 @@
           </div>
           <div class="mt-4">
             <label class="block text-sm font-medium text-black mb-1.5" for="email">Email</label>
-            <input id="email" name="email" type="email" required [(ngModel)]="formModel.email"
+            <input id="email" name="email" type="email" required [(ngModel)]="formModel.email" (ngModelChange)="effacerErreur('email')" [class.border-red-400]="erreurs.email"
               class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.email) { <p class="text-xs text-red-600 mt-1">{{ erreurs.email }}</p> }
           </div>
           <div class="mt-4">
             <label class="block text-sm font-medium text-black mb-1.5" for="password">Mot de passe</label>
-            <input id="password" name="password" type="password" required [(ngModel)]="formModel.password"
+            <input id="password" name="password" type="password" required [(ngModel)]="formModel.password" (ngModelChange)="effacerErreur('password')" [class.border-red-400]="erreurs.password"
               placeholder="••••••••"
               class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.password) { <p class="text-xs text-red-600 mt-1">{{ erreurs.password }}</p> }
           </div>
         </div>
 
@@ -330,26 +342,30 @@
           <p class="text-[11px] uppercase tracking-wide text-neutral-400 font-semibold mb-2">Adresse</p>
           <div>
             <label class="block text-sm font-medium text-black mb-1.5" for="adresseActuelle">Adresse actuelle</label>
-            <input id="adresseActuelle" name="adresseActuelle" type="text" required [(ngModel)]="formModel.adresseActuelle"
+            <input id="adresseActuelle" name="adresseActuelle" type="text" required [(ngModel)]="formModel.adresseActuelle" (ngModelChange)="effacerErreur('adresseActuelle')" [class.border-red-400]="erreurs.adresseActuelle"
               class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.adresseActuelle) { <p class="text-xs text-red-600 mt-1">{{ erreurs.adresseActuelle }}</p> }
           </div>
           <div class="grid grid-cols-2 gap-4 mt-4">
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="commune">Commune</label>
-              <input id="commune" name="commune" type="text" required [(ngModel)]="formModel.commune"
+              <input id="commune" name="commune" type="text" required [(ngModel)]="formModel.commune" (ngModelChange)="effacerErreur('commune')" [class.border-red-400]="erreurs.commune"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.commune) { <p class="text-xs text-red-600 mt-1">{{ erreurs.commune }}</p> }
             </div>
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="quartier">Quartier</label>
-              <input id="quartier" name="quartier" type="text" required [(ngModel)]="formModel.quartier"
+              <input id="quartier" name="quartier" type="text" required [(ngModel)]="formModel.quartier" (ngModelChange)="effacerErreur('quartier')" [class.border-red-400]="erreurs.quartier"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.quartier) { <p class="text-xs text-red-600 mt-1">{{ erreurs.quartier }}</p> }
             </div>
           </div>
           <div class="grid grid-cols-2 gap-4 mt-4">
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="avenue">Avenue</label>
-              <input id="avenue" name="avenue" type="text" required [(ngModel)]="formModel.avenue"
+              <input id="avenue" name="avenue" type="text" required [(ngModel)]="formModel.avenue" (ngModelChange)="effacerErreur('avenue')" [class.border-red-400]="erreurs.avenue"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition" />
+            @if (erreurs.avenue) { <p class="text-xs text-red-600 mt-1">{{ erreurs.avenue }}</p> }
             </div>
             <div>
               <label class="block text-sm font-medium text-black mb-1.5" for="statut">Statut</label>
@@ -362,6 +378,15 @@
             </div>
           </div>
         </div>
+
+        @if (formError) {
+          <div class="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px" class="shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 2.7 17.3A1.5 1.5 0 0 0 4 19.5h16a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z" />
+            </svg>
+            <span>{{ formError }}</span>
+          </div>
+        }
 
         <div class="flex items-center justify-end gap-3 pt-2">
           <button
@@ -376,6 +401,9 @@
             [disabled]="submitting"
             class="px-4 py-2.5 rounded-lg text-sm font-medium bg-black text-white hover:bg-neutral-800 active:bg-neutral-900 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
+            @if (submitting) {
+              <span class="inline-block h-4 w-4 mr-1.5 align-[-3px] rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+            }
             {{ submitting ? 'Ajout en cours...' : 'Ajouter le gardien' }}
           </button>
         </div>

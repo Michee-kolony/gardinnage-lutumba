@@ -21,6 +21,7 @@ import {
 } from '../../../core/proprietes.service';
 import { DevisePaiement, ModePaiement, Paiement, PaiementsService, dureeAbonnementLabel } from '../../../core/paiements.service';
 import { FORMATS_IMAGE_ACCEPT, FORMATS_IMAGE_LIBELLE, verifierImage } from '../../../core/images';
+import { IncidentsService } from '../../../core/incidents.service';
 
 @Component({
   selector: 'app-proprietaire-detail',
@@ -66,7 +67,8 @@ export class ProprietaireDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private proprietairesService: ProprietairesService,
     private proprietesService: ProprietesService,
-    private paiementsService: PaiementsService
+    private paiementsService: PaiementsService,
+    private incidentsService: IncidentsService
   ) {}
 
   ngOnInit(): void {
@@ -330,6 +332,8 @@ export class ProprietaireDetailComponent implements OnInit, OnDestroy {
 
     this.proprietairesService.remove(this.proprietaire._id).subscribe({
       next: () => {
+        // Ses propriétés et leurs incidents ont été supprimés côté serveur
+        this.incidentsService.rafraichirMaintenant();
         this.router.navigate(['/admin/proprietaires']);
       },
       error: (err: HttpErrorResponse) => {
