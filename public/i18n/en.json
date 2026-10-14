@@ -37,6 +37,14 @@
     "quoteCta": "Request a quote",
     "servicesCta": "Our services"
   },
+  "approach": {
+    "eyebrow": "Our approach",
+    "title": "Security designed for your peace of mind",
+    "subtitle": "Carefully selected guards, a constant presence on the ground and transparent follow-up: three pillars to lastingly protect what matters to you.",
+    "card1": "Every agent is vetted, trained in security procedures and supervised daily by our team leaders.",
+    "card2": "Scheduled rounds day and night to deter intrusions and respond without delay.",
+    "card3": "Attendance, incidents and reports: you stay informed of everything happening at your property."
+  },
   "about": {
     "eyebrow": "ABOUT EMPIRE SECURITY",
     "title": "Always watchful for your family and your property",
@@ -44,7 +52,8 @@
     "point1": "Selected and trained guards",
     "point2": "24/7 surveillance rounds",
     "point3": "Regular follow-up and reports to homeowners",
-    "cta": "Learn more"
+    "cta": "Learn more",
+    "skills": "Our areas of expertise"
   },
   "stats": {
     "agents": "Trained agents",

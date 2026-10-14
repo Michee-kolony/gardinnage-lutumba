@@ -37,6 +37,14 @@
     "quoteCta": "Demander un devis",
     "servicesCta": "Nos services"
   },
+  "approach": {
+    "eyebrow": "Notre approche",
+    "title": "Une sécurité pensée pour votre tranquillité",
+    "subtitle": "Des gardiens rigoureusement sélectionnés, une présence continue sur le terrain et un suivi transparent : trois piliers pour protéger durablement ce qui compte pour vous.",
+    "card1": "Chaque agent est vérifié, formé aux procédures de sécurité et encadré au quotidien par nos superviseurs.",
+    "card2": "Des rondes programmées de jour comme de nuit pour dissuader les intrusions et réagir sans délai.",
+    "card3": "Présences, incidents et rapports : vous restez informé de tout ce qui se passe chez vous."
+  },
   "about": {
     "eyebrow": "À PROPOS D'EMPIRE SECURITY",
     "title": "Toujours vigilants pour votre famille et vos biens",
@@ -44,7 +52,8 @@
     "point1": "Gardiens sélectionnés et formés",
     "point2": "Rondes de surveillance 24h/24 et 7j/7",
     "point3": "Suivi et rapports réguliers aux propriétaires",
-    "cta": "En savoir plus"
+    "cta": "En savoir plus",
+    "skills": "Nos domaines d’expertise"
   },
   "stats": {
     "agents": "Agents formés",

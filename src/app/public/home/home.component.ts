@@ -11,6 +11,13 @@ interface ServiceCard {
   key: string;
 }
 
+interface ApproachCard {
+  icon: 'shield' | 'route' | 'chart';
+  titleKey: string;
+  textKey: string;
+  theme: 'light' | 'yellow' | 'dark';
+}
+
 interface Stat {
   value: number;
   suffix: string;
@@ -63,7 +70,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   mobileMenuOpen = false;
   currentSlide = 0;
   private slideTimer?: ReturnType<typeof setInterval>;
-  private statTweens: gsap.core.Tween[] = [];
+  private statsTimeline?: gsap.core.Timeline;
+  private aboutStatTimeline?: gsap.core.Timeline;
+  private ratingTimeline?: gsap.core.Timeline;
 
   topBarVisible = true;
   private lastScrollY = 0;
@@ -78,6 +87,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   langMenuOpen = false;
 
   @ViewChildren('statValue') statValues!: QueryList<ElementRef<HTMLElement>>;
+  @ViewChild('statsGrid') private statsGridRef?: ElementRef<HTMLElement>;
+  @ViewChild('aboutStat') private aboutStatRef?: ElementRef<HTMLElement>;
+  @ViewChild('ratingStat') private ratingStatRef?: ElementRef<HTMLElement>;
 
   stats: Stat[] = [
     { value: 400, suffix: '+', key: 'agents' },
@@ -92,6 +104,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   aboutPoints = ['about.point1', 'about.point2', 'about.point3'];
+
+  // Cartes "Notre approche" : blanc, jaune puis noir, comme dans la maquette.
+  approachCards: ApproachCard[] = [
+    { icon: 'shield', titleKey: 'about.point1', textKey: 'approach.card1', theme: 'light' },
+    { icon: 'route', titleKey: 'about.point2', textKey: 'approach.card2', theme: 'yellow' },
+    { icon: 'chart', titleKey: 'about.point3', textKey: 'approach.card3', theme: 'dark' }
+  ];
 
   services: ServiceCard[] = [
     { icon: 'home', key: 'homeGuard' },
@@ -361,35 +380,131 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.animateAboutStat();
+    this.animateRating();
+    this.animateStats();
+  }
+
+  // Carte "98% Clients satisfaits" de la section À propos.
+  private animateRating(): void {
+    const card = this.ratingStatRef?.nativeElement;
+    if (!card) {
+      return;
+    }
+
+    const value = card.querySelector<HTMLElement>('.rating-value');
+    const counter = { val: 0 };
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: card,
+        start: 'top 85%',
+        toggleActions: 'play none none reset'
+      }
+    });
+
+    tl.from(card, { y: 30, opacity: 0, duration: 0.6, ease: 'power3.out' })
+      .from(card.querySelectorAll('.rating-star'), { scale: 0, rotate: -120, opacity: 0, duration: 0.4, ease: 'back.out(3)', stagger: 0.12 }, 0.3)
+      .to(counter, {
+        val: this.stats[3].value,
+        duration: 2,
+        ease: 'power2.out',
+        onUpdate: () => {
+          if (value) {
+            value.textContent = Math.floor(counter.val).toString();
+          }
+        }
+      }, 0.2)
+      .from(card.querySelector('.rating-suffix'), { scale: 0, opacity: 0, duration: 0.5, ease: 'back.out(3)' }, 1.6);
+
+    this.ratingTimeline = tl;
+  }
+
+  // Case jaune "400+ Agents formés" de la section À propos.
+  private animateAboutStat(): void {
+    const tile = this.aboutStatRef?.nativeElement;
+    if (!tile) {
+      return;
+    }
+
+    const value = tile.querySelector<HTMLElement>('.about-stat-value');
+    const counter = { val: 0 };
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: tile,
+        start: 'top 85%',
+        toggleActions: 'play none none reset'
+      }
+    });
+
+    tl.from(tile, { scale: 0.85, opacity: 0, duration: 0.6, ease: 'back.out(1.7)' })
+      .from(tile.querySelector('.about-stat-icon'), { scale: 0, rotate: -90, duration: 0.5, ease: 'back.out(2.5)' }, 0.3)
+      .to(counter, {
+        val: this.stats[0].value,
+        duration: 2,
+        ease: 'power2.out',
+        onUpdate: () => {
+          if (value) {
+            value.textContent = Math.floor(counter.val).toString();
+          }
+        }
+      }, 0.2)
+      .from(tile.querySelector('.about-stat-suffix'), { scale: 0, opacity: 0, duration: 0.5, ease: 'back.out(3)' }, 1.6);
+
+    this.aboutStatTimeline = tl;
+  }
+
+  private animateStats(): void {
+    const grid = this.statsGridRef?.nativeElement;
+    if (!grid) {
+      return;
+    }
+
+    const items = grid.querySelectorAll('.stat-item');
+    const suffixes = grid.querySelectorAll('.stat-suffix');
+    const bars = grid.querySelectorAll('.stat-bar');
+
+    // Une seule timeline pilotée par le scroll : les blocs montent l'un après
+    // l'autre, les compteurs défilent, puis suffixes et barres apparaissent.
+    // Elle se rejoue à chaque fois que la section revient dans l'écran.
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: grid,
+        start: 'top 85%',
+        toggleActions: 'play none none reset'
+      }
+    });
+
+    tl.from(items, { y: 40, opacity: 0, duration: 0.7, ease: 'power3.out', stagger: 0.15 })
+      .from(bars, { scaleX: 0, duration: 0.8, ease: 'power2.out', stagger: 0.15 }, 0.3)
+      .from(suffixes, { scale: 0, opacity: 0, duration: 0.5, ease: 'back.out(3)', stagger: 0.15 }, 1.4);
+
     this.statValues.forEach((elRef, i) => {
-      const stat = this.stats[i];
       const target = elRef.nativeElement;
       const counter = { val: 0 };
 
-      const tween = gsap.to(counter, {
-        val: stat.value,
+      tl.to(counter, {
+        val: this.stats[i].value,
         duration: 2,
         ease: 'power2.out',
-        scrollTrigger: {
-          trigger: target,
-          start: 'top 85%',
-          toggleActions: 'play none none none'
-        },
         onUpdate: () => {
           target.textContent = Math.floor(counter.val).toString();
         }
-      });
-
-      this.statTweens.push(tween);
+      }, i * 0.15);
     });
+
+    this.statsTimeline = tl;
   }
 
   ngOnDestroy(): void {
     this.stopAutoplay();
-    this.statTweens.forEach((tween) => {
-      tween.scrollTrigger?.kill();
-      tween.kill();
-    });
+    this.statsTimeline?.scrollTrigger?.kill();
+    this.statsTimeline?.kill();
+    this.aboutStatTimeline?.scrollTrigger?.kill();
+    this.aboutStatTimeline?.kill();
+    this.ratingTimeline?.scrollTrigger?.kill();
+    this.ratingTimeline?.kill();
     document.body.classList.remove('overflow-hidden');
   }
 

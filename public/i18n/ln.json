@@ -37,6 +37,14 @@
     "quoteCta": "Sɛnga talo",
     "servicesCta": "Misala na biso"
   },
+  "approach": {
+    "eyebrow": "Ndenge na biso",
+    "title": "Bokengeli mpo na kimia na bino",
+    "subtitle": "Bakengeli baponami malamu, bozali ntango nyonso na esika mpe bolandeli ya polele: makonzi misato mpo na kobatela makambo ya ntina mpo na bino.",
+    "card1": "Mokengeli moko na moko atalelami, alakisami mibeko ya bokengeli mpe alandelami mokolo na mokolo na bakonzi na biso.",
+    "card2": "Bonzungeli ebongisami moi na butu mpo na kopekisa bayibi mpe kosala noki.",
+    "card3": "Bozali, makama mpe balapolo: boyebi makambo nyonso oyo ezali kosalema epai na bino."
+  },
   "about": {
     "eyebrow": "MPO NA EMPIRE SECURITY",
     "title": "Tozali ntango nyonso na bokebi mpo na libota na bino mpe biloko na bino",
@@ -44,7 +52,8 @@
     "point1": "Bakengeli baponami mpe balakisami",
     "point2": "Bokengeli ngonga 24 na mikolo 7",
     "point3": "Bolandeli mpe balapolo ya mbala na mbala epai ya bankolo-bandako",
-    "cta": "Yeba mingi"
+    "cta": "Yeba mingi",
+    "skills": "Mayele na biso"
   },
   "stats": {
     "agents": "Bakengeli balakisami",

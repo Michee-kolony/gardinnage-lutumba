@@ -2,24 +2,77 @@
   display: block;
 }
 
-.bg-stripe-texture {
-  background-image:
-    repeating-linear-gradient(
-      125deg,
-      rgba(255, 255, 255, 0.07) 0px,
-      rgba(255, 255, 255, 0.07) 3px,
-      transparent 3px,
-      transparent 22px,
-      rgba(255, 255, 255, 0.04) 22px,
-      rgba(255, 255, 255, 0.04) 26px,
-      transparent 26px,
-      transparent 46px
-    ),
-    repeating-linear-gradient(
-      55deg,
-      rgba(212, 169, 74, 0.06) 0px,
-      rgba(212, 169, 74, 0.06) 2px,
-      transparent 2px,
-      transparent 60px
-    );
+/* Bouton pilule avec pastille flèche (style "Book Appointment" de la maquette). */
+.btn-pill {
+  @apply inline-flex items-center gap-3 rounded-full py-1.5 pl-5 pr-1.5 text-sm font-semibold transition-all duration-300;
+}
+
+.btn-pill__chip {
+  @apply grid h-9 w-9 shrink-0 place-items-center rounded-full transition-transform duration-300;
+}
+
+.btn-pill:hover .btn-pill__chip {
+  transform: translateX(3px);
+}
+
+.btn-pill--yellow {
+  @apply bg-brand text-ink shadow-lg shadow-brand/25 hover:bg-brand-dark;
+}
+
+.btn-pill--yellow .btn-pill__chip {
+  @apply bg-ink text-brand;
+}
+
+.btn-pill--dark {
+  @apply bg-ink text-white hover:bg-ink-soft;
+}
+
+.btn-pill--dark .btn-pill__chip {
+  @apply bg-brand text-ink;
+}
+
+.btn-pill--outline {
+  @apply border border-ink/15 bg-white text-ink hover:border-ink;
+}
+
+.btn-pill--outline .btn-pill__chip {
+  @apply bg-brand text-ink;
+}
+
+/* Petit badge de section : "✱ Notre approche". */
+.eyebrow {
+  @apply inline-flex items-center gap-2 rounded-full border px-3.5 py-1 text-[11px] font-semibold uppercase tracking-wider;
+}
+
+.eyebrow--light {
+  @apply border-ink/10 bg-white text-ink;
+}
+
+.eyebrow--dark {
+  @apply border-white/15 bg-white/5 text-white;
+}
+
+.eyebrow__star {
+  @apply text-brand-dark;
+}
+
+.eyebrow--dark .eyebrow__star {
+  @apply text-brand;
+}
+
+.section-title {
+  @apply font-display text-3xl font-bold leading-[1.15] tracking-tight sm:text-4xl lg:text-[2.75rem];
+}
+
+/* Carte avec encoche en bas à gauche, où se loge le lien "En savoir plus". */
+.notch-card {
+  @apply relative flex flex-col rounded-3xl p-7 pb-20 transition-transform duration-300 hover:-translate-y-1.5;
+}
+
+.notch-card__link {
+  @apply absolute bottom-0 left-0 inline-flex items-center gap-1.5 rounded-tr-3xl bg-cream py-3 pl-0 pr-5 text-xs font-semibold;
+}
+
+.notch-card__link span {
+  @apply rounded-full px-4 py-2 transition-colors;
 }
