@@ -10,11 +10,11 @@ module.exports = {
           DEFAULT: '#d4a94a',
           dark: '#b3872f',
         },
-        // Palette du site public : blanc, jaune et noir.
+        // Palette du site public : blanc, noir et le jaune doré du logo.
         brand: {
-          DEFAULT: '#facc15',
-          dark: '#eab308',
-          soft: '#fef9c3',
+          DEFAULT: '#d4a94a',
+          dark: '#b3872f',
+          soft: '#f8edd3',
         },
         ink: {
           DEFAULT: '#0a0a0a',
