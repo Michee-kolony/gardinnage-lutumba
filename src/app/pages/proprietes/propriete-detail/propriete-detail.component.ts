@@ -63,6 +63,9 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
 
   activePhotoIndex = 0;
 
+  // Incrémenté pour recharger les logements (le nombre de logements a pu changer)
+  logementsVersion = 0;
+
   // Historique des paiements de la propriété (ils fixent son abonnement)
   paiements: Paiement[] = [];
   paiementsLoading = false;
@@ -424,6 +427,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
       numeroParcelle: p.numeroParcelle,
       nombreBatiments: p.nombreBatiments,
       nombreNiveaux: p.nombreNiveaux,
+      nombreLogements: p.nombreLogements ?? 1,
       commune: p.commune,
       quartier: p.quartier,
       avenue: p.avenue,
@@ -507,6 +511,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
         this.propriete = res.propriete;
         this.activePhotoIndex = 0;
         this.editModalOpen = false;
+        this.logementsVersion += 1;
         this.showToast('success', 'Propriété modifiée avec succès.');
       },
       error: (err: HttpErrorResponse) => {
@@ -852,6 +857,7 @@ export class ProprieteDetailComponent implements OnInit, OnDestroy {
       numeroParcelle: '',
       nombreBatiments: null,
       nombreNiveaux: null,
+      nombreLogements: 1,
       commune: '',
       quartier: '',
       avenue: '',

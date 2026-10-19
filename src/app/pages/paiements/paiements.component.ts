@@ -59,7 +59,7 @@ export class PaiementsComponent implements OnInit {
   get totalUSD(): number { return this.totalByCurrency('USD'); }
   get nombrePaiements(): number { return this.paiements.length; }
   get proprietesCouvertes(): number {
-    return new Set(this.paiements.map((paiement) => this.propertyId(paiement))).size;
+    return new Set(this.paiements.map((paiement) => this.propertyId(paiement)).filter(Boolean)).size;
   }
 
   // silencieux : rechargement après une action, sans écran de chargement
@@ -96,9 +96,10 @@ export class PaiementsComponent implements OnInit {
     return this.proprietes.find((p) => p._id === this.propertyId(paiement)) ?? null;
   }
 
+  // propriete vaut null quand la propriété a été supprimée (le serveur conserve ses paiements)
   propertyOf(paiement: Paiement): Propriete | null { return typeof paiement.propriete === 'object' ? paiement.propriete : null; }
-  propertyName(paiement: Paiement): string { return this.propertyOf(paiement)?.nomReference || 'Propriété'; }
-  propertyId(paiement: Paiement): string { return typeof paiement.propriete === 'string' ? paiement.propriete : paiement.propriete._id; }
+  propertyName(paiement: Paiement): string { return this.propertyOf(paiement)?.nomReference || 'Propriété supprimée'; }
+  propertyId(paiement: Paiement): string { return typeof paiement.propriete === 'string' ? paiement.propriete : paiement.propriete?._id || ''; }
   ownerName(owner: Proprietaire | string | null): string {
     if (!owner || typeof owner === 'string') return 'Propriétaire indisponible';
     return `${owner.prenom} ${owner.nom}`.trim();

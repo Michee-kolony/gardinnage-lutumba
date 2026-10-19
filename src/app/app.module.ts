@@ -24,6 +24,7 @@ import { ProprietairesComponent } from './pages/proprietaires/proprietaires.comp
 import { ProprietaireDetailComponent } from './pages/proprietaires/proprietaire-detail/proprietaire-detail.component';
 import { ProprietesComponent } from './pages/proprietes/proprietes.component';
 import { ProprieteDetailComponent } from './pages/proprietes/propriete-detail/propriete-detail.component';
+import { ProprieteLogementsComponent } from './pages/proprietes/propriete-logements/propriete-logements.component';
 import { IncidentsComponent } from './pages/incidents/incidents.component';
 import { IncidentDetailComponent } from './pages/incidents/incident-detail/incident-detail.component';
 import { IncidentFormComponent } from './pages/incidents/incident-form/incident-form.component';
@@ -73,6 +74,7 @@ import { MessagerieComponent } from './pages/messagerie/messagerie.component';
     ProprietaireDetailComponent,
     ProprietesComponent,
     ProprieteDetailComponent,
+    ProprieteLogementsComponent,
     IncidentsComponent,
     IncidentDetailComponent,
     IncidentFormComponent,

@@ -27,6 +27,8 @@ export interface Propriete {
   numeroParcelle: string;
   nombreBatiments: number | null;
   nombreNiveaux: number | null;
+  // Un sous-compte locataire est créé par le serveur pour chaque logement
+  nombreLogements: number;
   commune: string;
   quartier: string;
   avenue: string;
@@ -74,6 +76,8 @@ export interface ProprietePayload {
   numeroParcelle: string;
   nombreBatiments: number | null;
   nombreNiveaux: number | null;
+  // Un sous-compte locataire est créé par le serveur pour chaque logement
+  nombreLogements: number;
   commune: string;
   quartier: string;
   avenue: string;

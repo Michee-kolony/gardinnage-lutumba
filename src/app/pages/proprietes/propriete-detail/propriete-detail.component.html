@@ -143,6 +143,10 @@
               <dd class="text-sm text-black mt-0.5">{{ propriete.nombreBatiments ?? '—' }} / {{ propriete.nombreNiveaux ?? '—' }}</dd>
             </div>
             <div>
+              <dt class="text-xs text-neutral-500">Logements</dt>
+              <dd class="text-sm text-black mt-0.5">{{ propriete.nombreLogements }}</dd>
+            </div>
+            <div>
               <dt class="text-xs text-neutral-500">N° / Repère</dt>
               <dd class="text-sm text-black mt-0.5">{{ propriete.numero || '—' }} {{ propriete.referenceComplementaire }}</dd>
             </div>
@@ -291,6 +295,14 @@
               }
             </ul>
           }
+        </div>
+
+        <!-- Logements & sous-comptes locataires -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <app-propriete-logements
+            [propriete]="propriete._id"
+            [rafraichir]="logementsVersion"
+          ></app-propriete-logements>
         </div>
 
         <!-- Gardiens affectés -->
@@ -734,6 +746,7 @@
         </p>
         <ul class="text-sm text-neutral-500 mt-2 list-disc pl-5 space-y-0.5">
           <li>ses affectations, présences et rapports</li>
+          <li>les sous-comptes de ses locataires</li>
           <li>ses incidents avec leurs photos et vidéos</li>
           <li>toutes ses photos et documents</li>
         </ul>
@@ -905,6 +918,15 @@
                   [(ngModel)]="editFormModel.nombreNiveaux"
                   class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
                 />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-black mb-1.5" for="editNombreLogements">Logements</label>
+                <input
+                  id="editNombreLogements" name="editNombreLogements" type="number" min="1" max="500"
+                  [(ngModel)]="editFormModel.nombreLogements"
+                  class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+                />
+                <p class="mt-1 text-[11px] text-neutral-500">1 sous-compte locataire par logement. Seuls les logements libres peuvent être retirés.</p>
               </div>
             </div>
           </div>

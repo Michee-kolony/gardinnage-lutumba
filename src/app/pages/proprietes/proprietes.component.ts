@@ -21,6 +21,7 @@ import {
 import { Proprietaire, ProprietairesService } from '../../core/proprietaires.service';
 import { FORMATS_IMAGE_ACCEPT } from '../../core/images';
 import { IncidentsService } from '../../core/incidents.service';
+import { SousComptesService } from '../../core/sous-comptes.service';
 
 @Component({
   selector: 'app-proprietes',
@@ -66,11 +67,13 @@ export class ProprietesComponent implements OnInit, OnDestroy {
     private proprietesService: ProprietesService,
     private proprietairesService: ProprietairesService,
     private incidentsService: IncidentsService,
+    private sousComptesService: SousComptesService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.fetchProprietes();
+    this.fetchOccupation();
     this.proprietairesService.list().subscribe({
       next: (res) => (this.proprietairesDisponibles = res.proprietaires),
       error: () => (this.proprietairesDisponibles = [])
@@ -127,6 +130,27 @@ export class ProprietesComponent implements OnInit, OnDestroy {
     return this.proprietairesDisponibles.filter((p) =>
       `${p.prenom} ${p.nom}`.toLowerCase().includes(term)
     );
+  }
+
+  // Occupation des logements par propriété (sous-comptes locataires), pour la liste
+  occupation: Record<string, { occupes: number; total: number }> = {};
+
+  fetchOccupation(): void {
+    this.sousComptesService.list().subscribe({
+      next: (res) => {
+        const occupation: Record<string, { occupes: number; total: number }> = {};
+        res.sousComptes.forEach((sousCompte) => {
+          const id = sousCompte.propriete?._id;
+          if (!id) return;
+          occupation[id] ??= { occupes: 0, total: 0 };
+          occupation[id].total += 1;
+          if (sousCompte.statut === 'occupe') occupation[id].occupes += 1;
+        });
+        this.occupation = occupation;
+      },
+      // Information secondaire : la liste reste utilisable sans elle
+      error: () => (this.occupation = {})
+    });
   }
 
   fetchProprietes(): void {
@@ -250,6 +274,7 @@ export class ProprietesComponent implements OnInit, OnDestroy {
         this.proprietes = [res.propriete, ...this.proprietes];
         this.isModalOpen = false;
         this.showToast('success', 'Propriété ajoutée avec succès.');
+        this.fetchOccupation();
       },
       error: (err: HttpErrorResponse) => {
         this.submitting = false;
@@ -338,6 +363,7 @@ export class ProprietesComponent implements OnInit, OnDestroy {
       numeroParcelle: '',
       nombreBatiments: null,
       nombreNiveaux: null,
+      nombreLogements: 1,
       commune: '',
       quartier: '',
       avenue: '',

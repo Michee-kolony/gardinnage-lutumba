@@ -173,6 +173,11 @@
           <div class="flex-1 min-w-0 text-center sm:text-left">
             <h3 class="text-sm font-semibold text-black truncate">{{ propriete.nomReference }}</h3>
             <p class="text-xs text-neutral-500 truncate">{{ typeLabel(propriete.typePropriete) }} — {{ ownerFullName(propriete.proprietaire) }}</p>
+            @if (occupation[propriete._id]; as logements) {
+              <p class="text-xs text-neutral-500 truncate">
+                {{ logements.total }} logement(s) · <span class="font-medium text-black">{{ logements.occupes }} locataire(s)</span>
+              </p>
+            }
           </div>
 
           <!-- Localisation -->
@@ -381,6 +386,15 @@
                 [(ngModel)]="formModel.nombreNiveaux"
                 class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
               />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-black mb-1.5" for="nombreLogements">Logements</label>
+              <input
+                id="nombreLogements" name="nombreLogements" type="number" min="1" max="500"
+                [(ngModel)]="formModel.nombreLogements"
+                class="w-full rounded-lg border border-neutral-300 px-3.5 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition"
+              />
+              <p class="mt-1 text-[11px] text-neutral-500">Ex : immeuble de 8 appartements = 8 sous-comptes locataires.</p>
             </div>
           </div>
         </div>

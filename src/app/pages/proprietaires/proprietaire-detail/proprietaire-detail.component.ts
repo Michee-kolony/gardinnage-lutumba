@@ -60,7 +60,7 @@ export class ProprietaireDetailComponent implements OnInit, OnDestroy {
   paiementsLoading = false;
   paiementsError = '';
 
-  private proprietaireId = '';
+  proprietaireId = '';
 
   constructor(
     private route: ActivatedRoute,

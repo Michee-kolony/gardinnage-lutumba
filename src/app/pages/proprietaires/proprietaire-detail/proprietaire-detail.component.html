@@ -263,6 +263,13 @@
           }
         </div>
 
+        <!-- Locataires : sous-comptes de tous les logements du propriétaire -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+          <app-propriete-logements
+            [proprietaire]="proprietaireId"
+          ></app-propriete-logements>
+        </div>
+
         <!-- Historique des paiements du propriétaire -->
         <div class="bg-white rounded-2xl border border-neutral-200 p-6">
           <div class="flex flex-wrap items-baseline justify-between gap-2 mb-4">
@@ -325,6 +332,7 @@
         </p>
         <ul class="text-sm text-neutral-500 mt-2 list-disc pl-5 space-y-0.5">
           <li>@if (proprietes.length) { <strong class="text-black">ses {{ proprietes.length }} propriété(s)</strong> } @else { ses propriétés }</li>
+          <li>les sous-comptes de ses locataires</li>
           <li>leurs affectations, présences et rapports</li>
           <li>leurs incidents avec leurs photos et vidéos</li>
           <li>toutes leurs photos et documents</li>
