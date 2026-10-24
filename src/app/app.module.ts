@@ -51,6 +51,7 @@ import { PresencesResumeComponent } from './pages/presences/presences-resume/pre
 import { PresenceDetailComponent } from './pages/presences/presence-detail/presence-detail.component';
 import { PresenceClotureComponent } from './pages/presences/presence-cloture/presence-cloture.component';
 import { RapportsComponent } from './pages/rapports/rapports.component';
+import { EvaluationsComponent } from './pages/evaluations/evaluations.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
 import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
 import { MessagerieComponent } from './pages/messagerie/messagerie.component';
@@ -101,6 +102,7 @@ import { MessagerieComponent } from './pages/messagerie/messagerie.component';
     PresenceDetailComponent,
     PresenceClotureComponent,
     RapportsComponent,
+    EvaluationsComponent,
     ParametresComponent,
     AdministrateursComponent,
     MessagerieComponent

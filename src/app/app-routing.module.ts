@@ -17,6 +17,7 @@ import { PaiementsComponent } from './pages/paiements/paiements.component';
 import { AffectationsComponent } from './pages/affectations/affectations.component';
 import { PresencesComponent } from './pages/presences/presences.component';
 import { RapportsComponent } from './pages/rapports/rapports.component';
+import { EvaluationsComponent } from './pages/evaluations/evaluations.component';
 import { ParametresComponent } from './pages/parametres/parametres.component';
 import { AdministrateursComponent } from './pages/administrateurs/administrateurs.component';
 import { MessagerieComponent } from './pages/messagerie/messagerie.component';
@@ -46,6 +47,7 @@ const routes: Routes = [
       { path: 'affectations', component: AffectationsComponent },
       { path: 'presences', component: PresencesComponent },
       { path: 'rapports', component: RapportsComponent },
+      { path: 'evaluations', component: EvaluationsComponent },
       { path: 'administrateurs', component: AdministrateursComponent },
       { path: 'parametres', component: ParametresComponent },
     ]

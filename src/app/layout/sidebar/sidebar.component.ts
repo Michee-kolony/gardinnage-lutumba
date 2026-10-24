@@ -35,6 +35,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { label: 'Affectations', route: '/admin/affectations', icon: 'assign' },
     { label: 'Présences', route: '/admin/presences', icon: 'clock' },
     { label: 'Rapports', route: '/admin/rapports', icon: 'report' },
+    { label: 'Évaluations', route: '/admin/evaluations', icon: 'star' },
     { label: 'Incidents', route: '/admin/incidents', icon: 'alert' },
     { label: 'Messagerie', route: '/admin/messagerie', icon: 'chat' },
     { label: 'Paiements', route: '/admin/paiements', icon: 'card' },

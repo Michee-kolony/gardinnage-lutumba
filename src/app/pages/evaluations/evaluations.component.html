@@ -1,0 +1,138 @@
+<main class="space-y-6 pb-8 text-neutral-900">
+  <header class="flex flex-col gap-2 border-b border-neutral-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">Suivi des gardiens</p>
+      <h1 class="font-serif text-3xl font-medium leading-tight text-black">Évaluations</h1>
+      <p class="mt-2 text-sm text-neutral-500">
+        Appréciations mensuelles échangées entre propriétaires et gardiens. Mois en cours : <span class="font-medium text-neutral-700">{{ moisLabel(periodeCourante) }}</span>.
+      </p>
+    </div>
+  </header>
+
+  <!-- Filtres -->
+  <section class="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm" aria-label="Filtres">
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+      <input type="search" [(ngModel)]="recherche" placeholder="Rechercher un gardien, une propriété, un mot-clé..." aria-label="Rechercher"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-72" />
+
+      <label class="grid gap-1">
+        <span class="text-[11px] font-semibold text-neutral-600">Mois</span>
+        <input type="month" [(ngModel)]="filtrePeriode" (change)="charger()"
+          class="h-10 rounded-lg border border-neutral-300 px-3 text-sm outline-none focus:border-black" />
+      </label>
+
+      <select [(ngModel)]="filtreGardien" (ngModelChange)="charger()" aria-label="Filtrer par gardien"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-56">
+        <option value="">Tous les gardiens</option>
+        @for (g of gardiens; track g._id) { <option [value]="g._id">{{ nom(g) }} · {{ g.matricule }}</option> }
+      </select>
+
+      <select [(ngModel)]="filtrePropriete" (ngModelChange)="charger()" aria-label="Filtrer par propriété"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-56">
+        <option value="">Toutes les propriétés</option>
+        @for (p of proprietes; track p._id) { <option [value]="p._id">{{ p.nomReference }} · {{ p.commune }}</option> }
+      </select>
+
+      <select [(ngModel)]="filtreAuteur" (ngModelChange)="charger()" aria-label="Filtrer par auteur"
+        class="h-10 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm text-black outline-none focus:border-black sm:w-48">
+        <option value="">Tous les auteurs</option>
+        <option value="proprietaire">Propriétaire</option>
+        <option value="gardien">Gardien (auto)</option>
+      </select>
+
+      @if (filtresActifs) {
+        <button type="button" (click)="reinitialiserFiltres()" class="text-xs font-medium text-neutral-600 underline hover:text-black">Réinitialiser</button>
+      }
+      <button type="button" (click)="charger()" [disabled]="loading"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700 transition hover:border-black hover:text-black disabled:opacity-50 sm:ml-auto">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 fill-none stroke-current stroke-2" [class.animate-spin]="loading"><path stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" /></svg>
+        Rafraîchir
+      </button>
+    </div>
+  </section>
+
+  <!-- Erreur -->
+  @if (error) {
+    <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{{ error }}</div>
+  }
+
+  <!-- Chargement -->
+  @if (loading) {
+    <div class="space-y-3">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="h-28 animate-pulse rounded-lg border border-neutral-200 bg-neutral-100"></div>
+      }
+    </div>
+  } @else if (!error && fichesFiltrees.length === 0) {
+    <!-- Vide -->
+    <div class="rounded-lg border border-dashed border-neutral-300 bg-white p-10 text-center text-sm text-neutral-500">
+      Aucune évaluation pour ces critères.
+    </div>
+  } @else {
+    <!-- Liste -->
+    <div class="space-y-4">
+      @for (f of fichesFiltrees; track f.cle) {
+        <article class="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-3">
+            <div>
+              <p class="font-medium text-black">{{ nom(f.gardien, 'Gardien') }}
+                <span class="text-neutral-400">· {{ f.gardien?.matricule }}</span></p>
+              <p class="text-sm text-neutral-500">{{ f.propriete?.nomReference }} · {{ f.propriete?.commune }}</p>
+            </div>
+            <span class="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium capitalize text-neutral-700">{{ moisLabel(f.periode) }}</span>
+          </div>
+
+          <div class="mt-3 grid gap-3 md:grid-cols-2">
+            <!-- Appréciation du propriétaire -->
+            <div class="rounded-lg border-l-4 border-amber-400 bg-amber-50 p-3">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-xs font-semibold uppercase tracking-wide text-amber-800">Propriétaire</p>
+                @if (estSuperAdmin && f.proprietaire) {
+                  <button type="button" (click)="demanderSuppression(f.proprietaire)" class="text-xs font-medium text-red-600 underline hover:text-red-800">Supprimer</button>
+                }
+              </div>
+              @if (f.proprietaire) {
+                <p class="mt-1.5 whitespace-pre-line text-sm text-neutral-800">{{ f.proprietaire.commentaire }}</p>
+                <p class="mt-2 text-[11px] text-neutral-500">{{ f.proprietaire.auteurNom }} · {{ dateHeure(f.proprietaire.modifie ? f.proprietaire.modifieLe : f.proprietaire.createdAt) }}{{ f.proprietaire.modifie ? ' (modifiée)' : '' }}</p>
+              } @else {
+                <p class="mt-1.5 text-sm italic text-neutral-400">Pas d’appréciation du propriétaire.</p>
+              }
+            </div>
+
+            <!-- Auto-évaluation du gardien -->
+            <div class="rounded-lg border-l-4 border-blue-400 bg-blue-50 p-3">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-800">Gardien (auto-évaluation)</p>
+                @if (estSuperAdmin && f.autoGardien) {
+                  <button type="button" (click)="demanderSuppression(f.autoGardien)" class="text-xs font-medium text-red-600 underline hover:text-red-800">Supprimer</button>
+                }
+              </div>
+              @if (f.autoGardien) {
+                <p class="mt-1.5 whitespace-pre-line text-sm text-neutral-800">{{ f.autoGardien.commentaire }}</p>
+                <p class="mt-2 text-[11px] text-neutral-500">{{ f.autoGardien.auteurNom }} · {{ dateHeure(f.autoGardien.modifie ? f.autoGardien.modifieLe : f.autoGardien.createdAt) }}{{ f.autoGardien.modifie ? ' (modifiée)' : '' }}</p>
+              } @else {
+                <p class="mt-1.5 text-sm italic text-neutral-400">Pas d’auto-évaluation du gardien.</p>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <!-- Confirmation de suppression (super admin) -->
+  @if (suppression) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="annulerSuppression()">
+      <div class="w-full max-w-md rounded-lg bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+        <h2 class="font-serif text-xl text-black">Supprimer cette évaluation ?</h2>
+        <p class="mt-2 text-sm text-neutral-600">Cette action est définitive. L’évaluation de {{ suppression.auteurNom }} ({{ moisLabel(suppression.periode) }}) sera supprimée.</p>
+        @if (erreurAction) { <p class="mt-3 text-sm text-red-600">{{ erreurAction }}</p> }
+        <div class="mt-5 flex justify-end gap-2">
+          <button type="button" (click)="annulerSuppression()" class="h-10 rounded-lg border border-neutral-300 px-4 text-sm font-medium text-neutral-700 hover:border-black">Annuler</button>
+          <button type="button" (click)="confirmerSuppression()" [disabled]="enregistrement"
+            class="h-10 rounded-lg bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50">Supprimer</button>
+        </div>
+      </div>
+    </div>
+  }
+</main>
