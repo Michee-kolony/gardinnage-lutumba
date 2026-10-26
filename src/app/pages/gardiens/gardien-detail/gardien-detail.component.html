@@ -187,6 +187,53 @@
           <p class="text-sm text-neutral-500">Aucun commentaire ne correspond à votre recherche.</p>
         }
       </div>
+
+      <!-- Évaluations mensuelles (propriétaire + auto-évaluation) -->
+      <div class="bg-white rounded-2xl border border-neutral-200 p-6 overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold text-black">Évaluations mensuelles</h2>
+          <span class="text-xs text-neutral-500">{{ evaluations.length }} avis</span>
+        </div>
+
+        @if (evaluationsLoading) {
+          <p class="text-sm text-neutral-500">Chargement...</p>
+        } @else if (evaluationsError) {
+          <p class="text-sm text-red-600">{{ evaluationsError }}</p>
+        } @else if (evaluations.length > 0) {
+          <div class="space-y-4 max-h-96 overflow-y-auto pr-1">
+            @for (evaluation of evaluations; track evaluation._id) {
+              <div class="pb-4 border-b border-neutral-100 last:border-b-0 last:pb-0">
+                <div class="flex items-center justify-between gap-2">
+                  <p class="text-sm font-medium text-black truncate">{{ evaluation.auteurNom }}</p>
+                  <span
+                    class="text-[11px] px-2 py-0.5 rounded-full shrink-0 border"
+                    [class.bg-green-100]="evaluation.auteurModele === 'Proprietaire'"
+                    [class.text-green-700]="evaluation.auteurModele === 'Proprietaire'"
+                    [class.border-green-200]="evaluation.auteurModele === 'Proprietaire'"
+                    [class.bg-neutral-100]="evaluation.auteurModele === 'Gardien'"
+                    [class.text-neutral-700]="evaluation.auteurModele === 'Gardien'"
+                    [class.border-neutral-200]="evaluation.auteurModele === 'Gardien'"
+                  >
+                    {{ evaluation.auteurModele === 'Gardien' ? 'Auto-évaluation' : 'Propriétaire' }}
+                  </span>
+                </div>
+                <p class="text-xs text-neutral-500 mt-0.5">
+                  {{ moisLabel(evaluation.periode) }}
+                  @if (evaluation.propriete) {
+                    · {{ evaluation.propriete.nomReference }}
+                  }
+                </p>
+                <p class="text-sm text-neutral-600 mt-1 whitespace-pre-line">{{ evaluation.commentaire }}</p>
+                @if (evaluation.modifie && evaluation.modifieLe) {
+                  <p class="text-xs text-neutral-400 mt-1.5">Modifiée le {{ formatDate(evaluation.modifieLe) }}</p>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-sm text-neutral-500">Aucune évaluation mensuelle pour ce gardien.</p>
+        }
+      </div>
       </div>
 
       <!-- Colonne détails -->

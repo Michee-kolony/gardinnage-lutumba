@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import { Evaluation } from './evaluations.service';
 
 export type Sexe = 'M' | 'F';
 export const SEXES: Sexe[] = ['M', 'F'];
@@ -132,6 +133,15 @@ interface AddCommentaireResponse {
   commentaires: Commentaire[];
 }
 
+// Tous les avis sur un gardien (admin) : commentaires des propriétaires + évaluations mensuelles
+export interface AvisGardienResponse {
+  success: boolean;
+  totalCommentaires: number;
+  totalEvaluations: number;
+  commentaires: Commentaire[];
+  evaluations: Evaluation[];
+}
+
 interface DeleteGardienResponse {
   success: boolean;
   message: string;
@@ -224,6 +234,10 @@ export class GardiensService {
     }
 
     return this.http.post<AddCommentaireResponse>(`${environment.apiUrl}/api/gardiens/${id}/commentaires`, formData);
+  }
+
+  getAvis(id: string): Observable<AvisGardienResponse> {
+    return this.http.get<AvisGardienResponse>(`${environment.apiUrl}/api/gardiens/${id}/avis`);
   }
 
   remove(id: string): Observable<DeleteGardienResponse> {

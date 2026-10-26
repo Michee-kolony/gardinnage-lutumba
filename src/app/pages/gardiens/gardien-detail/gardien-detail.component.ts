@@ -15,6 +15,7 @@ import {
 import { AuthService } from '../../../core/auth.service';
 import { Affectation, AffectationsService } from '../../../core/affectations.service';
 import { Presence, PresencesService, TotauxPresence, dateIso } from '../../../core/presences.service';
+import { Evaluation, moisLabel } from '../../../core/evaluations.service';
 import { FORMATS_IMAGE_ACCEPT, FORMATS_IMAGE_LIBELLE, verifierImage } from '../../../core/images';
 
 const LOGO_URL = '/images/logo.png';
@@ -69,6 +70,12 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
   presencesLoading = false;
   presencesError = '';
 
+  // Évaluations mensuelles (propriétaire + auto-évaluation), visibles par tous les admins
+  evaluations: Evaluation[] = [];
+  evaluationsLoading = false;
+  evaluationsError = '';
+  moisLabel = moisLabel;
+
   private gardienId = '';
 
   constructor(
@@ -101,6 +108,7 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
     this.fetchGardien();
     this.fetchAffectations();
     this.fetchPresences();
+    this.fetchAvis();
   }
 
   ngOnDestroy(): void {
@@ -152,6 +160,21 @@ export class GardienDetailComponent implements OnInit, OnDestroy {
     this.presencesService.list({ gardien: this.gardienId }).subscribe({
       next: (res) => { this.derniersServices = res.presences.slice(0, 10); fin(); },
       error: echec
+    });
+  }
+
+  fetchAvis(): void {
+    this.evaluationsLoading = true;
+    this.evaluationsError = '';
+    this.gardiensService.getAvis(this.gardienId).subscribe({
+      next: (res) => {
+        this.evaluations = res.evaluations;
+        this.evaluationsLoading = false;
+      },
+      error: (err: HttpErrorResponse) => {
+        this.evaluationsError = err.error?.message || 'Impossible de charger les évaluations.';
+        this.evaluationsLoading = false;
+      }
     });
   }
 
