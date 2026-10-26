@@ -135,9 +135,11 @@ export class MessagerieComponent implements OnInit, OnDestroy {
     this.chargerConversations();
     this.ecouter();
 
-    // Ouverture directe : /admin/messagerie?conversation=<id>
-    const id = this.route.snapshot.queryParamMap.get('conversation');
-    if (id) this.ouvrirParId(id);
+    // Ouverture directe : /admin/messagerie?conversation=<id> (lien ou notification, même page déjà affichée)
+    this.abonnements.push(this.route.queryParamMap.subscribe((params) => {
+      const id = params.get('conversation');
+      if (id && id !== this.chat.conversationOuverte) this.ouvrirParId(id);
+    }));
   }
 
   ngOnDestroy(): void {

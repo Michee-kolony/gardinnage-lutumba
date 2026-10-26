@@ -30,6 +30,7 @@ import { IncidentDetailComponent } from './pages/incidents/incident-detail/incid
 import { IncidentFormComponent } from './pages/incidents/incident-form/incident-form.component';
 import { IncidentIconeComponent } from './pages/incidents/incident-icone/incident-icone.component';
 import { IncidentsAlertesComponent } from './layout/incidents-alertes/incidents-alertes.component';
+import { NotificationsAlertesComponent } from './layout/notifications-alertes/notifications-alertes.component';
 import { PaiementsComponent } from './pages/paiements/paiements.component';
 import { PaiementFormComponent } from './pages/paiements/paiement-form/paiement-form.component';
 import { PaiementSuppressionComponent } from './pages/paiements/paiement-suppression/paiement-suppression.component';
@@ -81,6 +82,7 @@ import { MessagerieComponent } from './pages/messagerie/messagerie.component';
     IncidentFormComponent,
     IncidentIconeComponent,
     IncidentsAlertesComponent,
+    NotificationsAlertesComponent,
     PaiementsComponent,
     PaiementFormComponent,
     PaiementSuppressionComponent,

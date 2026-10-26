@@ -5,6 +5,7 @@ import { io, Socket } from 'socket.io-client';
 
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
+import { Rapport } from './rapports.service';
 
 // =====================================================
 // MODELES (renvoyés par /api/chat, voir backend controllers/chat.js)
@@ -77,6 +78,9 @@ export interface PageMessages {
 
 export interface EvenementMessage {
   conversation: string;
+  // Permet de savoir si l'on est membre (discussion privée) ou simple superviseur
+  type?: 'propriete' | 'directe';
+  participants?: string[];
   message: MessageChat;
 }
 
@@ -145,6 +149,8 @@ export class ChatService {
   readonly messageSupprime$ = new Subject<EvenementMessage>();
   readonly lu$ = new Subject<EvenementLu>();
   readonly ecrit$ = new Subject<EvenementEcrit>();
+  // Le socket temps réel est partagé : il relaie aussi les nouveaux rapports des gardiens
+  readonly nouveauRapport$ = new Subject<Rapport>();
 
   // Conversation affichée : ses nouveaux messages ne comptent pas comme non lus
   conversationOuverte: string | null = null;
@@ -185,6 +191,7 @@ export class ChatService {
     relayer<EvenementMessage>('message:supprime', this.messageSupprime$, () => this.recalculNonLus.next());
     relayer<EvenementLu>('conversation:lu', this.lu$);
     relayer<EvenementEcrit>('chat:ecrit', this.ecrit$);
+    socket.on('rapport:nouveau', (donnees: { rapport: Rapport }) => this.zone.run(() => this.nouveauRapport$.next(donnees.rapport)));
 
     // Connexion (ou reconnexion après une coupure) : messages reçus entre-temps
     socket.on('connect', () => this.recalculNonLus.next());

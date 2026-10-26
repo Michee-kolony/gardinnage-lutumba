@@ -75,14 +75,19 @@ export class RapportsComponent implements OnInit {
     this.proprietesService.list().subscribe({ next: (res) => (this.proprietes = res.proprietes), error: () => (this.proprietes = []) });
     this.charger();
 
-    // Ouverture directe d'un rapport depuis le dashboard (?id=...)
-    const id = this.route.snapshot.queryParamMap.get('id');
-    if (id) {
+    // Ouverture directe d'un rapport depuis le dashboard ou une notification (?id=...),
+    // y compris quand la page est déjà affichée
+    this.route.queryParamMap.subscribe((params) => {
+      const id = params.get('id');
+      if (!id || id === this.selection?._id) return;
       this.rapportsService.getById(id).subscribe({
-        next: (res) => this.ouvrir(res.rapport),
+        next: (res) => {
+          this.ouvrir(res.rapport);
+          this.charger();
+        },
         error: (err: HttpErrorResponse) => (this.error = err.error?.message || 'Rapport introuvable.')
       });
-    }
+    });
   }
 
   charger(): void {
