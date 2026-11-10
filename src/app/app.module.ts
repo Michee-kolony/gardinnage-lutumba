@@ -9,6 +9,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AuthInterceptor } from './core/auth.interceptor';
 import { HomeComponent } from './public/home/home.component';
+import { AppStoreComponent } from './public/app-store/app-store.component';
+import { StoreAccueilComponent } from './public/app-store/store-accueil/store-accueil.component';
 import { LoginComponent } from './auth/login/login.component';
 import { LayoutComponent } from './layout/layout.component';
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
@@ -61,6 +63,8 @@ import { MessagerieComponent } from './pages/messagerie/messagerie.component';
   declarations: [
     AppComponent,
     HomeComponent,
+    AppStoreComponent,
+    StoreAccueilComponent,
     LoginComponent,
     LayoutComponent,
     SidebarComponent,

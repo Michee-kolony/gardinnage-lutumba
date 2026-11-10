@@ -10,6 +10,7 @@
     "contact": "Boyokani",
     "callUs": "Benga biso",
     "openMenu": "Fungola meni",
+    "app": "Store",
     "closeMenu": "Kanga meni"
   },
   "lang": {
@@ -210,6 +211,7 @@
     "emailLabel": "Email",
     "phoneLabel": "Telefone",
     "availability": "Ezali polele ngonga 24 na mikolo 7",
+    "appDownload": "Kitisa ba application na biso",
     "copyright": "Empire Security — Makoki nyonso ebombami"
   }
 }

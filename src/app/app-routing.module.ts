@@ -2,6 +2,8 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { HomeComponent } from './public/home/home.component';
+import { AppStoreComponent } from './public/app-store/app-store.component';
+import { StoreAccueilComponent } from './public/app-store/store-accueil/store-accueil.component';
 import { LoginComponent } from './auth/login/login.component';
 import { LayoutComponent } from './layout/layout.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
@@ -26,6 +28,8 @@ import { authGuard } from './core/auth.guard';
 const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'application', component: StoreAccueilComponent },
+  { path: 'application/:id', component: AppStoreComponent },
   {
     path: 'admin',
     component: LayoutComponent,

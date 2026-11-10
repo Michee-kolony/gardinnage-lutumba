@@ -10,6 +10,7 @@
     "contact": "Contact",
     "callUs": "Call us",
     "openMenu": "Open menu",
+    "app": "Store",
     "closeMenu": "Close menu"
   },
   "lang": {
@@ -210,6 +211,7 @@
     "emailLabel": "Email",
     "phoneLabel": "Phone",
     "availability": "Available 24/7",
+    "appDownload": "Download our apps",
     "copyright": "Empire Security — All rights reserved"
   }
 }
