@@ -26,9 +26,9 @@ import { MessagerieComponent } from './pages/messagerie/messagerie.component';
 import { authGuard } from './core/auth.guard';
 
 const routes: Routes = [
-  { path: '', pathMatch: 'full', component: HomeComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'application', component: StoreAccueilComponent },
+  { path: '', pathMatch: 'full', component: HomeComponent, title: 'Empire Security — Gardiennage et sécurité en RDC' },
+  { path: 'login', component: LoginComponent, title: 'Connexion — Empire Security' },
+  { path: 'application', component: StoreAccueilComponent, title: "Empire Store — Applications officielles d'Empire Security" },
   { path: 'application/:id', component: AppStoreComponent },
   {
     path: 'admin',

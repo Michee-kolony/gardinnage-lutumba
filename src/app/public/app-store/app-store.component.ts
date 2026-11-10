@@ -1,4 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -34,6 +35,8 @@ export class AppStoreComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private compteurs: TelechargementsService,
+    private titre: Title,
+    private meta: Meta,
   ) {}
 
   readonly etapes: EtapeInstallation[] = [
@@ -58,6 +61,8 @@ export class AppStoreComponent implements OnInit, OnDestroy {
         return;
       }
       this.app = app;
+      this.titre.setTitle(`${app.nom} — Empire Store`);
+      this.meta.updateTag({ name: 'description', content: `${app.accroche}. ${app.description}`.slice(0, 160) });
       this.autres = CATALOGUE.filter((a) => a.id !== app.id);
       this.downloadStarted = false;
       this.captureOuverte = null;

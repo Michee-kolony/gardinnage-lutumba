@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+# Espace d'administration et connexion : inutiles dans les résultats de recherche
+Disallow: /admin
+Disallow: /login
+
+Sitemap: https://empire-security-drc.com/sitemap.xml
