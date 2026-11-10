@@ -36,14 +36,12 @@ export class AppStoreComponent implements OnInit, OnDestroy {
     private compteurs: TelechargementsService,
   ) {}
 
-  get etapes(): EtapeInstallation[] {
-    return [
-      { titre: 'Téléchargez le fichier', texte: 'Appuyez sur « Installer » depuis votre téléphone Android. Le fichier APK se télécharge.' },
-      { titre: 'Ouvrez le fichier', texte: 'Ouvrez la notification de téléchargement ou le dossier « Téléchargements ».' },
-      { titre: 'Autorisez l\'installation', texte: 'Si Android le demande, activez « Autoriser depuis cette source » pour votre navigateur.' },
-      { titre: 'Installez et connectez-vous', texte: 'Appuyez sur « Installer », puis connectez-vous avec les identifiants fournis par Empire Security.' },
-    ];
-  }
+  readonly etapes: EtapeInstallation[] = [
+    { titre: 'Téléchargez le fichier', texte: 'Appuyez sur « Installer » depuis votre téléphone Android. Le fichier APK se télécharge.' },
+    { titre: 'Ouvrez le fichier', texte: 'Ouvrez la notification de téléchargement ou le dossier « Téléchargements ».' },
+    { titre: 'Autorisez l\'installation', texte: 'Si Android le demande, activez « Autoriser depuis cette source » pour votre navigateur.' },
+    { titre: 'Installez et connectez-vous', texte: 'Appuyez sur « Installer », puis connectez-vous avec les identifiants fournis par Empire Security.' },
+  ];
 
   get nbTelechargements(): string {
     return formatTelechargements(this.telechargements);

@@ -39,6 +39,11 @@ export interface FicheApplication {
   captures: Capture[];
 }
 
+// Recherche insensible à la casse et aux accents
+export function normaliser(texte: string): string {
+  return texte.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
 export const CATALOGUE: FicheApplication[] = [
   {
     id: 'gardien',
@@ -46,7 +51,7 @@ export const CATALOGUE: FicheApplication[] = [
     accroche: 'Pointage, missions, incidents et alerte SOS',
     public: 'Gardiens',
     editeur: 'Empire Security',
-    icone: '/app/gardien/icon.png',
+    icone: '/app/gardien/icon.webp',
     apk: '/app/gardien/empire-security-gardien.apk',
     nomFichier: 'empire-security-gardien.apk',
     identifiant: 'com.empiresecurity.gardien',
@@ -83,7 +88,7 @@ export const CATALOGUE: FicheApplication[] = [
     accroche: 'Vos biens, vos gardiens et vos incidents en temps réel',
     public: 'Propriétaires & locataires',
     editeur: 'Empire Security',
-    icone: '/app/proprietaire/icon.png',
+    icone: '/app/proprietaire/icon.webp',
     apk: '/app/proprietaire/empire-security-proprietaire.apk',
     nomFichier: 'empire-security-proprietaire.apk',
     identifiant: 'com.empiresecurity.proprietaire',
@@ -121,18 +126,19 @@ export function trouverApplication(id: string | null): FicheApplication | undefi
   return CATALOGUE.find((a) => a.id === id);
 }
 
-// Recherche insensible à la casse et aux accents
-export function normaliser(texte: string): string {
-  return texte.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-}
+
+// Texte de recherche de chaque appli, normalisé une seule fois au chargement
+const INDEX_RECHERCHE = new Map<IdApplication, string>(
+  CATALOGUE.map((app) => [app.id, normaliser([
+    app.nom, app.accroche, app.public, app.description, ...app.categories,
+    ...app.fonctionnalites.map((f) => `${f.titre} ${f.texte}`),
+  ].join(' '))])
+);
 
 export function correspond(app: FicheApplication, recherche: string): boolean {
   const termes = normaliser(recherche).split(/\s+/).filter(Boolean);
   if (!termes.length) return true;
-  const texte = normaliser([
-    app.nom, app.accroche, app.public, app.description, ...app.categories,
-    ...app.fonctionnalites.map((f) => `${f.titre} ${f.texte}`),
-  ].join(' '));
+  const texte = INDEX_RECHERCHE.get(app.id) ?? '';
   return termes.every((t) => texte.includes(t));
 }
 
