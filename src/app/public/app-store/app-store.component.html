@@ -280,9 +280,9 @@
       @if (autres.length) {
         <section class="mt-14">
           <h2 class="text-xl font-bold mb-4">Autres applications d'Empire Security</h2>
-          <div class="grid sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @for (autre of autres; track autre.id) {
-              <a [routerLink]="['/application', autre.id]" class="flex items-center gap-4 rounded-2xl border border-neutral-200 hover:border-brand/60 hover:shadow-md p-4 transition">
+              <a [routerLink]="['/application', autre.id]" class="min-w-0 flex items-center gap-4 rounded-2xl border border-neutral-200 hover:border-brand/60 hover:shadow-md p-4 transition">
                 <img [src]="autre.icone" [alt]="autre.nom" class="h-14 w-14 rounded-[22%] ring-1 ring-black/5 object-cover shrink-0" />
                 <div class="min-w-0">
                   <p class="font-bold leading-tight">{{ autre.nom }}</p>

@@ -1,4 +1,4 @@
-<div class="bg-white text-ink font-display antialiased">
+<div class="bg-white text-ink font-display antialiased overflow-x-clip">
 
   <!-- Barre d'info -->
 
@@ -483,7 +483,7 @@
         @for (card of approachCards; track card.textKey) {
 
           <div
-            class="notch-card"
+            class="notch-card overflow-hidden"
             [class.bg-white]="card.theme === 'light'"
             [class.bg-brand]="card.theme === 'yellow'"
             [class.bg-ink]="card.theme === 'dark'"
