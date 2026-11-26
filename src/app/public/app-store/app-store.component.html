@@ -273,6 +273,13 @@
             Un problème d'installation ou de connexion ? Contactez Empire Security au
             <span class="text-neutral-800 font-medium">+243 000 000 000</span>.
           </p>
+
+          @if (app.id === 'proprietaire') {
+            <a routerLink="/application/proprietaire/confidentialite" class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-dark hover:underline">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7l7-4z" /></svg>
+              Politique de confidentialité
+            </a>
+          }
         </aside>
       </div>
 

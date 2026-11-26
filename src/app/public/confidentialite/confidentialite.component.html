@@ -1,0 +1,335 @@
+<div class="min-h-screen bg-white text-neutral-900 font-display">
+
+  <!-- Barre du store -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-neutral-200">
+    <div class="max-w-4xl mx-auto px-4 h-16 flex items-center gap-2 sm:gap-4">
+      <a routerLink="/application/proprietaire" class="shrink-0 h-10 pl-2 pr-3 -ml-2 rounded-full text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 flex items-center gap-1.5 transition-colors" aria-label="Retour à l'application">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6" /></svg>
+        <span class="hidden sm:inline">Retour à l'application</span>
+      </a>
+
+      <span class="hidden sm:block h-6 w-px bg-neutral-200 shrink-0" aria-hidden="true"></span>
+
+      <a routerLink="/" class="flex items-center gap-2.5 mr-auto">
+        <img src="/images/logo-320.webp" alt="Empire Security" class="h-9 w-9 object-contain" />
+        <span class="text-lg tracking-tight">Empire <strong class="font-extrabold text-brand-dark">Security</strong></span>
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 pt-8 pb-20">
+
+    <!-- Fil d'Ariane -->
+    <nav class="text-xs text-neutral-500" aria-label="Fil d'Ariane">
+      <a routerLink="/application" class="hover:text-neutral-900">Empire Store</a>
+      <span class="mx-1.5">›</span>
+      <a routerLink="/application/proprietaire" class="hover:text-neutral-900">Empire Security Propriétaire</a>
+      <span class="mx-1.5">›</span>
+      <span class="text-neutral-800">Confidentialité</span>
+    </nav>
+
+    <div class="mt-6 flex items-center gap-4">
+      <img src="/app/proprietaire/icon.webp" alt="" class="h-16 w-16 rounded-[22%] ring-1 ring-black/5 object-cover shrink-0" />
+      <div>
+        <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight">Politique de confidentialité</h1>
+        <p class="mt-1 text-brand-dark font-semibold">Application « Empire Security Propriétaire »</p>
+      </div>
+    </div>
+    <p class="mt-3 text-sm text-neutral-500">
+      Dernière mise à jour : {{ miseAJour }} · Identifiant : com.empiresecurity.proprietaire · Android et iOS
+    </p>
+
+    <!-- Résumé -->
+    <section class="mt-8 rounded-2xl bg-brand-soft border border-brand/30 p-5 sm:p-6">
+      <h2 class="text-lg font-bold">En bref</h2>
+      <ul class="mt-3 space-y-2 text-sm text-neutral-800 leading-relaxed list-disc pl-5">
+        <li>Nous collectons uniquement les données nécessaires au service de gardiennage : votre compte, vos propriétés, vos échanges avec nos équipes.</li>
+        <li><strong>Nous ne vendons pas vos données</strong> et nous ne les utilisons pas à des fins publicitaires.</li>
+        <li>L'application <strong>n'accède pas à la position de votre téléphone</strong>, ni à vos contacts.</li>
+        <li>L'application ne contient <strong>aucun traceur publicitaire ni outil de mesure d'audience</strong>.</li>
+        <li>Vous pouvez à tout moment demander l'accès, la correction ou la <a href="#suppression-compte" class="underline font-semibold">suppression de votre compte et de vos données</a>.</li>
+      </ul>
+    </section>
+
+    <!-- Sommaire -->
+    <nav class="mt-8 rounded-2xl border border-neutral-200 p-5 text-sm" aria-label="Sommaire">
+      <p class="font-bold mb-2">Sommaire</p>
+      <ol class="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 list-decimal pl-5 text-neutral-700">
+        <li><a href="#responsable" class="hover:text-brand-dark">Responsable du traitement</a></li>
+        <li><a href="#champ" class="hover:text-brand-dark">Champ d'application</a></li>
+        <li><a href="#donnees" class="hover:text-brand-dark">Données collectées</a></li>
+        <li><a href="#non-collecte" class="hover:text-brand-dark">Ce que nous ne collectons pas</a></li>
+        <li><a href="#autorisations" class="hover:text-brand-dark">Autorisations de l'appareil</a></li>
+        <li><a href="#finalites" class="hover:text-brand-dark">Utilisation des données</a></li>
+        <li><a href="#partage" class="hover:text-brand-dark">Partage et prestataires</a></li>
+        <li><a href="#securite" class="hover:text-brand-dark">Sécurité</a></li>
+        <li><a href="#conservation" class="hover:text-brand-dark">Durée de conservation</a></li>
+        <li><a href="#droits" class="hover:text-brand-dark">Vos droits</a></li>
+        <li><a href="#suppression-compte" class="hover:text-brand-dark">Suppression du compte</a></li>
+        <li><a href="#mineurs" class="hover:text-brand-dark">Mineurs</a></li>
+        <li><a href="#modifications" class="hover:text-brand-dark">Modifications</a></li>
+        <li><a href="#contact" class="hover:text-brand-dark">Nous contacter</a></li>
+      </ol>
+    </nav>
+
+    <article class="mt-10 space-y-10 text-neutral-700 leading-relaxed [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-neutral-900 [&_h2]:mb-3 [&_h2]:scroll-mt-24 [&_h3]:font-semibold [&_h3]:text-neutral-900 [&_p+p]:mt-3">
+
+      <section id="responsable">
+        <h2>1. Responsable du traitement</h2>
+        <p>
+          L'application « Empire Security Propriétaire » est éditée par <strong>Empire Security</strong>, société de
+          gardiennage et de sécurité établie en République démocratique du Congo. Empire Security est responsable du
+          traitement des données personnelles décrites dans cette politique.
+        </p>
+        <p>
+          Contact : <a [href]="'mailto:' + emailContact" class="text-brand-dark font-semibold underline">{{ emailContact }}</a>
+          — site web : <a routerLink="/" class="text-brand-dark font-semibold underline">empire-security-drc.com</a>.
+        </p>
+      </section>
+
+      <section id="champ">
+        <h2>2. Champ d'application</h2>
+        <p>
+          Cette politique s'applique à l'application mobile « Empire Security Propriétaire » (Android et iOS), destinée aux
+          clients d'Empire Security. Elle comporte deux espaces :
+        </p>
+        <ul class="mt-3 list-disc pl-5 space-y-1.5">
+          <li><strong>l'espace propriétaire</strong> : pour les propriétaires, gestionnaires et mandataires de biens surveillés ;</li>
+          <li><strong>l'espace locataire</strong> : pour les locataires dont le compte a été créé par leur propriétaire.</li>
+        </ul>
+        <p class="mt-3">
+          Les comptes ne sont pas créés librement depuis l'application : ils sont ouverts par Empire Security (propriétaires)
+          ou par le propriétaire (locataires), dans le cadre d'un contrat de gardiennage.
+        </p>
+      </section>
+
+      <section id="donnees">
+        <h2>3. Données que nous collectons</h2>
+
+        <div class="overflow-x-auto -mx-4 px-4">
+          <table class="w-full min-w-[560px] text-sm border border-neutral-200 rounded-xl overflow-hidden">
+            <thead class="bg-neutral-50 text-left text-neutral-900">
+              <tr>
+                <th class="px-4 py-3 font-semibold w-1/3">Catégorie</th>
+                <th class="px-4 py-3 font-semibold">Détail et origine</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-neutral-200 align-top">
+              <tr>
+                <td class="px-4 py-3 font-medium text-neutral-900">Identité et coordonnées</td>
+                <td class="px-4 py-3">Nom, post-nom, prénom, sexe, profession, numéro de téléphone, adresse e-mail, adresse postale. Fournis à l'ouverture du compte ou modifiés par vous dans votre profil.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium text-neutral-900">Identifiants de connexion</td>
+                <td class="px-4 py-3">Téléphone ou e-mail et mot de passe. Le mot de passe est enregistré sous forme chiffrée (hachage) : personne, y compris Empire Security, ne peut le lire.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium text-neutral-900">Photo de profil</td>
+                <td class="px-4 py-3">Facultative, uniquement si vous choisissez d'en ajouter une.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium text-neutral-900">Propriétés et logements</td>
+                <td class="px-4 py-3">Adresse et description des biens surveillés, équipements, documents, logements et comptes des locataires que vous créez (nom, téléphone, e-mail).</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium text-neutral-900">Contenus que vous envoyez</td>
+                <td class="px-4 py-3">Messages et photos échangés avec les gardiens et l'administration, signalements d'incidents (description, photos), évaluations et commentaires sur les gardiens.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium text-neutral-900">Abonnements et paiements</td>
+                <td class="px-4 py-3">Historique de vos abonnements et des paiements enregistrés par Empire Security (montant, date, période). <strong>Aucune donnée de carte bancaire</strong> n'est saisie ni stockée dans l'application.</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium text-neutral-900">Données techniques</td>
+                <td class="px-4 py-3">Adresse IP et date des requêtes, enregistrées dans les journaux de notre serveur pour sa sécurité et son bon fonctionnement. Sur votre téléphone, l'application garde votre jeton de session et vos informations de profil pour vous éviter de vous reconnecter.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="mt-4">
+          <strong>Position des gardiens :</strong> la carte de l'application affiche la position des gardiens affectés à vos
+          propriétés, uniquement pendant leur service. Ces positions proviennent de l'application des gardiens ; elles ne
+          concernent pas votre propre localisation.
+        </p>
+      </section>
+
+      <section id="non-collecte">
+        <h2>4. Ce que nous ne collectons pas</h2>
+        <ul class="list-disc pl-5 space-y-1.5">
+          <li>la position GPS de votre téléphone ;</li>
+          <li>vos contacts, votre calendrier, vos SMS ou votre historique d'appels ;</li>
+          <li>l'identifiant publicitaire de votre appareil ;</li>
+          <li>des données de navigation à des fins publicitaires ou de profilage : l'application n'intègre aucun SDK publicitaire ni outil d'analyse d'audience.</li>
+        </ul>
+      </section>
+
+      <section id="autorisations">
+        <h2>5. Autorisations de l'appareil</h2>
+        <div class="space-y-4">
+          <div>
+            <h3>Internet et état du réseau</h3>
+            <p>Pour communiquer avec nos serveurs et vous prévenir lorsque vous êtes hors connexion.</p>
+          </div>
+          <div>
+            <h3>Appareil photo et photothèque</h3>
+            <p>
+              Utilisés uniquement lorsque vous choisissez de prendre ou de joindre une photo (profil, message, incident).
+              Seules les photos que vous sélectionnez sont envoyées ; l'application ne parcourt pas votre galerie.
+            </p>
+          </div>
+          <div>
+            <h3>Notifications</h3>
+            <p>
+              Pour déclencher l'alarme lorsqu'un incident est signalé sur l'une de vos propriétés. Les notifications sont
+              générées localement par l'application ; vous pouvez les désactiver dans les réglages de votre téléphone.
+            </p>
+          </div>
+        </div>
+        <p class="mt-4">Vous pouvez retirer ces autorisations à tout moment dans les réglages de votre appareil ; seules les fonctions concernées seront indisponibles.</p>
+      </section>
+
+      <section id="finalites">
+        <h2>6. Pourquoi nous utilisons vos données</h2>
+        <ul class="list-disc pl-5 space-y-1.5">
+          <li><strong>Exécuter le contrat de gardiennage</strong> : gestion de votre compte, de vos propriétés, des affectations de gardiens, des rapports de service et des incidents.</li>
+          <li><strong>Communiquer</strong> avec vous, vos gardiens et l'administration via la messagerie.</li>
+          <li><strong>Assurer votre sécurité</strong> : alertes en cas d'incident, suivi des gardiens en poste.</li>
+          <li><strong>Gérer les abonnements</strong> et vous en informer.</li>
+          <li><strong>Sécuriser le service</strong> : authentification, prévention des fraudes et des accès non autorisés.</li>
+          <li><strong>Respecter nos obligations légales</strong> (comptabilité, réponse aux autorités compétentes).</li>
+        </ul>
+        <p class="mt-3">Vos données ne sont utilisées pour aucune autre finalité, notamment ni publicité ni revente.</p>
+      </section>
+
+      <section id="partage">
+        <h2>7. Partage des données</h2>
+        <p>Vos données sont accessibles uniquement :</p>
+        <ul class="mt-3 list-disc pl-5 space-y-1.5">
+          <li>au <strong>personnel autorisé d'Empire Security</strong> (administration, centre de contrôle) ;</li>
+          <li>aux <strong>gardiens affectés à vos propriétés</strong>, pour ce qui est nécessaire à leur mission (messages, informations sur la propriété) ;</li>
+          <li>à vos <strong>locataires</strong>, pour les informations du logement qu'ils occupent ;</li>
+          <li>à nos <strong>prestataires techniques</strong>, qui agissent sur nos instructions :
+            <ul class="mt-1.5 list-[circle] pl-5 space-y-1">
+              <li>l'hébergeur de notre serveur et de notre base de données ;</li>
+              <li>Cloudflare (service R2), pour le stockage des photos et documents ;</li>
+              <li>OpenStreetMap, qui fournit le fond de carte : votre appareil télécharge les images de carte depuis leurs serveurs, qui reçoivent alors votre adresse IP.</li>
+            </ul>
+          </li>
+          <li>aux <strong>autorités</strong>, lorsque la loi l'exige.</li>
+        </ul>
+        <p class="mt-3">
+          <strong>Nous ne vendons, ne louons et n'échangeons jamais vos données personnelles.</strong>
+          Certains prestataires pouvant être situés hors de la RDC, nous veillons à ce qu'ils offrent des garanties de
+          sécurité adaptées.
+        </p>
+      </section>
+
+      <section id="securite">
+        <h2>8. Sécurité</h2>
+        <ul class="list-disc pl-5 space-y-1.5">
+          <li>toutes les communications entre l'application et nos serveurs sont chiffrées (HTTPS) ;</li>
+          <li>les mots de passe sont stockés sous forme hachée ;</li>
+          <li>les sessions expirent automatiquement après 24 heures ;</li>
+          <li>l'accès aux données est limité aux personnes qui en ont besoin.</li>
+        </ul>
+        <p class="mt-3">
+          Aucun système n'étant infaillible, nous vous invitons à garder votre mot de passe confidentiel et à nous signaler
+          sans délai toute activité suspecte.
+        </p>
+      </section>
+
+      <section id="conservation">
+        <h2>9. Durée de conservation</h2>
+        <ul class="list-disc pl-5 space-y-1.5">
+          <li><strong>Compte et propriétés</strong> : pendant toute la durée de la relation contractuelle, puis supprimés ou anonymisés au plus tard 12 mois après la fin du contrat ou la suppression du compte.</li>
+          <li><strong>Messages, photos, incidents et rapports</strong> : pendant la durée du contrat, puis supprimés selon la même règle, sauf s'ils sont nécessaires à un litige ou à une enquête en cours.</li>
+          <li><strong>Données de paiement</strong> : conservées pendant la durée exigée par les obligations comptables et fiscales.</li>
+          <li><strong>Journaux techniques</strong> : 12 mois au maximum.</li>
+          <li><strong>Données sur votre téléphone</strong> : effacées lorsque vous vous déconnectez ou désinstallez l'application.</li>
+        </ul>
+      </section>
+
+      <section id="droits">
+        <h2>10. Vos droits</h2>
+        <p>Vous disposez des droits suivants sur vos données :</p>
+        <ul class="mt-3 list-disc pl-5 space-y-1.5">
+          <li><strong>accès</strong> : obtenir une copie de vos données ;</li>
+          <li><strong>rectification</strong> : corriger des données inexactes (la plupart sont modifiables directement dans « Mon profil ») ;</li>
+          <li><strong>suppression</strong> de votre compte et de vos données ;</li>
+          <li><strong>opposition</strong> ou <strong>limitation</strong> de certains traitements ;</li>
+          <li><strong>portabilité</strong> : recevoir vos données dans un format lisible.</li>
+        </ul>
+        <p class="mt-3">
+          Pour exercer ces droits, écrivez-nous à
+          <a [href]="'mailto:' + emailContact" class="text-brand-dark font-semibold underline">{{ emailContact }}</a>.
+          Nous répondons dans un délai maximal de 30 jours. Nous pouvons vous demander de confirmer votre identité.
+        </p>
+      </section>
+
+      <section id="suppression-compte" class="rounded-2xl border-2 border-brand/50 p-5 sm:p-6">
+        <h2>11. Supprimer votre compte et vos données</h2>
+        <p>Vous pouvez demander la suppression de votre compte à tout moment, sans avoir à vous justifier :</p>
+        <ol class="mt-3 list-decimal pl-5 space-y-1.5">
+          <li>
+            envoyez un e-mail à <a [href]="'mailto:' + emailContact + '?subject=Suppression%20de%20mon%20compte%20Empire%20Security%20Propri%C3%A9taire'" class="text-brand-dark font-semibold underline">{{ emailContact }}</a>
+            avec pour objet « Suppression de mon compte », en indiquant le numéro de téléphone ou l'e-mail de votre compte ;
+          </li>
+          <li>nous confirmons votre identité, puis nous supprimons votre compte et les données associées <strong>dans un délai de 30 jours</strong> ;</li>
+          <li>vous recevez une confirmation une fois la suppression effectuée.</li>
+        </ol>
+        <p class="mt-3">
+          <strong>Données supprimées :</strong> profil, photo, identifiants, comptes locataires que vous avez créés, messages et photos envoyés.
+          <br />
+          <strong>Données conservées :</strong> uniquement les données de paiement et de facturation exigées par la loi,
+          pendant la durée légale, ainsi que les rapports d'incident nécessaires à un litige en cours.
+        </p>
+        <p class="mt-3">
+          Les locataires peuvent demander la suppression de leur compte de la même façon, ou auprès de leur propriétaire.
+          La désinstallation de l'application n'entraîne pas la suppression de votre compte.
+        </p>
+      </section>
+
+      <section id="mineurs">
+        <h2>12. Mineurs</h2>
+        <p>
+          L'application est destinée aux adultes clients d'Empire Security et n'est pas conçue pour les enfants. Nous ne
+          collectons pas sciemment de données concernant des personnes de moins de 18 ans. Si vous pensez qu'un mineur nous a
+          transmis des données, contactez-nous afin que nous les supprimions.
+        </p>
+      </section>
+
+      <section id="modifications">
+        <h2>13. Modifications de cette politique</h2>
+        <p>
+          Nous pouvons modifier cette politique, notamment lors de l'ajout de nouvelles fonctionnalités. La date de dernière
+          mise à jour figure en haut de cette page. En cas de changement important, nous vous en informerons dans
+          l'application ou par message.
+        </p>
+      </section>
+
+      <section id="contact">
+        <h2>14. Nous contacter</h2>
+        <p>Pour toute question sur cette politique ou sur vos données :</p>
+        <dl class="mt-3 rounded-2xl border border-neutral-200 divide-y divide-neutral-200 text-sm">
+          <div class="flex justify-between gap-4 px-4 py-3">
+            <dt class="text-neutral-500">Société</dt>
+            <dd class="font-medium text-right">Empire Security — RDC</dd>
+          </div>
+          <div class="flex justify-between gap-4 px-4 py-3">
+            <dt class="text-neutral-500">E-mail</dt>
+            <dd class="font-medium text-right"><a [href]="'mailto:' + emailContact" class="underline">{{ emailContact }}</a></dd>
+          </div>
+          <div class="flex justify-between gap-4 px-4 py-3">
+            <dt class="text-neutral-500">Téléphone</dt>
+            <dd class="font-medium text-right">+243 000 000 000</dd>
+          </div>
+        </dl>
+      </section>
+    </article>
+  </main>
+
+  <footer class="border-t border-neutral-200 py-6 text-center text-xs text-neutral-500">
+    © Empire Security — Politique de confidentialité de l'application Empire Security Propriétaire
+  </footer>
+</div>

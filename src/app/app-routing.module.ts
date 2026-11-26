@@ -4,6 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './public/home/home.component';
 import { AppStoreComponent } from './public/app-store/app-store.component';
 import { StoreAccueilComponent } from './public/app-store/store-accueil/store-accueil.component';
+import { ConfidentialiteComponent } from './public/confidentialite/confidentialite.component';
 import { LoginComponent } from './auth/login/login.component';
 import { LayoutComponent } from './layout/layout.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
@@ -30,6 +31,8 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent, title: 'Connexion — Empire Security' },
   { path: 'application', component: StoreAccueilComponent, title: "Empire Store — Applications officielles d'Empire Security" },
   { path: 'application/:id', component: AppStoreComponent },
+  // URL déclarée sur Google Play et l'App Store comme politique de confidentialité
+  { path: 'application/proprietaire/confidentialite', component: ConfidentialiteComponent },
   {
     path: 'admin',
     component: LayoutComponent,
